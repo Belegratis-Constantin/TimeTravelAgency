@@ -28,7 +28,6 @@ public class Customer : Participant
 #pragma warning restore CS8618
 
     // Properties
-    [Required]
     [MaxLength(255)]
     public string Email
     {

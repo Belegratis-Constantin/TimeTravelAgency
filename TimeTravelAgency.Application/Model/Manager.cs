@@ -103,7 +103,7 @@ public class Manager
         if (_trips.Count(t => t.TripStatus == TripStatus.Active) >= MaxAmountManagedTrips) 
             throw new InvalidOperationException($"Cannot manage more than {MaxAmountManagedTrips} trips.");
 
-        var trip = new Trip(dateInRealLife, licensedAgent, Id, tripName);
+        var trip = new Trip(dateInRealLife, licensedAgent, this, tripName);
 
         _trips.Add(trip);
 
@@ -174,7 +174,7 @@ public class Manager
             licensedSupportAgent,
             trip.DateInRealLife,
             trip.LicensedAgent,
-            this.Id, 
+            this, 
             tripName
         );
 

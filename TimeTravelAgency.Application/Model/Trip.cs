@@ -13,15 +13,14 @@ public class Trip
     private Collection<Review> _reviews;
     
     // Constructors
-    internal Trip(DateTime dateInRealLife, LicensedAgent licensedAgent, int managerId, string? tripName = null)
+    public Trip(DateTime dateInRealLife, LicensedAgent licensedAgent, Manager manager, string? tripName = null)
     {
         Guid = Guid.NewGuid();
         DateInRealLife = dateInRealLife;
         TripName = tripName;
         
-        LicensedAgentId = licensedAgent.Id;
         LicensedAgent = licensedAgent;
-        ManagerId = managerId;
+        Manager = manager;
         TripStatus = TripStatus.Active;
         
         _customers = new Collection<Customer>();

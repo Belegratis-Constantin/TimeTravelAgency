@@ -1,3 +1,4 @@
+using Bogus;
 using Microsoft.EntityFrameworkCore;
 using TimeTravelAgency.Application.Model;
 
@@ -36,32 +37,14 @@ public class TimeTravelAgencyContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Agent>()
-            .HasKey(a => a.Id);
-
-        modelBuilder.Entity<LicensedAgent>()
-            .HasBaseType<Agent>();
-
         // Epoch
-        modelBuilder.Entity<Epoch>()
-            .HasKey(e => e.Id);
-
         modelBuilder.Entity<Epoch>()
             .Property(e => e.Id)
             .ValueGeneratedNever();
 
         modelBuilder.Entity<Epoch>()
-            .Property(e => e.StartYear)
-            .IsRequired();
-
-        modelBuilder.Entity<Epoch>()
-            .Property(e => e.EndYear)
-            .IsRequired();
-
-        modelBuilder.Entity<Epoch>()
-            .Property(e => e.Name)
-            .HasMaxLength(255)
-            .IsRequired();
+            .Property(e => e.Guid)
+            .ValueGeneratedOnAdd();
 
         modelBuilder.Entity<Epoch>()
             .HasMany(e => e.HistoricalEvents)
@@ -141,18 +124,6 @@ public class TimeTravelAgencyContext : DbContext
 
         // HistoricalEvent
         modelBuilder.Entity<HistoricalEvent>()
-            .HasKey(h => h.Id);
-
-        modelBuilder.Entity<HistoricalEvent>()
-            .Property(h => h.EventName)
-            .HasMaxLength(255)
-            .IsRequired();
-
-        modelBuilder.Entity<HistoricalEvent>()
-            .Property(h => h.EventYear)
-            .IsRequired();
-
-        modelBuilder.Entity<HistoricalEvent>()
             .HasOne(h => h.Epoch)
             .WithMany(e => e.HistoricalEvents)
             .HasForeignKey(h => h.EpochId)
@@ -206,52 +177,27 @@ public class TimeTravelAgencyContext : DbContext
             .IsRequired(false);
 
         modelBuilder.Entity<Agent>()
-            .Property(a => a.SpecialisationTime)
-            .IsRequired();
-
+            .Property(a => a.Guid)
+            .ValueGeneratedOnAdd();
+        
         // LicensedAgent
         modelBuilder.Entity<LicensedAgent>()
-            .Property(l => l.Firstname)
-            .HasMaxLength(255)
-            .IsRequired();
-
+            .Property(a => a.Guid)
+            .ValueGeneratedOnAdd();
+        
         modelBuilder.Entity<LicensedAgent>()
-            .Property(l => l.Lastname)
-            .HasMaxLength(255)
-            .IsRequired();
+            .HasBaseType<Agent>();
 
         // Customer
         modelBuilder.Entity<Customer>()
-            .HasKey(c => c.Id);
-
-        modelBuilder.Entity<Customer>()
-            .Property(c => c.Firstname)
-            .HasMaxLength(255)
-            .IsRequired();
-
-        modelBuilder.Entity<Customer>()
-            .Property(c => c.Lastname)
-            .HasMaxLength(255)
-            .IsRequired();
-
-        modelBuilder.Entity<Customer>()
-            .Property(c => c.DateOfBirth)
-            .IsRequired();
-
-        modelBuilder.Entity<Customer>()
-            .Property(c => c.Email)
-            .HasMaxLength(255)
-            .IsRequired();
-
-        modelBuilder.Entity<Customer>()
-            .Property(c => c.PhoneNumber)
-            .HasMaxLength(20)
-            .IsRequired();
+            .Property(c => c.Guid)
+            .ValueGeneratedOnAdd();
 
         // Trip
         modelBuilder.Entity<Trip>()
-            .HasKey(t => t.Id);
-
+            .Property(t => t.Guid)
+            .ValueGeneratedOnAdd();
+        
         modelBuilder.Entity<Trip>()
             .HasOne(t => t.LicensedAgent)
             .WithMany()
@@ -269,6 +215,11 @@ public class TimeTravelAgencyContext : DbContext
             .WithMany(m => m.Trips)
             .HasForeignKey(t => t.ManagerId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        // CriticalTrip
+        
+        modelBuilder.Entity<CriticalTrip>()
+            .HasBaseType<Trip>();
 
         // Many-to-Many relationship between Trip and Customer
         modelBuilder.Entity<Trip>()
@@ -278,32 +229,23 @@ public class TimeTravelAgencyContext : DbContext
 
         // Manager
         modelBuilder.Entity<Manager>()
-            .HasKey(m => m.Id);
-
-        modelBuilder.Entity<Manager>()
-            .Property(m => m.Firstname)
-            .HasMaxLength(255)
-            .IsRequired();
-
-        modelBuilder.Entity<Manager>()
-            .Property(m => m.Lastname)
-            .HasMaxLength(255)
-            .IsRequired();
-
-        modelBuilder.Entity<Manager>()
-            .Property(m => m.Email)
-            .HasMaxLength(255)
-            .IsRequired();
-
-        modelBuilder.Entity<Manager>()
-            .Property(m => m.PhoneNumber)
-            .HasMaxLength(20)
-            .IsRequired();
+            .Property(m => m.Guid)
+            .ValueGeneratedOnAdd();
 
         // Paradox
-
         modelBuilder.Entity<Paradox>()
-            .HasKey(p => p.Id);
+            .Property(m => m.Guid)
+            .ValueGeneratedOnAdd();
+        
+        // Review
+        modelBuilder.Entity<Review>()
+            .Property(r => r.Guid)
+            .ValueGeneratedOnAdd();
+        
+        // Report
+        modelBuilder.Entity<Report>()
+            .Property(r => r.Guid)
+            .ValueGeneratedOnAdd();
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -328,5 +270,95 @@ public class TimeTravelAgencyContext : DbContext
         }
 
         return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    public async void Seed()
+    {
+        Randomizer.Seed = new Random(2145);
+
+        var agents = new Faker<Agent>("de").CustomInstantiator(f => new Agent(
+            firstname: f.Name.FirstName(),
+            lastname: f.Name.LastName(),
+            dateOfBirth: f.Date.Past().AddYears(-18),
+            specialisationTime: f.Random.Int(-10000, 7025)
+        )).Generate(5);
+        this.Agents.AddRange(agents);
+        await this.SaveChangesAsync();
+
+        var licensedAgents = new Faker<LicensedAgent>("de").CustomInstantiator(f => new LicensedAgent(
+            firstname: f.Name.FirstName(),
+            lastname: f.Name.LastName(),
+            dateOfBirth: f.Date.Past().AddYears(-18),
+            specialisationTime: f.Random.Int(-10000, 7025),
+            licenseNumber: f.Random.Int(),
+            licenseExpirationDate: f.Date.Future()
+        )).Generate(5);
+        this.LicensedAgents.AddRange(licensedAgents);
+        await this.SaveChangesAsync();
+
+        var managers = new Faker<Manager>("de").CustomInstantiator(f => new Manager(
+            firstName: f.Name.FirstName(),
+            lastName: f.Name.LastName(),
+            email: f.Internet.Email(),
+            phoneNumber: "+1234567890"
+        )).Generate(5);
+        this.Managers.AddRange(managers);
+        await this.SaveChangesAsync();        
+
+        var customers = new Faker<Customer>("de").CustomInstantiator(f => new Customer(
+            firstname: f.Name.FirstName(),
+            lastname: f.Name.LastName(),
+            email: f.Internet.Email(),
+            phoneNumber: "+1234567890",
+            dateOfBirth: f.Date.Past().AddYears(-18)
+        )).Generate(5);
+        this.Customers.AddRange(customers);
+        await this.SaveChangesAsync();
+
+        var trips = new Faker<Trip>("de").CustomInstantiator(f => new Trip(
+            dateInRealLife: f.Date.Future(),
+            licensedAgent: this.LicensedAgents.First(),
+            manager: this.Managers.First()
+        )).Generate(5);
+        this.Trips.AddRange(trips);
+        await this.SaveChangesAsync();
+
+        var criticalTrips = new Faker<CriticalTrip>("de").CustomInstantiator(f => new CriticalTrip(
+            licensedAgent: this.LicensedAgents.First(),
+            dateInRealLife: f.Date.Future(),
+            licensedSupportAgent: this.LicensedAgents.First(),
+            manager: this.Managers.First()
+        )).Generate(5);
+        this.CriticalTrips.AddRange(criticalTrips);
+        await this.SaveChangesAsync();
+        
+        foreach (var customer in Customers)
+        {
+            customer.AssignToTrip(Trips.First());
+        }
+        await this.SaveChangesAsync();
+
+        var paradoxes = new Faker<Paradox>("de").CustomInstantiator(f => new Paradox(
+            trip: this.Trips.First()
+        )).Generate(3);
+        this.Paradoxes.AddRange(paradoxes);
+        await this.SaveChangesAsync();
+
+        var report = new Faker<Report>("de").CustomInstantiator(f => new Report(
+            header: f.Random.String2(10),
+            agent: this.Agents.First(),
+            trip: this.Trips.First()
+        )).Generate(2);
+        this.Reports.AddRange(report);
+        await this.SaveChangesAsync();
+
+        var review = new Faker<Review>("de").CustomInstantiator(f => new Review(
+            header: f.Random.String2(10),
+            stars: f.Random.Int(1, 5),
+            customer: this.Customers.First(),
+            trip: this.Trips.First()
+        )).Generate(2);
+        this.Reviews.AddRange(review);
+        await this.SaveChangesAsync();
     }
 }
