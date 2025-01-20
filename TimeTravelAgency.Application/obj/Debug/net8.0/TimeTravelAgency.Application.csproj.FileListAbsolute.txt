@@ -1,0 +1,14 @@
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\bin\Debug\net8.0\TimeTravelAgency.Application.deps.json
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\bin\Debug\net8.0\TimeTravelAgency.Application.runtimeconfig.json
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\bin\Debug\net8.0\TimeTravelAgency.Application.dll
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\bin\Debug\net8.0\TimeTravelAgency.Application.pdb
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\TimeTravelAgency.Application.csproj.AssemblyReference.cache
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\TimeTravelAgency.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\TimeTravelAgency.Application.AssemblyInfoInputs.cache
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\TimeTravelAgency.Application.AssemblyInfo.cs
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\TimeTravelAgency.Application.csproj.CoreCompileInputs.cache
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\TimeTravelAgency.Application.dll
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\refint\TimeTravelAgency.Application.dll
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\TimeTravelAgency.Application.pdb
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\TimeTravelAgency.Application.genruntimeconfig.cache
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Application\obj\Debug\net8.0\ref\TimeTravelAgency.Application.dll
