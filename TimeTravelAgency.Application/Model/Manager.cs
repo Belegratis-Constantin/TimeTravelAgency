@@ -180,6 +180,8 @@ public class Manager
 
         _trips.Remove(trip);
         _trips.Add(trip);
+        
+        AddAgentToTrip(licensedSupportAgent, criticalTrip);
 
         return criticalTrip;
     }

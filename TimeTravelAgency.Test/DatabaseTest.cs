@@ -70,7 +70,10 @@ public class DatabaseTests
         // Assign Agents to Managers
         
         licensedAgent1.AssignAgentToManager(manager1);
+        
         licensedAgent2.AssignAgentToManager(manager2);
+        licensedAgent2.AssignAgentToManager(manager2);
+        
         licensedAgent3.AssignAgentToManager(manager3);
         
         agent1.AssignAgentToManager(manager1);
@@ -83,6 +86,7 @@ public class DatabaseTests
         var customer1 = new Customer("Karin", "Clause", "karin@clause.com", "1234567890", DateTime.Now.AddYears(-21));
         var customer2 = new Customer("Kevin", "Clause", "Kevin@clause.com", "1234567890", DateTime.Now.AddYears(-21));
         var customer3 = new Customer("Katherina", "Clause", "Katherina@clause.com", "1234567890", DateTime.Now.AddYears(-21));
+        
         context.Customers.Add(customer1);
         context.Customers.Add(customer2);
         context.Customers.Add(customer3);
@@ -191,7 +195,7 @@ public class DatabaseTests
         licensedAgent1.ProcessParadox(paradox1);
         licensedAgent1.SolveParadox(paradox1);
         
-        licensedAgent2.ProcessParadox(paradox2);
+        licensedAgent1.ProcessParadox(paradox2);
         
         await context.SaveChangesAsync();
     }
