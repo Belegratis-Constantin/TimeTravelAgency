@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
-//using TimeTravelAgency.Application.Data;
 using TimeTravelAgency.Application.Infrastructure;
 
 namespace TimeTravelAgency.Application.Model;
@@ -26,11 +25,10 @@ public class HistoricalEvent
     // Properties
     
     [Key]
-    public Guid Id { get; init; }
-    
+    public Guid Id { get; set; }
     public int? EpochId { get; set; }
     public Epoch? Epoch { get; set; }
-
+    [MaxLength(50)]
     public string EventName { get; init; }
     public decimal EventYear { get; init; }
     

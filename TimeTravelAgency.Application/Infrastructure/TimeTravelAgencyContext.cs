@@ -1,5 +1,6 @@
 using Bogus;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using TimeTravelAgency.Application.Model;
 
 namespace TimeTravelAgency.Application.Infrastructure;
@@ -45,6 +46,9 @@ public class TimeTravelAgencyContext : DbContext
         modelBuilder.Entity<Epoch>()
             .Property(e => e.Guid)
             .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Epoch>()
+            .HasAlternateKey(e => e.Guid);
 
         modelBuilder.Entity<Epoch>()
             .HasMany(e => e.HistoricalEvents)
@@ -171,6 +175,13 @@ public class TimeTravelAgencyContext : DbContext
 
         // Agent
         modelBuilder.Entity<Agent>()
+            .Property(a => a.Guid)
+            .HasConversion<Guid>();
+        
+        modelBuilder.Entity<Agent>()
+            .HasAlternateKey(a => a.Guid);
+        
+        modelBuilder.Entity<Agent>()
             .HasOne(a => a.SpecialisationEpoch)
             .WithMany()
             .HasForeignKey(a => a.EpochId)
@@ -186,17 +197,26 @@ public class TimeTravelAgencyContext : DbContext
             .ValueGeneratedOnAdd();
         
         modelBuilder.Entity<LicensedAgent>()
+            .HasAlternateKey(a => a.Guid);
+        
+        modelBuilder.Entity<LicensedAgent>()
             .HasBaseType<Agent>();
 
         // Customer
         modelBuilder.Entity<Customer>()
             .Property(c => c.Guid)
             .ValueGeneratedOnAdd();
+        
+        modelBuilder.Entity<Customer>()
+            .HasAlternateKey(c => c.Guid);
 
         // Trip
         modelBuilder.Entity<Trip>()
             .Property(t => t.Guid)
             .ValueGeneratedOnAdd();
+        
+        modelBuilder.Entity<Trip>()
+            .HasAlternateKey(t => t.Guid);
         
         modelBuilder.Entity<Trip>()
             .HasOne(t => t.LicensedAgent)
@@ -217,6 +237,11 @@ public class TimeTravelAgencyContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
         
         // CriticalTrip
+        modelBuilder.Entity<CriticalTrip>()
+            .Property(t => t.Guid);
+        
+        modelBuilder.Entity<CriticalTrip>()
+            .HasAlternateKey(t => t.Guid);
         
         modelBuilder.Entity<CriticalTrip>()
             .HasBaseType<Trip>();
@@ -231,21 +256,33 @@ public class TimeTravelAgencyContext : DbContext
         modelBuilder.Entity<Manager>()
             .Property(m => m.Guid)
             .ValueGeneratedOnAdd();
+        
+        modelBuilder.Entity<Manager>()
+            .HasAlternateKey(m => m.Guid);
 
         // Paradox
         modelBuilder.Entity<Paradox>()
             .Property(m => m.Guid)
             .ValueGeneratedOnAdd();
         
+        modelBuilder.Entity<Paradox>()
+            .HasAlternateKey(p => p.Guid);
+        
         // Review
         modelBuilder.Entity<Review>()
             .Property(r => r.Guid)
             .ValueGeneratedOnAdd();
         
+        modelBuilder.Entity<Review>()
+            .HasAlternateKey(r => r.Guid);
+        
         // Report
         modelBuilder.Entity<Report>()
             .Property(r => r.Guid)
             .ValueGeneratedOnAdd();
+        
+        modelBuilder.Entity<Report>()
+            .HasAlternateKey(r => r.Guid);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
