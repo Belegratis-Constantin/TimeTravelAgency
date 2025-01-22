@@ -447,5 +447,10 @@ public class TimeTravelAgencyContext : DbContext
         )).Generate(2);
         this.Reviews.AddRange(reviewWithContent);
         await this.SaveChangesAsync();
+        
+        var manager = this.Managers.First();
+        manager.AddAgent(this.Agents.First());
+        manager.AddAgent(this.LicensedAgents.First());
+        await this.SaveChangesAsync();
     }
 }

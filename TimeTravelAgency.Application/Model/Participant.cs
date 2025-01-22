@@ -73,18 +73,24 @@ public abstract class Participant
     
     public virtual Address Address { get; set; }
     
-    public IReadOnlyCollection<Trip> Trips => _trips;
-        
-        
+    public virtual IReadOnlyCollection<Trip> Trips => _trips;
+    
+    
     //Public methods
 
     public void AddTrip(Trip trip)
     {
         ValidateTrip(trip);
         _trips.Add(trip);
-        
-        if (this is Agent agent && this is not LicensedAgent)
-            trip.AddAgent(agent);
+
+        switch (this)
+        {
+            case LicensedAgent:
+                return;
+            case Agent agent:
+                trip.AddAgent(agent);
+                break;
+        }
     }
 
     public bool RemoveTrip(Trip trip)

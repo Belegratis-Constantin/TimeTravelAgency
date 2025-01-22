@@ -41,7 +41,7 @@ public class Epoch
     public string Description { get; set; }
 
     private Collection<HistoricalEvent> _historicalEvents;
-    public IReadOnlyCollection<HistoricalEvent> HistoricalEvents => _historicalEvents;
+    public virtual IReadOnlyCollection<HistoricalEvent> HistoricalEvents => _historicalEvents;
     
     [MaxLength(255)]
     public string Name

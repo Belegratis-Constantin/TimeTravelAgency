@@ -31,10 +31,6 @@ public class DatabaseTests
         Assert.NotNull(context.Paradoxes.FirstOrDefault());
         Assert.NotNull(context.Reports.FirstOrDefault());
         Assert.NotNull(context.Reviews.FirstOrDefault());
-
-        var manager = context.Managers.First();
-        manager.AddAgent(context.Agents.First());
-        await context.SaveChangesAsync();
     }
     
     public DatabaseTests()

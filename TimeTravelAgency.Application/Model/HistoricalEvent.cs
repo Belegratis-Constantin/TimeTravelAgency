@@ -48,7 +48,7 @@ public class HistoricalEvent
         
         var matchingEpoch = await context.Epochs
             .FirstOrDefaultAsync(
-                e => e != null && e.StartYear <= EventYear && e.EndYear >= EventYear,
+                e => e.StartYear <= EventYear && e.EndYear >= EventYear,
                 cancellationToken);
 
         if (matchingEpoch != null)
