@@ -13,7 +13,7 @@ public class Trip
     private Collection<Review> _reviews;
     
     // Constructors
-    public Trip(DateTime dateInRealLife, LicensedAgent licensedAgent, Manager manager, string? tripName = null)
+    public Trip(DateTime dateInRealLife, LicensedAgent licensedAgent, Manager manager, string? tripName = null, Agent? agent = null)
     {
         Guid = Guid.NewGuid();
         DateInRealLife = dateInRealLife;
@@ -22,6 +22,7 @@ public class Trip
         LicensedAgent = licensedAgent;
         Manager = manager;
         TripStatus = TripStatus.Active;
+        Agent = agent;
         
         _customers = new Collection<Customer>();
         _paradoxes = new Collection<Paradox>();

@@ -34,6 +34,8 @@ public class Agent : Participant
     [MaxLength(50)]
     public string AgentType { get; set; }
     public virtual IReadOnlyCollection<Report> Reports => _reports;
+    public virtual Manager? Manager { get; set; }
+    public int? ManagerId { get; set; }
 
     // Foreign key to Epoch
     public int EpochId { get; private set; }

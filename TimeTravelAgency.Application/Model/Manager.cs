@@ -127,7 +127,9 @@ public class Manager
             licenseNumber,
             licenseExpirationDate,
             agent.Address
-        ); 
+        );
+        
+        newLicensedAgent.AssignAgentToManager(this);
 
         return newLicensedAgent;
     }

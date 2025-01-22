@@ -16,9 +16,7 @@ public class Report
         Content = content;
         
         Agent = agent;
-        AgentId = agent.Id;
         Trip = trip;
-        TripId = trip.Id;
     }
     
 #pragma warning disable CS8618

@@ -385,16 +385,16 @@ public class TimeTravelAgencyContext : DbContext
 
         var trips = new Faker<Trip>("de").CustomInstantiator(f => new Trip(
             dateInRealLife: f.Date.Future(),
-            licensedAgent: this.LicensedAgents.First(),
+            licensedAgent: f.Random.ListItem(licensedAgents),
             manager: this.Managers.First()
         )).Generate(5);
         this.Trips.AddRange(trips);
         await this.SaveChangesAsync();
 
         var criticalTrips = new Faker<CriticalTrip>("de").CustomInstantiator(f => new CriticalTrip(
-            licensedAgent: this.LicensedAgents.First(),
+            licensedAgent: f.Random.ListItem(licensedAgents),
             dateInRealLife: f.Date.Future(),
-            licensedSupportAgent: this.LicensedAgents.First(),
+            licensedSupportAgent: f.Random.ListItem(licensedAgents),
             manager: this.Managers.First()
         )).Generate(5);
         this.CriticalTrips.AddRange(criticalTrips);

@@ -10,7 +10,6 @@ public class Customer : Participant
 {
     private string _email;
     private Collection<Review> _reviews;
-    private Collection<Trip> _trips;
 
     // Constructor
     public Customer(string firstname, string lastname, string email, string phoneNumber, DateTime dateOfBirth, Address address)

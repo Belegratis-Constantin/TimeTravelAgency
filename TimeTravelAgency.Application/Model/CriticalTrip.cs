@@ -17,5 +17,6 @@ public class CriticalTrip : Trip
     
     // Properties
     
-    LicensedAgent LicensedSupportAgent { get; set; }
+    public virtual LicensedAgent LicensedSupportAgent { get; set; }
+    public int LicensedSupportAgentId { get; set; }
 }

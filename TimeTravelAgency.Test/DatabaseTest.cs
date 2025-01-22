@@ -31,6 +31,10 @@ public class DatabaseTests
         Assert.NotNull(context.Paradoxes.FirstOrDefault());
         Assert.NotNull(context.Reports.FirstOrDefault());
         Assert.NotNull(context.Reviews.FirstOrDefault());
+
+        var manager = context.Managers.First();
+        manager.AddAgent(context.Agents.First());
+        await context.SaveChangesAsync();
     }
     
     public DatabaseTests()
@@ -67,6 +71,23 @@ public class DatabaseTests
         var agent = new Agent("Alice", "Smith", DateTime.Now.AddYears(-25), 2025, new Address("Street", 1010, "City"));
         
         context.Agents.Add(agent);
+        await context.SaveChangesAsync();
+
+        Assert.NotNull(await context.Agents.FirstOrDefaultAsync());
+    }
+
+    [Fact]
+    public async Task Database_ShouldInitialize_AgentsAndMakeThemLicensed()
+    {
+        await using var context = new TimeTravelAgencyContext(_dbContextOptions);
+        await context.Database.EnsureCreatedAsync();
+
+        var manager = new Manager("Jane", "Doe", "jane@doe.com", "+1234567890", new Address("Street", 1010, "City"));
+        var agent = new Agent("Alice", "Smith", DateTime.Now.AddYears(-25), 2025, new Address("Street", 1010, "City"));
+        
+        agent.AssignAgentToManager(manager);
+        var licensedAgent = manager.MakeAgentLicensed(agent, 007, DateTime.Now.AddYears(25));
+        context.Agents.Add(licensedAgent);
         await context.SaveChangesAsync();
 
         Assert.NotNull(await context.Agents.FirstOrDefaultAsync());

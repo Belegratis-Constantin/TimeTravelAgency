@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TimeTravelAgency.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c13de3b65d190a47787cfbe353635eecdeef6181")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+38c00833efef7ad9068262d8bf6737d9e56dcb08")]
 [assembly: System.Reflection.AssemblyProductAttribute("TimeTravelAgency.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TimeTravelAgency.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
