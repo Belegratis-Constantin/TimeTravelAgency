@@ -14,8 +14,8 @@ public class Customer : Participant
     private Collection<Trip> _trips;
 
     // Constructor
-    public Customer(string firstname, string lastname, string email, string phoneNumber, DateTime dateOfBirth)
-        : base(firstname, lastname, dateOfBirth)
+    public Customer(string firstname, string lastname, string email, string phoneNumber, DateTime dateOfBirth, Address address)
+        : base(firstname, lastname, dateOfBirth, address)
     {
         Email = email;
         PhoneNumber = phoneNumber;

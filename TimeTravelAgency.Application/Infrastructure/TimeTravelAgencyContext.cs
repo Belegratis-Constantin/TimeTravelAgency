@@ -37,7 +37,7 @@ public class TimeTravelAgencyContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
+        
         // Epoch
         modelBuilder.Entity<Epoch>()
             .Property(e => e.Id)
@@ -172,14 +172,13 @@ public class TimeTravelAgencyContext : DbContext
                 new HistoricalEvent("9/11 Attacks", 2001),
                 new HistoricalEvent("COVID-19 Pandemic", 2020)
             );
+        
+        // Participant
+        
 
         // Agent
         modelBuilder.Entity<Agent>()
-            .Property(a => a.Guid)
-            .HasConversion<Guid>();
-        
-        modelBuilder.Entity<Agent>()
-            .HasAlternateKey(a => a.Guid);
+            .OwnsOne(a => a.Address);
         
         modelBuilder.Entity<Agent>()
             .HasOne(a => a.SpecialisationEpoch)
@@ -190,25 +189,22 @@ public class TimeTravelAgencyContext : DbContext
         modelBuilder.Entity<Agent>()
             .Property(a => a.Guid)
             .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Agent>()
+            .Ignore(a => a.AgentType);
+        
+        modelBuilder.Entity<Agent>()
+            .HasDiscriminator(a => a.AgentType)
+            .HasValue<Agent>("Agent")
+            .HasValue<LicensedAgent>("LicensedAgent");
         
         // LicensedAgent
         modelBuilder.Entity<LicensedAgent>()
-            .Property(a => a.Guid)
-            .ValueGeneratedOnAdd();
-        
-        modelBuilder.Entity<LicensedAgent>()
-            .HasAlternateKey(a => a.Guid);
-        
-        modelBuilder.Entity<LicensedAgent>()
             .HasBaseType<Agent>();
-
+        
         // Customer
         modelBuilder.Entity<Customer>()
-            .Property(c => c.Guid)
-            .ValueGeneratedOnAdd();
-        
-        modelBuilder.Entity<Customer>()
-            .HasAlternateKey(c => c.Guid);
+            .OwnsOne(c => c.Address);
 
         // Trip
         modelBuilder.Entity<Trip>()
@@ -236,13 +232,10 @@ public class TimeTravelAgencyContext : DbContext
             .HasForeignKey(t => t.ManagerId)
             .OnDelete(DeleteBehavior.Restrict);
         
+        modelBuilder.Entity<Trip>()
+            .HasDiscriminator(t => t.TripType);
+        
         // CriticalTrip
-        modelBuilder.Entity<CriticalTrip>()
-            .Property(t => t.Guid);
-        
-        modelBuilder.Entity<CriticalTrip>()
-            .HasAlternateKey(t => t.Guid);
-        
         modelBuilder.Entity<CriticalTrip>()
             .HasBaseType<Trip>();
 
@@ -259,6 +252,9 @@ public class TimeTravelAgencyContext : DbContext
         
         modelBuilder.Entity<Manager>()
             .HasAlternateKey(m => m.Guid);
+        
+        modelBuilder.Entity<Manager>()
+            .OwnsOne(m => m.Address);
 
         // Paradox
         modelBuilder.Entity<Paradox>()
@@ -317,7 +313,8 @@ public class TimeTravelAgencyContext : DbContext
             firstname: f.Name.FirstName(),
             lastname: f.Name.LastName(),
             dateOfBirth: f.Date.Past().AddYears(-18),
-            specialisationTime: f.Random.Int(-10000, 7025)
+            specialisationTime: f.Random.Int(-10000, 7025),
+            address: new Address(f.Address.StreetAddress(false), f.Random.Int(1000, 99999), f.Address.City())
         )).Generate(5);
         this.Agents.AddRange(agents);
         await this.SaveChangesAsync();
@@ -328,7 +325,8 @@ public class TimeTravelAgencyContext : DbContext
             dateOfBirth: f.Date.Past().AddYears(-18),
             specialisationTime: f.Random.Int(-10000, 7025),
             licenseNumber: f.Random.Int(),
-            licenseExpirationDate: f.Date.Future()
+            licenseExpirationDate: f.Date.Future(),
+            address: new Address(f.Address.StreetAddress(false), f.Random.Int(1000, 99999), f.Address.City())
         )).Generate(5);
         this.LicensedAgents.AddRange(licensedAgents);
         await this.SaveChangesAsync();
@@ -337,7 +335,8 @@ public class TimeTravelAgencyContext : DbContext
             firstName: f.Name.FirstName(),
             lastName: f.Name.LastName(),
             email: f.Internet.Email(),
-            phoneNumber: "+1234567890"
+            phoneNumber: "+1234567890",
+            address: new Address(f.Address.StreetAddress(false), f.Random.Int(1000, 99999), f.Address.City())
         )).Generate(5);
         this.Managers.AddRange(managers);
         await this.SaveChangesAsync();        
@@ -347,7 +346,8 @@ public class TimeTravelAgencyContext : DbContext
             lastname: f.Name.LastName(),
             email: f.Internet.Email(),
             phoneNumber: "+1234567890",
-            dateOfBirth: f.Date.Past().AddYears(-18)
+            dateOfBirth: f.Date.Past().AddYears(-18),
+            address: new Address(f.Address.StreetAddress(false), f.Random.Int(1000, 99999), f.Address.City())
         )).Generate(5);
         this.Customers.AddRange(customers);
         await this.SaveChangesAsync();
@@ -389,6 +389,15 @@ public class TimeTravelAgencyContext : DbContext
         this.Reports.AddRange(report);
         await this.SaveChangesAsync();
 
+        var reportWithContent = new Faker<Report>("de").CustomInstantiator(f => new Report(
+            header: f.Random.String2(10),
+            agent: this.Agents.First(),
+            trip: this.Trips.First(),
+            content: f.Random.String2(100)
+        )).Generate(2);
+        this.Reports.AddRange(reportWithContent);
+        await this.SaveChangesAsync();
+
         var review = new Faker<Review>("de").CustomInstantiator(f => new Review(
             header: f.Random.String2(10),
             stars: f.Random.Int(1, 5),
@@ -396,6 +405,16 @@ public class TimeTravelAgencyContext : DbContext
             trip: this.Trips.First()
         )).Generate(2);
         this.Reviews.AddRange(review);
+        await this.SaveChangesAsync();
+
+        var reviewWithContent = new Faker<Review>("de").CustomInstantiator(f => new Review(
+            header: f.Random.String2(10),
+            stars: f.Random.Int(1, 5),
+            customer: this.Customers.First(),
+            trip: this.Trips.First(),
+            content: f.Random.String2(100)
+        )).Generate(2);
+        this.Reviews.AddRange(reviewWithContent);
         await this.SaveChangesAsync();
     }
 }

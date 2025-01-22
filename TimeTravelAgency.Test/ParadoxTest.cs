@@ -9,8 +9,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxType_ShouldBeSet()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip);
         
@@ -21,8 +21,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxStatus_ShouldBeSet_GrandFatherParadox()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip)
         {
@@ -35,8 +35,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxStatus_ShouldBeSet_BootstrapParadox()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip)
         {
@@ -49,8 +49,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxStatus_ShouldBeSet_PredestinationParadox()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip)
         {
@@ -63,8 +63,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxStatus_ShouldBeSet_InformationParadox()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip)
         {
@@ -77,8 +77,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxDescription_ShouldBeSetCorrectly_GrandFatherParadox()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip)
         {
@@ -93,8 +93,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxDescription_ShouldBeSetCorrectly_BootstrapParadox()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip)
         {
@@ -109,8 +109,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxDescription_ShouldBeSetCorrectly_PredestinationParadox()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip)
         {
@@ -125,8 +125,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxDescription_ShouldBeSetCorrectly_InformationParadox()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip)
         {
@@ -141,8 +141,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxStatus_ShouldBeSetCorrectly_InQueue()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip);
         
@@ -152,8 +152,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxStatus_ShouldBeSetCorrectly_InProcess()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip);
         
@@ -165,8 +165,8 @@ public class ParadoxTest
     [Fact]
     public void ParadoxStatus_ShouldBeSetCorrectly_Solved()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         var paradox = new Paradox(trip);
         

@@ -17,13 +17,14 @@ public class Manager
     
     // Constructors
     
-    public Manager(string firstName, string lastName, string email, string phoneNumber)
+    public Manager(string firstName, string lastName, string email, string phoneNumber, Address address)
     {
         Guid = Guid.NewGuid();
         Firstname = firstName;
         Lastname = lastName;
         Email = email;
         PhoneNumber = phoneNumber;
+        Address = address ?? throw new ArgumentNullException(nameof(address));
         _trips = new Collection<Trip>();
         _agents = new Collection<Agent>();
     }
@@ -73,6 +74,8 @@ public class Manager
             _phoneNumber = value;
         }
     }
+    
+    public virtual Address Address { get; set; }
     
     public virtual IReadOnlyCollection<Trip> Trips => _trips;
     public virtual IReadOnlyCollection<Agent> Agents => _agents;
@@ -137,7 +140,8 @@ public class Manager
             agent.DateOfBirth,
             agent.SpecialisationTime,
             licenseNumber,
-            licenseExpirationDate
+            licenseExpirationDate,
+            agent.Address
         ); 
 
         return newLicensedAgent;

@@ -8,11 +8,12 @@ public class Report
 {
     // Constructors
 
-    public Report(string header, Agent agent, Trip trip)
+    public Report(string header, Agent agent, Trip trip, string? content=null)
     {
         Guid = Guid.NewGuid();
         Header = header;
         Date = DateTime.Now;
+        Content = content;
         
         Agent = agent;
         AgentId = agent.Id;

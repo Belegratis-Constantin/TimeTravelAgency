@@ -4,8 +4,8 @@ public class LicensedAgent : Agent
 {
     // Constructors
 
-    public LicensedAgent(string firstname, string lastname, DateTime dateOfBirth, int specialisationTime, int licenseNumber, DateTime licenseExpirationDate)
-        : base(firstname, lastname, dateOfBirth, specialisationTime)
+    public LicensedAgent(string firstname, string lastname, DateTime dateOfBirth, int specialisationTime, int licenseNumber, DateTime licenseExpirationDate, Address address)
+        : base(firstname, lastname, dateOfBirth, specialisationTime, address)
     {
         LicenseNumber = licenseNumber;
         LicenseExpirationDate = licenseExpirationDate;

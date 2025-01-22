@@ -39,7 +39,7 @@ public class Trip
     [Key]
     public int Id { get; private set; }
     public Guid Guid { get; init; }
-    
+    public string TripType { get; set; }
     public DateTime DateInRealLife { get; private set; }
     [MaxLength(255)]
     public string? TripName { get; private set; }

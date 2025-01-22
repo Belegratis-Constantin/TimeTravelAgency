@@ -10,13 +10,14 @@ public class Review
     
     // Constructors
 
-    public Review(string header, int stars, Customer customer, Trip trip)
+    public Review(string header, int stars, Customer customer, Trip trip, string? content=null)
     {
         Guid = Guid.NewGuid();
         Stars = stars;
         Header = header;
         Stars = stars;
         Date = DateTime.Now;
+        Content = content;
         
         Customer = customer;
         CustomerId = customer.Id;

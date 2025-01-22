@@ -14,12 +14,13 @@ public abstract class Participant
     
     // Constructors
 
-    protected Participant(string firstname, string lastname, DateTime dateOfBirth)
+    protected Participant(string firstname, string lastname, DateTime dateOfBirth, Address address)
     {
         Guid = Guid.NewGuid();
         Firstname = firstname;
         Lastname = lastname;
         DateOfBirth = dateOfBirth;
+        Address = address ?? throw new ArgumentNullException(nameof(address));
         _trips = new Collection<Trip>();
     }
         
@@ -69,6 +70,8 @@ public abstract class Participant
             _dateOfBirth = value;
         }
     }
+    
+    public virtual Address Address { get; set; }
     
     public IReadOnlyCollection<Trip> Trips => _trips;
         

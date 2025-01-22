@@ -12,8 +12,8 @@ public class AgentTest
     [Fact]
     public void WriteReport_WithoutContent_Success()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         
         licencedAgent.WriteReport("Trip finished", trip);
@@ -27,8 +27,8 @@ public class AgentTest
     [Fact]
     public void WriteReport_WithContent_Success()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
         
         licencedAgent.WriteReport("Trip finished", trip, "Some Content");
@@ -41,9 +41,9 @@ public class AgentTest
     [Fact]
     public void WriteReport_InvalidTrip()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var licencedAgent1 = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
-        var licencedAgent2 = new LicensedAgent("Franz", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5));
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var licencedAgent1 = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
+        var licencedAgent2 = new LicensedAgent("Franz", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         
         var trip2 = manager.CreateTrip(DateTime.Now.AddDays(20), licencedAgent2); // Trip for licensedAgent2
         
@@ -53,8 +53,8 @@ public class AgentTest
     [Fact]
     public void Agent_AssignAgentToManager_Success()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var agent = new Agent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025);
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var agent = new Agent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, new Address("Street", 1010, "City"));
 
         agent.AssignAgentToManager(manager);
         
@@ -64,8 +64,8 @@ public class AgentTest
     [Fact]
     public void Agent_AssignAgentToManager_Failure()
     {
-        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890");
-        var agent = new Agent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025);
+        var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
+        var agent = new Agent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, new Address("Street", 1010, "City"));
         
         Assert.DoesNotContain(agent, manager.Agents);
     }

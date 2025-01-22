@@ -14,7 +14,7 @@ public class DatabaseTests
     private readonly DbContextOptions<TimeTravelAgencyContext> _dbContextOptions;
 
     [Fact]
-    public async Task DatabaseSeedTest()
+    public async Task Database_SeedTest()
     {
         await using var context = new TimeTravelAgencyContext(_dbContextOptions);
         
@@ -50,7 +50,7 @@ public class DatabaseTests
         await using var context = new TimeTravelAgencyContext(_dbContextOptions);
         await context.Database.EnsureCreatedAsync();
 
-        var manager = new Manager("Jane", "Doe", "jane@doe.com", "+4367762698232");
+        var manager = new Manager("Jane", "Doe", "jane@doe.com", "+4367762698232", new Address("Street", 1010, "City"));
         
         context.Managers.Add(manager);
         await context.SaveChangesAsync();
@@ -64,7 +64,7 @@ public class DatabaseTests
         await using var context = new TimeTravelAgencyContext(_dbContextOptions);
         await context.Database.EnsureCreatedAsync();
 
-        var agent = new Agent("Alice", "Smith", DateTime.Now.AddYears(-25), 2025);
+        var agent = new Agent("Alice", "Smith", DateTime.Now.AddYears(-25), 2025, new Address("Street", 1010, "City"));
         
         context.Agents.Add(agent);
         await context.SaveChangesAsync();
@@ -78,8 +78,8 @@ public class DatabaseTests
         await using var context = new TimeTravelAgencyContext(_dbContextOptions);
         await context.Database.EnsureCreatedAsync();
 
-        var licensedAgent = new LicensedAgent("James", "Bond", DateTime.Now.AddYears(-40), 1940, 007, DateTime.Now.AddYears(3));
-        var manager = new Manager("Foo", "Baa", "foo@baa.com", "+1234567890");
+        var licensedAgent = new LicensedAgent("James", "Bond", DateTime.Now.AddYears(-40), 1940, 007, DateTime.Now.AddYears(3), new Address("Street", 1010, "City"));
+        var manager = new Manager("Foo", "Baa", "foo@baa.com", "+1234567890", new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now, licensedAgent);
 
         context.LicensedAgents.Add(licensedAgent);
@@ -97,8 +97,8 @@ public class DatabaseTests
         await context.Database.EnsureCreatedAsync();
 
         var licensedAgent = new LicensedAgent("Chrisi", "How", DateTime.Now.AddYears(-40), 2024, 009,
-            DateTime.Now.AddYears(3));
-        var manager = new Manager("Con", "Luc", "con@luc.com", "+1234567890");
+            DateTime.Now.AddYears(3), new Address("Street", 1010, "City"));
+        var manager = new Manager("Con", "Luc", "con@luc.com", "+1234567890", new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now, licensedAgent);
         var paradox = new Paradox(trip);
 
@@ -118,8 +118,8 @@ public class DatabaseTests
         await context.Database.EnsureCreatedAsync();
 
         var licensedAgent =
-            new LicensedAgent("James", "Bond", DateTime.Now.AddYears(-40), 1940, 007, DateTime.Now.AddYears(3));
-        var manager = new Manager("Foo", "Baa", "foo@baa.com", "+1234567890");
+            new LicensedAgent("James", "Bond", DateTime.Now.AddYears(-40), 1940, 007, DateTime.Now.AddYears(3), new Address("Street", 1010, "City"));
+        var manager = new Manager("Foo", "Baa", "foo@baa.com", "+1234567890", new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now, licensedAgent);
         var report = licensedAgent.WriteReport("Report", trip);
 
@@ -140,7 +140,7 @@ public class DatabaseTests
     {
         await using var context = new TimeTravelAgencyContext(_dbContextOptions);
         
-        var agent = new Agent("James", "Bond", DateTime.Now.AddYears(-20), 1900);
+        var agent = new Agent("James", "Bond", DateTime.Now.AddYears(-20), 1900, new Address("Street", 1010, "City"));
         
         context.Agents.Add(agent);
         await context.SaveChangesAsync();

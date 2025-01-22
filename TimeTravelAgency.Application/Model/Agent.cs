@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.InteropServices.JavaScript;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +15,12 @@ public class Agent : Participant
     
     // Constructor
 
-    public Agent(string firstname, string lastname, DateTime dateOfBirth, int specialisationTime)
-        : base(firstname, lastname, dateOfBirth)
+    public Agent(string firstname, string lastname, DateTime dateOfBirth, int specialisationTime, Address address)
+        : base(firstname, lastname, dateOfBirth, address)
     {
         SpecialisationTime = specialisationTime;
         _reports = new Collection<Report>();
+        AgentType = default!;
     }
     
 #pragma warning disable CS8618
@@ -29,9 +31,9 @@ public class Agent : Participant
     // Properties
 
     public int SpecialisationTime { get; set; }
-    
+    [MaxLength(50)]
+    public string AgentType { get; set; }
     public virtual IReadOnlyCollection<Report> Reports => _reports;
-    
 
     // Foreign key to Epoch
     public int EpochId { get; private set; }
@@ -66,10 +68,7 @@ public class Agent : Participant
     {
         if (Trips.Any(t => t == trip && (t.Agent == this || t.LicensedAgent == this)))
         {
-            var report = new Report(header, this, trip)
-            {
-                Content = content
-            };
+            var report = new Report(header, this, trip, content);
                 
             _reports.Add(report);
             trip.AddReport(report);
