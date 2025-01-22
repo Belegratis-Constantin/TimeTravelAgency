@@ -8,11 +8,14 @@ namespace TimeTravelAgency.Application.Model;
 [Table("HistoricalEvents")]
 public class HistoricalEvent
 {
+    private static int _idCounter;
+    
     // Constructors
 
     public HistoricalEvent(string eventName, long eventYear)
     {
-        Id = Guid.NewGuid();
+        Id = _idCounter++;
+        Guid = Guid.NewGuid();
         EventName = eventName;
         EventYear = eventYear;
     }
@@ -25,7 +28,8 @@ public class HistoricalEvent
     // Properties
     
     [Key]
-    public Guid Id { get; set; }
+    public int Id { get; set; }
+    public Guid Guid { get; set; }
     public int? EpochId { get; set; }
     public Epoch? Epoch { get; set; }
     [MaxLength(50)]

@@ -144,6 +144,10 @@ public class TimeTravelAgencyContext : DbContext
 
         // HistoricalEvent
         modelBuilder.Entity<HistoricalEvent>()
+            .Property(h => h.Id)
+            .ValueGeneratedNever();
+        
+        modelBuilder.Entity<HistoricalEvent>()
             .HasOne(h => h.Epoch)
             .WithMany(e => e.HistoricalEvents)
             .HasForeignKey(h => h.EpochId)
