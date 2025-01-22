@@ -16,7 +16,7 @@ public class Epoch
     
     //Constructors
 
-    public Epoch(decimal startYear, decimal endYear, string name, string description)
+    public Epoch(long startYear, long endYear, string name, string description)
     {
         Id = _idCounter++;
         Guid = Guid.NewGuid();
@@ -36,8 +36,8 @@ public class Epoch
     [Key]
     public int Id { get; private set; }
     public Guid Guid { get; init; }
-    public decimal StartYear { get; set; }
-    public decimal EndYear { get; set; }
+    public long StartYear { get; set; }
+    public long EndYear { get; set; }
     public string Description { get; set; }
 
     private Collection<HistoricalEvent> _historicalEvents;

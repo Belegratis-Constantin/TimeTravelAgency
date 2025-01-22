@@ -10,7 +10,7 @@ public class HistoricalEvent
 {
     // Constructors
 
-    public HistoricalEvent(string eventName, decimal eventYear)
+    public HistoricalEvent(string eventName, long eventYear)
     {
         Id = Guid.NewGuid();
         EventName = eventName;
@@ -30,7 +30,7 @@ public class HistoricalEvent
     public Epoch? Epoch { get; set; }
     [MaxLength(50)]
     public string EventName { get; init; }
-    public decimal EventYear { get; init; }
+    public long EventYear { get; init; }
     
     
     // Public Methods

@@ -66,50 +66,66 @@ public class TimeTravelAgencyContext : DbContext
                     "The development of early multicellular life forms and oxygen buildup in Earth's atmosphere."),
                 new Epoch(-541000000, -252000000, "Phanerozoic Eon",
                     "The eon encompassing the Cambrian Explosion and the evolution of most major animal phyla."),
-                new Epoch(-252000000, -66000000, "Mesozoic Era", "The age of dinosaurs."),
-                new Epoch(-66000000, -2500000, "Cenozoic Era", "The age of mammals."),
-                new Epoch(-2500000, -11700, "Pleistocene Epoch", "The last ice age."),
-                new Epoch(-11700, 2023, "Holocene Epoch", "The current geological epoch."),
-                new Epoch(-3100, -30, "Ancient Egypt", "The period of ancient Egyptian civilization."),
-                new Epoch(-1600, 1912, "Ancient China", "The period of ancient Chinese civilization."),
-                new Epoch(-1500, 1858, "Ancient India", "The period of ancient Indian civilization."),
-                new Epoch(-3500, -539, "Ancient Mesopotamia", "The period of ancient Mesopotamian civilization."),
-                new Epoch(-550, 651, "Ancient Persia", "The period of ancient Persian civilization."),
-                new Epoch(-2000, 1697, "Mayan Civilization",
-                    "The period of the Mayan civilization in Mesoamerica."),
-                new Epoch(-1200, -586, "Ancient Israel", "The period of ancient Israelite civilization."),
-                new Epoch(-753, 476, "Ancient Rome", "The period of ancient Roman civilization."),
-                new Epoch(330, 1453, "Byzantine Empire", "The period of the Byzantine Empire."),
-                new Epoch(476, 1492, "Middle Ages",
+                new Epoch(-252000000, -66000000, "Mesozoic Era",
+                    "The age of dinosaurs."),
+                new Epoch(-66000000, -2500000, "Cenozoic Era",
+                    "The age of mammals."),
+                new Epoch(-2500000, -11700, "Pleistocene Epoch",
+                    "The last ice age."),
+                new Epoch(-11700, -3100, "Late Paleolithic to Early Holocene Epoch",
+                    "The end of the Ice Age, the extinction of megafauna, and the beginnings of agriculture and settled communities."),
+                new Epoch(-3100, -30, "Ancient Egypt",
+                    "The period of ancient Egyptian civilization."),
+                new Epoch(-30, -1500, "Ancient China",
+                    "The period of ancient Chinese civilization."),
+                new Epoch(-1500, -1200, "Ancient India",
+                    "The period of ancient Indian civilization."),
+                new Epoch(-1200, -539, "Ancient Mesopotamia",
+                    "The period of ancient Mesopotamian civilization."),
+                new Epoch(-539, -550, "Ancient Persia",
+                    "The period of ancient Persian civilization."),
+                new Epoch(-550, -753, "Ancient Rome",
+                    "The period of ancient Roman civilization."),
+                new Epoch(-753, 330, "Byzantine Empire",
+                    "The period of the Byzantine Empire."),
+                new Epoch(330, 476, "Middle Ages",
                     "The period of European history from the fall of the Roman Empire to the beginning of the Renaissance."),
-                new Epoch(1299, 1922, "Ottoman Empire", "The period of the Ottoman Empire."),
-                new Epoch(1300, 1600, "Renaissance",
+                new Epoch(476, 1299, "Ottoman Empire",
+                    "The period of the Ottoman Empire."),
+                new Epoch(1299, 1300, "Renaissance",
                     "The period in Europe, from the 14th to the 17th century, considered the bridge between the Middle Ages and modern history."),
-                new Epoch(1603, 1868, "Tokugawa Shogunate", "The period of the Tokugawa Shogunate in Japan."),
-                new Epoch(1868, 1912, "Meiji Era", "The period of the Meiji Restoration in Japan."),
-                new Epoch(1760, 1840, "Industrial Revolution",
+                new Epoch(1300, 1600, "Tokugawa Shogunate",
+                    "The period of the Tokugawa Shogunate in Japan."),
+                new Epoch(1600, 1760, "Meiji Era",
+                    "The period of the Meiji Restoration in Japan."),
+                new Epoch(1760, 1837, "Industrial Revolution",
                     "The transition to new manufacturing processes in Europe and the United States."),
                 new Epoch(1837, 1901, "Victorian Era",
                     "The period of Queen Victoria's reign in the United Kingdom."),
-                new Epoch(1914, 1918, "World War I", "The global war originating in Europe."),
-                new Epoch(1920, 1929, "Roaring Twenties",
+                new Epoch(1914, 1918, "World War I",
+                    "The global war originating in Europe."),
+                new Epoch(1918, 1929, "Roaring Twenties",
                     "The decade of economic growth and widespread prosperity."),
-                new Epoch(1929, 1939, "Great Depression", "The severe worldwide economic depression."),
-                new Epoch(1939, 1945, "World War II", "The global war involving most of the world's nations."),
-                new Epoch(1947, 1991, "Cold War",
+                new Epoch(1929, 1939, "Great Depression",
+                    "The severe worldwide economic depression."),
+                new Epoch(1939, 1946, "World War II",
+                    "The global war involving most of the world's nations."),
+                new Epoch(1946, 1989, "Cold War",
                     "The period of geopolitical tension between the Soviet Union and the United States."),
-                new Epoch(1957, 1975, "Space Age",
-                    "The period encompassing the activities related to the Space Race."),
-                new Epoch(1970, 2000, "Information Age",
+                new Epoch(1989, 2000, "Information Age",
                     "The period characterized by the rapid shift from traditional industry to an economy based on information technology."),
-                new Epoch(2000, 2020, "Digital Age",
-                    "The period marked by the rise of digital technology and the internet."),
-                new Epoch(2001, 2020, "Post-9/11 Era", "The period following the September 11 attacks."),
-                new Epoch(2020, 2022, "COVID-19 Pandemic", "The global pandemic caused by the coronavirus."),
-                new Epoch(2020, 2023, "Modern Era", "The current period of history."),
-                new Epoch(2023, 2523, "Future Era", "The next 500 years."),
-                new Epoch(2523, 3023, "Interstellar Era", "The period of human expansion beyond the solar system."),
-                new Epoch(3023, 3523, "Galactic Era", "The period of human colonization of the Milky Way galaxy."),
+                new Epoch(2000, 2020, "Post-9/11 Era",
+                    "The period following the September 11 attacks."),
+                new Epoch(2020, 2022, "COVID-19 Pandemic",
+                    "The global pandemic caused by the coronavirus."),
+                new Epoch(2020, 2023, "Modern Era",
+                    "The current period of history."),
+                new Epoch(2023, 2523, "Future Era",
+                    "The next 500 years."),
+                new Epoch(2523, 3023, "Interstellar Era",
+                    "The period of human expansion beyond the solar system."),
+                new Epoch(3023, 3523, "Galactic Era",
+                    "The period of human colonization of the Milky Way galaxy."),
                 new Epoch(3523, 4023, "Universal Era",
                     "The period of human exploration and colonization of other galaxies."),
                 new Epoch(4023, 4523, "Post-Interstellar Era",
@@ -131,8 +147,7 @@ public class TimeTravelAgencyContext : DbContext
             .HasOne(h => h.Epoch)
             .WithMany(e => e.HistoricalEvents)
             .HasForeignKey(h => h.EpochId)
-            .OnDelete(DeleteBehavior.SetNull)
-            .IsRequired(false);
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<HistoricalEvent>()
             .HasData(
@@ -174,17 +189,22 @@ public class TimeTravelAgencyContext : DbContext
             );
         
         // Participant
-        
 
         // Agent
+        modelBuilder.Entity<Agent>()
+            .Property(a => a.DateOfBirth)
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Agent>()
+            .HasAlternateKey(a => a.Guid);
+        
         modelBuilder.Entity<Agent>()
             .OwnsOne(a => a.Address);
         
         modelBuilder.Entity<Agent>()
             .HasOne(a => a.SpecialisationEpoch)
             .WithMany()
-            .HasForeignKey(a => a.EpochId)
-            .IsRequired(false);
+            .HasForeignKey(a => a.EpochId);
 
         modelBuilder.Entity<Agent>()
             .Property(a => a.Guid)
@@ -203,6 +223,13 @@ public class TimeTravelAgencyContext : DbContext
             .HasBaseType<Agent>();
         
         // Customer
+        modelBuilder.Entity<Customer>()
+            .Property(c => c.DateOfBirth)
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Customer>()
+            .HasAlternateKey(c => c.Guid);
+        
         modelBuilder.Entity<Customer>()
             .OwnsOne(c => c.Address);
 
@@ -324,7 +351,7 @@ public class TimeTravelAgencyContext : DbContext
             lastname: f.Name.LastName(),
             dateOfBirth: f.Date.Past().AddYears(-18),
             specialisationTime: f.Random.Int(-10000, 7025),
-            licenseNumber: f.Random.Int(),
+            licenseNumber: f.Random.Int(0, 10),
             licenseExpirationDate: f.Date.Future(),
             address: new Address(f.Address.StreetAddress(false), f.Random.Int(1000, 99999), f.Address.City())
         )).Generate(5);
@@ -335,7 +362,7 @@ public class TimeTravelAgencyContext : DbContext
             firstName: f.Name.FirstName(),
             lastName: f.Name.LastName(),
             email: f.Internet.Email(),
-            phoneNumber: "+1234567890",
+            phoneNumber: f.Phone.PhoneNumber("+#########"),
             address: new Address(f.Address.StreetAddress(false), f.Random.Int(1000, 99999), f.Address.City())
         )).Generate(5);
         this.Managers.AddRange(managers);
@@ -345,7 +372,7 @@ public class TimeTravelAgencyContext : DbContext
             firstname: f.Name.FirstName(),
             lastname: f.Name.LastName(),
             email: f.Internet.Email(),
-            phoneNumber: "+1234567890",
+            phoneNumber: f.Phone.PhoneNumber("+#########"),
             dateOfBirth: f.Date.Past().AddYears(-18),
             address: new Address(f.Address.StreetAddress(false), f.Random.Int(1000, 99999), f.Address.City())
         )).Generate(5);

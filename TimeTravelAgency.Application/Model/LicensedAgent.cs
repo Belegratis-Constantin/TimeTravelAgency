@@ -8,7 +8,7 @@ public class LicensedAgent : Agent
         : base(firstname, lastname, dateOfBirth, specialisationTime, address)
     {
         LicenseNumber = licenseNumber;
-        LicenseExpirationDate = licenseExpirationDate;
+        LicenseExpirationDate = licenseExpirationDate.Date;
     }
     
 #pragma warning disable CS8618

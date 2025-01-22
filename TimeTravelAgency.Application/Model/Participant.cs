@@ -19,7 +19,7 @@ public abstract class Participant
         Guid = Guid.NewGuid();
         Firstname = firstname;
         Lastname = lastname;
-        DateOfBirth = dateOfBirth;
+        DateOfBirth = dateOfBirth.Date;
         Address = address ?? throw new ArgumentNullException(nameof(address));
         _trips = new Collection<Trip>();
     }
