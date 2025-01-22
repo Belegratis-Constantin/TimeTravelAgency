@@ -50,7 +50,7 @@ public class DatabaseTests
         await using var context = new TimeTravelAgencyContext(_dbContextOptions);
         await context.Database.EnsureCreatedAsync();
 
-        var manager = new Manager("Jane", "Doe", "jane@doe.com", "+4367762698232", new Address("Street", 1010, "City"));
+        var manager = new Manager("Jane", "Doe", "jane@doe.com", "+1234567890", new Address("Street", 1010, "City"));
         
         context.Managers.Add(manager);
         await context.SaveChangesAsync();

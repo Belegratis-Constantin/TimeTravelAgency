@@ -16,18 +16,18 @@ public class ParticipantTests
         var firstname = "John";
         var lastname = "Doe";
         var email = "john.doe@gmail.com";
-        var phonenumber = "+1234567890";
+        var phoneNumber = "+1234567890";
         var dateOfBirth = DateTime.Now.AddYears(-20);
 
         // Act
-        var customer = new Customer(firstname, lastname, email, phonenumber, dateOfBirth, new Address("Street", 1010, "City"));
+        var customer = new Customer(firstname, lastname, email, phoneNumber, dateOfBirth, new Address("Street", 1010, "City"));
 
         // Assert
         Assert.Equal(firstname, customer.Firstname);
         Assert.Equal(lastname, customer.Lastname);
         Assert.Equal(email, customer.Email);
-        Assert.Equal(phonenumber, customer.PhoneNumber);
-        Assert.Equal(dateOfBirth, customer.DateOfBirth);
+        Assert.Equal(phoneNumber, customer.PhoneNumber);
+        Assert.Equal(dateOfBirth.Date, customer.DateOfBirth);
     }
 
     [Fact]
@@ -64,6 +64,42 @@ public class ParticipantTests
         const string email = "john.doe@gmail.com";
         const string phoneNumber = "+1234567890";
         var dateOfBirth = DateTime.Now.AddYears(-17); // Under 18
+        
+        Assert.Throws<ArgumentException>(() => new Customer(firstname, lastname, email, phoneNumber, dateOfBirth, new Address("Street", 1010, "City")));
+    }
+    
+    [Fact]
+    public void Participant_ShouldThrowException_WhenEmailIsInvalid_1()
+    {
+        const string firstname = "John";
+        const string lastname = "Doe";
+        const string email = "user@com";
+        const string phoneNumber = "+123456789";
+        var dateOfBirth = DateTime.Now.AddYears(-20);
+        
+        Assert.Throws<ArgumentException>(() => new Customer(firstname, lastname, email, phoneNumber, dateOfBirth, new Address("Street", 1010, "City")));
+    }
+    
+    [Fact]
+    public void Participant_ShouldThrowException_WhenEmailIsInvalid_2()
+    {
+        const string firstname = "John";
+        const string lastname = "Doe";
+        const string email = "@example.com";
+        const string phoneNumber = "+123456789";
+        var dateOfBirth = DateTime.Now.AddYears(-20);
+        
+        Assert.Throws<ArgumentException>(() => new Customer(firstname, lastname, email, phoneNumber, dateOfBirth, new Address("Street", 1010, "City")));
+    }
+    
+    [Fact]
+    public void Participant_ShouldThrowException_WhenEmailIsInvalid_3()
+    {
+        const string firstname = "John";
+        const string lastname = "Doe";
+        const string email = "user@.com";
+        const string phoneNumber = "+123456789";
+        var dateOfBirth = DateTime.Now.AddYears(-20);
         
         Assert.Throws<ArgumentException>(() => new Customer(firstname, lastname, email, phoneNumber, dateOfBirth, new Address("Street", 1010, "City")));
     }

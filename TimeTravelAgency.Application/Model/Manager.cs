@@ -11,7 +11,6 @@ namespace TimeTravelAgency.Application.Model;
 public class Manager
 {
     private string _email;
-    private string _phoneNumber;
     private Collection<Trip> _trips;
     private Collection<Agent> _agents;
     
@@ -59,21 +58,7 @@ public class Manager
             _email = value;
         }
     }
-    public string PhoneNumber
-    {
-        get => _phoneNumber;
-        set
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Phone number cannot be null or empty.", nameof(value));
-            
-            var phoneRegex = @"^(\+?[1-9]{1}[0-9]{1,4})?(\([0-9]{1,4}\)|[0-9]{1,4})?([0-9]{7,10})$";
-            if (!Regex.IsMatch(value, phoneRegex))
-                throw new ArgumentException("Invalid phone number format.", nameof(value));
-
-            _phoneNumber = value;
-        }
-    }
+    public string PhoneNumber { get; set; }
     
     public virtual Address Address { get; set; }
     

@@ -5,6 +5,39 @@ namespace TimeTravelAgency.Test;
 public class ManagerTest
 {
     [Fact]
+    public void Manager_ShouldThrowException_WhenEmailIsInvalid_1()
+    {
+        const string firstname = "John";
+        const string lastname = "Doe";
+        const string email = "user@com";
+        const string phoneNumber = "+123456789";
+        
+        Assert.Throws<ArgumentException>(() => new Manager(firstname, lastname, email, phoneNumber, new Address("Street", 1010, "City")));
+    }
+    
+    [Fact]
+    public void Manager_ShouldThrowException_WhenEmailIsInvalid_2()
+    {
+        const string firstname = "John";
+        const string lastname = "Doe";
+        const string email = "@example.com";
+        const string phoneNumber = "+123456789";
+        
+        Assert.Throws<ArgumentException>(() => new Manager(firstname, lastname, email, phoneNumber, new Address("Street", 1010, "City")));
+    }
+    
+    [Fact]
+    public void Manager_ShouldThrowException_WhenEmailIsInvalid_3()
+    {
+        const string firstname = "John";
+        const string lastname = "Doe";
+        const string email = "user@.com";
+        const string phoneNumber = "+123456789";
+        
+        Assert.Throws<ArgumentException>(() => new Manager(firstname, lastname, email, phoneNumber, new Address("Street", 1010, "City")));
+    }
+    
+    [Fact]
     public void Manager_CreateTrip_Success()
     {
         var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
