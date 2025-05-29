@@ -33,11 +33,11 @@ public class Report
     public string? Content { get; set; }
     public DateTime Date { get; set; }
     
-    public Agent Agent { get; set; }
+    public virtual Agent Agent { get; set; }
     public int AgentId { get; set; }
     
     public int TripId { get; set; }
-    public Trip Trip { get; set; }
+    public virtual Trip Trip { get; set; }
     
     
     // Public Methods

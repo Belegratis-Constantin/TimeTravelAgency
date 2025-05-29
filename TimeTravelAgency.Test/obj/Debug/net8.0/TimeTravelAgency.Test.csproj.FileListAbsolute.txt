@@ -17,16 +17,13 @@ C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Proxies.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Sqlite.dll
-C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.Caching.Abstractions.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.Caching.Memory.dll
-C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Abstractions.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.DependencyModel.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
-C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.TestPlatform.CoreUtilities.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.TestPlatform.PlatformAbstractions.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
@@ -39,7 +36,6 @@ C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\SQLitePCLRaw.batteries_v2.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\SQLitePCLRaw.core.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\SQLitePCLRaw.provider.e_sqlite3.dll
-C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\System.Diagnostics.EventLog.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\xunit.abstractions.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\xunit.assert.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\xunit.core.dll
@@ -129,8 +125,6 @@ C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\runtimes\win-arm64\native\e_sqlite3.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\runtimes\win-x64\native\e_sqlite3.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\runtimes\win-x86\native\e_sqlite3.dll
-C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Diagnostics.EventLog.Messages.dll
-C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Diagnostics.EventLog.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\TimeTravelAgency.Application.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\TimeTravelAgency.Application.pdb
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\obj\Debug\net8.0\TimeTravelAgency.Test.csproj.AssemblyReference.cache
@@ -145,3 +139,10 @@ C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\obj\Debug\net8.0\TimeTravelAgency.Test.genruntimeconfig.cache
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\obj\Debug\net8.0\ref\TimeTravelAgency.Test.dll
 C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\obj\Debug\net8.0\TimeTravelAgency.Test.sourcelink.json
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\TimeTravelAgency.Application.deps.json
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\TimeTravelAgency.Application.runtimeconfig.json
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\TimeTravelAgency.Application.exe
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Belegratis\Documents\CLB-Sync\Ausbildung\Schule\Spengergasse\Unterricht\2024-25\POS1\TimeTravelAgency\TimeTravelAgency.Test\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll

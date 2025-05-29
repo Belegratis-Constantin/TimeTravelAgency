@@ -61,7 +61,7 @@ public class TripTest
         var trip = manager.CreateTrip(DateTime.Now.AddDays(5), licensedAgent);
         
         manager.AddAgentToTrip(agent2, trip);
-        manager.AddAgentToTrip(agent3, trip);
+        Assert.Throws<ArgumentException>(() => manager.AddAgentToTrip(agent3, trip));
         
         Assert.Equal(agent2, trip.Agent);
     }

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.VisualBasic;
 
 namespace TimeTravelAgency.Application.Model;
@@ -47,18 +48,18 @@ public class Trip
     public TripStatus TripStatus { get; internal set; }
     
     public int LicensedAgentId { get; private set; }
-    public LicensedAgent LicensedAgent { get; private set; }
+    public virtual LicensedAgent LicensedAgent { get; private set; }
 
     public int? AgentId { get; private set; }
-    public Agent? Agent { get; private set; }
+    public virtual Agent? Agent { get; private set; }
     
     public int ManagerId { get; private set; }
-    public Manager Manager { get; private set; }
+    public virtual Manager Manager { get; private set; }
     
-    public IReadOnlyCollection<Paradox> Paradoxes => _paradoxes;
-    public IReadOnlyCollection<Customer> Customers => _customers;
-    public IReadOnlyCollection<Report> Reports => _reports;
-    public IReadOnlyCollection<Review> Reviews => _reviews;
+    public virtual IReadOnlyCollection<Paradox> Paradoxes => _paradoxes;
+    public virtual IReadOnlyCollection<Customer> Customers => _customers;
+    public virtual IReadOnlyCollection<Report> Reports => _reports;
+    public virtual IReadOnlyCollection<Review> Reviews => _reviews;
     
     // Public Methods
     
@@ -85,7 +86,7 @@ public class Trip
     internal void AddAgent(Agent agent)
     {
         if (Agent != null)
-            return;
+            throw new InvalidOperationException("Agent for this trip is already set.");
         
         AgentId = agent.Id;
         Agent = agent;

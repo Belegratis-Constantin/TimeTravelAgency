@@ -15,7 +15,6 @@ public class Review
         Guid = Guid.NewGuid();
         Stars = stars;
         Header = header;
-        Stars = stars;
         Date = DateTime.Now;
         Content = content;
         
@@ -55,11 +54,11 @@ public class Review
     public string? Content { get; set; }
     public DateTime Date { get; set; }
     
-    public Customer Customer { get; set; }
+    public virtual Customer Customer { get; set; }
     public int CustomerId { get; set; }
     
     public int TripId { get; set; }
-    public Trip Trip { get; set; }
+    public virtual Trip Trip { get; set; }
     
     
     // Public Methods

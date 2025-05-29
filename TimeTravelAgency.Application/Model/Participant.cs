@@ -10,7 +10,7 @@ public abstract class Participant
     private string _firstname;
     private string _lastname;
     private DateTime _dateOfBirth;
-    private Collection<Trip> _trips;
+    private Collection<Trip> _trips = [];
     
     // Constructors
 
@@ -21,7 +21,6 @@ public abstract class Participant
         Lastname = lastname;
         DateOfBirth = dateOfBirth.Date;
         Address = address ?? throw new ArgumentNullException(nameof(address));
-        _trips = new Collection<Trip>();
     }
         
 #pragma warning disable CS8618

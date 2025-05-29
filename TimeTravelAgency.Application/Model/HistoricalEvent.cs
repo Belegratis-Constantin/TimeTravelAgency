@@ -31,7 +31,7 @@ public class HistoricalEvent
     public int Id { get; set; }
     public Guid Guid { get; set; }
     public int? EpochId { get; set; }
-    public Epoch? Epoch { get; set; }
+    public virtual Epoch? Epoch { get; set; }
     [MaxLength(50)]
     public string EventName { get; init; }
     public long EventYear { get; init; }

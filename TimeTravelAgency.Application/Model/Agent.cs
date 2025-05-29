@@ -39,7 +39,7 @@ public class Agent : Participant
 
     // Foreign key to Epoch
     public int EpochId { get; private set; }
-    public Epoch SpecialisationEpoch { get; private set; }
+    public virtual Epoch SpecialisationEpoch { get; private set; }
 
     
     // Public Methods

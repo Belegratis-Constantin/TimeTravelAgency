@@ -96,6 +96,7 @@ public class ManagerTest
         var paradox1 = new Paradox(trip);
         var paradox2 = new Paradox(trip);
         var licensedSupportAgent = new LicensedAgent("Karl", "Anton", DateTime.Now.AddYears(-25), -190000, 010, DateTime.Now.AddYears(3), new Address("Street", 1010, "City"));
+        licensedSupportAgent.AssignAgentToManager(manager);
         
         var criticalTrip = manager.MakeTripCritical(trip, licensedSupportAgent);
 
@@ -129,8 +130,8 @@ public class ManagerTest
         agent1.AssignAgentToManager(manager);
         var licensedAgent = manager.MakeAgentLicensed(agent1, 007, DateTime.MaxValue);
         var trip = manager.CreateTrip(DateTime.Now.AddDays(5), licensedAgent);
-        
-        manager.AddAgentToTrip(agent2, trip);
+
+        Assert.Throws<ArgumentException>(() => manager.AddAgentToTrip(agent2, trip));
         
         Assert.DoesNotContain(agent2, manager.Agents);
         Assert.Null(trip.Agent);

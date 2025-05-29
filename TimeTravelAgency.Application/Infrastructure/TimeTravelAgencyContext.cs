@@ -312,6 +312,12 @@ public class TimeTravelAgencyContext : DbContext
             .HasAlternateKey(r => r.Guid);
     }
 
+    public void Initialize(bool deleteDatabase = false)
+    {
+        if (deleteDatabase) Database.EnsureDeleted();
+        Database.EnsureCreated();
+    }
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         // Handle Agent Specialisation Epochs
@@ -389,6 +395,14 @@ public class TimeTravelAgencyContext : DbContext
             manager: this.Managers.First()
         )).Generate(5);
         this.Trips.AddRange(trips);
+        await this.SaveChangesAsync();
+        
+        var tripsPast = new Faker<Trip>("de").CustomInstantiator(f => new Trip(
+            dateInRealLife: f.Date.Past(),
+            licensedAgent: f.Random.ListItem(licensedAgents),
+            manager: this.Managers.Skip(1).First()
+        )).Generate(5);
+        this.Trips.AddRange(tripsPast);
         await this.SaveChangesAsync();
 
         var criticalTrips = new Faker<CriticalTrip>("de").CustomInstantiator(f => new CriticalTrip(

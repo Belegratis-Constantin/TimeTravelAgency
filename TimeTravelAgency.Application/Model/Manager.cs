@@ -11,8 +11,8 @@ namespace TimeTravelAgency.Application.Model;
 public class Manager
 {
     private string _email;
-    private Collection<Trip> _trips;
-    private Collection<Agent> _agents;
+    private List<Trip> _trips = [];
+    private List<Agent> _agents = [];
     
     // Constructors
     
@@ -24,12 +24,10 @@ public class Manager
         Email = email;
         PhoneNumber = phoneNumber;
         Address = address ?? throw new ArgumentNullException(nameof(address));
-        _trips = new Collection<Trip>();
-        _agents = new Collection<Agent>();
     }
         
 #pragma warning disable CS8618
-    protected Manager() { }
+    protected Manager() {}
 #pragma warning disable CS8618
     
     
@@ -78,6 +76,8 @@ public class Manager
     {
         if (_agents.Contains(agent))
             trip.AddAgent(agent);
+        else
+            throw new ArgumentException("Agent is not managed by this manager.", nameof(agent));
     }
     
     public void RemoveAgentFromTrip(Agent agent, Trip trip)
