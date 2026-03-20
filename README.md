@@ -81,8 +81,19 @@ Optional:
 
 ### 1) Clone and restore backend dependencies
 
+#### Using HTTPS
 ```powershell
-git clone <your-repository-url>
+git clone https://github.com/Belegratis-Constantin/TimeTravelAgency.git
+
+Set-Location TimeTravelAgency
+dotnet restore .\TimeTravelAgency.sln
+```
+
+#### Using SSH
+
+```powershell
+git clone git@github.com:Belegratis-Constantin/TimeTravelAgency.git
+
 Set-Location TimeTravelAgency
 dotnet restore .\TimeTravelAgency.sln
 ```
@@ -205,9 +216,9 @@ The UML diagram of the domain model is available here:
 ## Troubleshooting
 
 - If `npm install` fails, verify your Node and npm versions.
-- If the API does not start, ensure .NET 8 SDK is installed (`dotnet --info`).
-- If Swagger is not reachable, check the actual URL printed by ASP.NET Core startup logs.
-- If database state looks inconsistent, delete `TimeTravelAgencyTest.db` and restart the API.
+- Ensure the .NET 8 SDK is installed (`dotnet --info`) if the API fails to start.
+- Check the actual URL printed by ASP.NET Core startup logs when Swagger is not reachable.
+- To reset an inconsistent database state, delete `TimeTravelAgencyTest.db` and restart the API.
 
 ## Contributing
 
