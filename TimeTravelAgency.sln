@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTravelAgency.Application", "TimeTravelAgency.Application\TimeTravelAgency.Application.csproj", "{A558AF97-FDF6-4A5F-B017-670134EE515C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTravelAgency.Application", "src\backend\TimeTravelAgency.Application\TimeTravelAgency.Application.csproj", "{A558AF97-FDF6-4A5F-B017-670134EE515C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTravelAgency.Test", "TimeTravelAgency.Test\TimeTravelAgency.Test.csproj", "{39EBE849-6622-4AE0-82C0-6DF1EA1DEEDC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTravelAgency.Test", "tests\TimeTravelAgency.Test\TimeTravelAgency.Test.csproj", "{39EBE849-6622-4AE0-82C0-6DF1EA1DEEDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TimeTravelAgency.Application\TimeTravelAgency.Application.csproj" />
+    <ProjectReference Include="..\..\src\backend\TimeTravelAgency.Application\TimeTravelAgency.Application.csproj" />
   </ItemGroup>
 
 </Project>
