@@ -1,0 +1,4 @@
+.trip-card:hover { transform: translateY(-3px); }
+.role-menu-item:hover { background: #2A3A50; }
+.dash-row:hover { background: rgba(255,255,255,0.02); }
+.nav-btn:hover { background: #2A3A50; }
