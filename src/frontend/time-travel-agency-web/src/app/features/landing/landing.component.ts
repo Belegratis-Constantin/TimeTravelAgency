@@ -52,7 +52,7 @@ export class LandingComponent implements OnInit {
     if (this.state.isAgent()) {
       const agent = this.state.currentAgent();
       if (agent) {
-        trips = trips.filter(t => t.licensedAgentId === agent.id);
+        trips = trips.filter(t => t.licensedAgentId === agent.id || t.agentId === agent.id);
       }
     }
 

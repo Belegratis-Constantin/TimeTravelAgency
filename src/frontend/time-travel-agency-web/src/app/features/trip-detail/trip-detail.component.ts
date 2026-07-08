@@ -68,6 +68,13 @@ export class TripDetailComponent implements OnInit {
     return agent ? agentFullName(agent) : `Agent #${t.licensedAgentId}`;
   }
 
+  get supportAgentName(): string | null {
+    const t = this.trip();
+    if (!t || !t.agentId) return null;
+    const agent = this.agents().find(a => a.id === t.agentId);
+    return agent ? agentFullName(agent) : null;
+  }
+
   get displayName(): string {
     return this.trip()?.tripName ?? 'Uncatalogued Destination';
   }

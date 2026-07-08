@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { TripService } from '../../core/services/trip.service';
 import { AgentService } from '../../core/services/agent.service';
+import { ManagerService } from '../../core/services/manager.service';
+import { AppStateService } from '../../state/app-state.service';
 import { TripDto } from '../../core/models/trip.model';
 import { AgentDto } from '../../core/models/agent.model';
 import { StatsPanelComponent } from './stats-panel/stats-panel.component';
@@ -8,7 +10,8 @@ import { TripsTableComponent } from './trips-table/trips-table.component';
 import { AgentsPanelComponent } from './agents-panel/agents-panel.component';
 import { CreateTripModalComponent } from '../modals/create-trip-modal/create-trip-modal.component';
 import { AssignAgentModalComponent } from '../modals/assign-agent-modal/assign-agent-modal.component';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -25,6 +28,8 @@ import { forkJoin } from 'rxjs';
 export class DashboardComponent implements OnInit {
   private readonly tripService = inject(TripService);
   private readonly agentService = inject(AgentService);
+  private readonly managerService = inject(ManagerService);
+  private readonly state = inject(AppStateService);
 
   readonly trips = signal<TripDto[]>([]);
   readonly agents = signal<AgentDto[]>([]);
@@ -42,9 +47,14 @@ export class DashboardComponent implements OnInit {
   }
 
   loadData(): void {
+    const managerGuid = this.state.currentManager()?.guid;
+    const agents$ = managerGuid
+      ? this.managerService.getAgentsForManager(managerGuid)
+      : this.agentService.getAll();
+
     forkJoin({
       trips: this.tripService.getAll(),
-      agents: this.agentService.getAll(),
+      agents: agents$,
     }).subscribe(({ trips, agents }) => {
       this.trips.set(trips);
       this.agents.set(agents);

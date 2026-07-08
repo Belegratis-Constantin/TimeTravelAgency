@@ -17,7 +17,7 @@ import { AppStateService, Role } from '../../../state/app-state.service';
                   box-shadow:0 30px 80px rgba(0,0,0,0.5);">
         <div style="font-family:'Fraunces',serif;font-size:22px;margin-bottom:6px;">
           @if (pendingRole === 'customer') { Sign in as Customer }
-          @if (pendingRole === 'agent') { Sign in as Licensed Agent }
+          @if (pendingRole === 'agent') { Sign in as Agent }
           @if (pendingRole === 'manager') { Sign in as Manager }
         </div>
         <div style="font-size:13px;color:#8A93A6;margin-bottom:24px;">
@@ -55,8 +55,19 @@ import { AppStateService, Role } from '../../../state/app-state.service';
                    style="padding:14px 16px;background:#0B1120;border-radius:3px;
                           cursor:pointer;font-size:13.5px;border:1px solid;"
                    [style.borderColor]="selected() === a.guid ? '#C9A84C' : '#2E3E54'">
-                <div style="font-weight:600;">{{ a.firstname }} {{ a.lastname }}</div>
-                <div style="font-size:12px;color:#8A93A6;margin-top:2px;">{{ a.agentType }}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-weight:600;">{{ a.firstname }} {{ a.lastname }}</div>
+                  <span style="font-size:10px;color:#C9A84C;background:rgba(201,168,76,0.12);
+                               border:1px solid rgba(201,168,76,0.3);padding:2px 7px;border-radius:20px;">
+                    {{ a.agentType === 'LicensedAgent' ? 'Licensed' : 'Support' }}
+                  </span>
+                </div>
+                @if (a.specialisationEpochId) {
+                  <div style="font-size:11.5px;color:#6B7488;margin-top:4px;">
+                    {{ a.specialisationEpochId.name }}
+                    ({{ a.specialisationEpochId.startYear > 0 ? a.specialisationEpochId.startYear + ' CE' : (-a.specialisationEpochId.startYear) + ' BCE' }})
+                  </div>
+                }
               </div>
             }
           </div>
@@ -115,7 +126,7 @@ export class IdentityPickerModalComponent implements OnInit {
       });
     } else if (this.pendingRole === 'agent') {
       this.agentService.getAll().subscribe({
-        next: list => { this.agents.set(list.filter(a => a.agentType === 'LicensedAgent')); this.loading.set(false); },
+        next: list => { this.agents.set(list); this.loading.set(false); },
         error: () => { this.loading.set(false); this.error.set(true); },
       });
     } else if (this.pendingRole === 'manager') {
