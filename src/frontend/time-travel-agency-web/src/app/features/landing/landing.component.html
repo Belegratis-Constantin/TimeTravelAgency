@@ -1,0 +1,99 @@
+<!-- Customer hero -->
+@if (state.isCustomer()) {
+  <div style="padding:88px 56px 64px;text-align:center;
+              background:radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.10), transparent 60%);
+              border-bottom:1px solid #1E2A3A;">
+    <div style="font-family:'IBM Plex Mono',monospace;color:#C9A84C;font-size:11px;
+                letter-spacing:0.3em;margin-bottom:22px;">EST. 2150 · BY INVITATION ONLY</div>
+    <div style="font-family:'Fraunces',serif;font-weight:400;font-style:italic;font-size:58px;
+                line-height:1.12;margin-bottom:22px;">Every era,<br>held open for you.</div>
+    <div style="color:#8A93A6;font-size:16px;max-width:460px;margin:0 auto 34px;">
+      A private passage across history, escorted by our licensed agents. Reserve your century.
+    </div>
+    <button style="background:#C9A84C;border:none;color:#0B1120;font-weight:600;
+                   font-size:14px;padding:15px 34px;cursor:pointer;border-radius:2px;">
+      Browse Destinations
+    </button>
+  </div>
+}
+
+<!-- Agent banner -->
+@if (state.isAgent()) {
+  <div style="padding:32px 56px;border-bottom:1px solid #1E2A3A;background:#0E1522;">
+    <div style="font-size:11px;color:#8A93A6;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">
+      Field Console
+    </div>
+    <div style="font-family:'Fraunces',serif;font-size:24px;">Licensed Agent View</div>
+  </div>
+}
+
+<!-- Manager banner -->
+@if (state.isManager()) {
+  <div style="padding:32px 56px;border-bottom:1px solid #1E2A3A;background:#0E1522;">
+    <div style="font-size:11px;color:#8A93A6;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">
+      Operations Overview
+    </div>
+    <div style="font-family:'Fraunces',serif;font-size:24px;">All scheduled excursions</div>
+  </div>
+}
+
+<div style="max-width:1360px;margin:0 auto;padding:40px 56px 0;">
+  <!-- Header + filters -->
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+              gap:16px;margin-bottom:32px;">
+    <div style="font-family:'Fraunces',serif;font-size:22px;">{{ landingTitle() }}</div>
+
+    @if (!state.isAgent()) {
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+        <select (change)="filterEra.set($any($event.target).value)"
+                style="background:#1E2A3A;color:#F0EDE6;border:1px solid #2E3E54;
+                       padding:9px 12px;border-radius:3px;font-size:13px;">
+          <option value="all">All Destinations</option>
+          @for (era of eraOptions(); track era) {
+            <option [value]="era">{{ era }}</option>
+          }
+        </select>
+
+        <select (change)="filterType.set($any($event.target).value)"
+                style="background:#1E2A3A;color:#F0EDE6;border:1px solid #2E3E54;
+                       padding:9px 12px;border-radius:3px;font-size:13px;">
+          <option value="all">All Types</option>
+          <option value="Trip">Standard</option>
+          <option value="CriticalTrip">Critical</option>
+        </select>
+
+        <select (change)="sortOrder.set($any($event.target).value)"
+                style="background:#1E2A3A;color:#F0EDE6;border:1px solid #2E3E54;
+                       padding:9px 12px;border-radius:3px;font-size:13px;">
+          <option value="soonest">Soonest First</option>
+          <option value="latest">Latest First</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <div style="text-align:center;color:#6B7488;padding:80px 0;font-size:14px;">
+      Loading destinations…
+    </div>
+  }
+
+  <!-- Trip grid -->
+  @if (!loading()) {
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+                gap:28px;padding-bottom:72px;">
+      @for (trip of filteredTrips(); track trip.guid) {
+        <app-trip-card
+          [trip]="trip"
+          [agentName]="agentNameForTrip(trip)"
+          (selected)="navigateToTrip($event)" />
+      }
+    </div>
+
+    @if (filteredTrips().length === 0) {
+      <div style="text-align:center;color:#6B7488;padding:60px 0 100px;font-size:14px;">
+        No trips match these filters.
+      </div>
+    }
+  }
+</div>

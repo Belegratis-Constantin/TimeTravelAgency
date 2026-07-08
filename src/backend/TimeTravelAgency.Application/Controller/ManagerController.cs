@@ -102,6 +102,7 @@ public class ManagerController : ControllerBase
             return Problem("Manager was not found", statusCode: 404);
 
         var agentsDto = manager.Agents.Select(a => new AgentDto(
+            a.Id,
             a.Guid,
             a.Firstname,
             a.Lastname,
@@ -122,8 +123,8 @@ public class ManagerController : ControllerBase
                     t.ManagerId,
                     t.Paradoxes.Select(p => new ParadoxDto(
                         p.Guid,
-                        p.ParadoxStatus,
-                        p.ParadoxType
+                        p.ParadoxStatus.ToString(),
+                        p.ParadoxType.ToString()
                     )).ToList(),
                     t.Customers.Select(c => new CustomerDto(
                         c.Guid,

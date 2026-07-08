@@ -1,0 +1,39 @@
+@if (loading()) {
+  <div style="text-align:center;color:#6B7488;padding:100px 0;font-size:14px;">Loading dashboard…</div>
+}
+
+@if (!loading()) {
+  <div style="max-width:1360px;margin:0 auto;padding:40px 56px 100px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;
+                margin-bottom:32px;flex-wrap:wrap;gap:16px;">
+      <div style="font-family:'Fraunces',serif;font-size:28px;">Manager Dashboard</div>
+      <button (click)="createModalOpen.set(true)"
+              style="background:#C9A84C;border:none;color:#0B1120;font-weight:600;
+                     font-size:13.5px;padding:12px 22px;border-radius:3px;cursor:pointer;">
+        + Create Trip
+      </button>
+    </div>
+
+    <app-stats-panel [trips]="trips()" />
+
+    <div style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:16px;">All Trips</div>
+    <app-trips-table [trips]="trips()" (assign)="assignTripGuid.set($event)" />
+
+    <div style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:16px;">Agents</div>
+    <app-agents-panel [agents]="agents()" [trips]="trips()" />
+  </div>
+}
+
+@if (createModalOpen()) {
+  <app-create-trip-modal
+    (created)="onTripCreated()"
+    (cancelled)="createModalOpen.set(false)" />
+}
+
+@if (assignTripGuid()) {
+  <app-assign-agent-modal
+    [tripGuid]="assignTripGuid()!"
+    [tripName]="assignTripName"
+    (assigned)="onAgentAssigned()"
+    (cancelled)="assignTripGuid.set(null)" />
+}

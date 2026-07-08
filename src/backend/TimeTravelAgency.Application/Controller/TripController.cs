@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TimeTravelAgency.Application.Cmd;
 using TimeTravelAgency.Application.Dto;
 using TimeTravelAgency.Application.Infrastructure;
 using TimeTravelAgency.Application.Model;
@@ -62,8 +63,8 @@ public class TripController : ControllerBase
             trip.ManagerId,
             trip.Paradoxes.Select(p => new ParadoxDto(
                 p.Guid,
-                p.ParadoxStatus,
-                p.ParadoxType)).ToList(),
+                p.ParadoxStatus.ToString(),
+                p.ParadoxType.ToString())).ToList(),
             trip.Customers.Select(c => new CustomerDto(
                 c.Guid,
                 c.Firstname,
@@ -125,8 +126,8 @@ public class TripController : ControllerBase
             trip.ManagerId,
             trip.Paradoxes.Select(p => new ParadoxDto(
                 p.Guid,
-                p.ParadoxStatus,
-                p.ParadoxType)).ToList(),
+                p.ParadoxStatus.ToString(),
+                p.ParadoxType.ToString())).ToList(),
             trip.Customers.Select(c => new CustomerDto(
                 c.Guid,
                 c.Firstname,
@@ -158,6 +159,27 @@ public class TripController : ControllerBase
         return Ok(tripDto);
     }
     
+    [HttpPost("{tripGuid}/report/{agentGuid}")]
+    public async Task<IActionResult> FileReport(Guid tripGuid, Guid agentGuid, [FromBody] CreateReportCmd cmd)
+    {
+        var trip = await _context.Trips
+            .Include(t => t.Reports)
+            .FirstOrDefaultAsync(t => t.Guid == tripGuid);
+        if (trip == null)
+            return Problem("Trip not found.", statusCode: 404);
+
+        var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Guid == agentGuid);
+        if (agent == null)
+            return Problem("Agent not found.", statusCode: 404);
+
+        var report = new Report(cmd.Header, agent, trip, cmd.Content);
+        trip.AddReport(report);
+        _context.Reports.Add(report);
+        await _context.SaveChangesAsync();
+
+        return Ok(new ReportForTripDto(report.Guid, report.Header, report.Date, report.Content));
+    }
+
     [HttpGet("upcoming")]
     public ActionResult<List<TripDto>> GetUpcomingTrips([FromQuery] bool sorted = true)
     {

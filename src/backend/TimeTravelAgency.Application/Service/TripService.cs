@@ -68,8 +68,8 @@ public class TripService
                 t.ManagerId,
                 t.Paradoxes.Select(p => new ParadoxDto(
                     p.Guid,
-                    p.ParadoxStatus,
-                    p.ParadoxType)).ToList(),
+                    p.ParadoxStatus.ToString(),
+                    p.ParadoxType.ToString())).ToList(),
                 t.Customers.Select(c => new CustomerDto(
                     c.Guid,
                     c.Firstname,

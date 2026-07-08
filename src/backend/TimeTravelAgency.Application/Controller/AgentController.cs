@@ -39,8 +39,8 @@ public class AgentController : ControllerBase
                 t.ManagerId,
                 t.Paradoxes.Select(p => new ParadoxDto(
                     p.Guid,
-                    p.ParadoxStatus,
-                    p.ParadoxType
+                    p.ParadoxStatus.ToString(),
+                    p.ParadoxType.ToString()
                 )).ToList(),
                 t.Customers.Select(c => new CustomerDto(
                     c.Guid,
@@ -78,6 +78,7 @@ public class AgentController : ControllerBase
             )).ToListAsync();
 
         return Ok(new AgentDto(
+            agent.Id,
             agent.Guid,
             agent.Firstname,
             agent.Lastname,
@@ -98,6 +99,7 @@ public class AgentController : ControllerBase
             .ToListAsync();
 
         var agentsDto = agents.Select(a => new AgentDto(
+            a.Id,
             a.Guid,
             a.Firstname,
             a.Lastname,
@@ -118,8 +120,8 @@ public class AgentController : ControllerBase
                     t.ManagerId,
                     t.Paradoxes.Select(p => new ParadoxDto(
                         p.Guid,
-                        p.ParadoxStatus,
-                        p.ParadoxType
+                        p.ParadoxStatus.ToString(),
+                        p.ParadoxType.ToString()
                     )).ToList(),
                     t.Customers.Select(c => new CustomerDto(
                         c.Guid,

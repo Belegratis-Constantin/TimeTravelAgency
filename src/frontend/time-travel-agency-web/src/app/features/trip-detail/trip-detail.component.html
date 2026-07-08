@@ -1,0 +1,64 @@
+@if (loading()) {
+  <div style="text-align:center;color:#6B7488;padding:100px 0;font-size:14px;">Loading trip details…</div>
+}
+
+@if (!loading() && trip()) {
+  <div style="max-width:1200px;margin:0 auto;padding:40px 56px 100px;">
+    <div (click)="goBack()"
+         style="font-size:13px;color:#8A93A6;cursor:pointer;margin-bottom:28px;">
+      ← Back to Destinations
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;
+                flex-wrap:wrap;gap:20px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:12px;color:#8A93A6;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">
+          {{ tripTypeLabel(trip()!.tripType) }} Trip
+        </div>
+        <div style="font-family:'Fraunces',serif;font-weight:500;font-size:40px;">{{ displayName }}</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <app-status-badge [status]="trip()!.tripStatus" type="trip" />
+        <div style="background:#1E2A3A;color:#8A93A6;font-size:12px;font-weight:600;
+                    padding:6px 14px;border-radius:20px;border:1px solid #2E3E54;">
+          {{ tripTypeLabel(trip()!.tripType) }}
+        </div>
+      </div>
+    </div>
+
+    <div style="color:#B7BFCC;font-size:15px;line-height:1.7;max-width:760px;margin:18px 0 40px;">
+      A time travel excursion departing {{ trip()!.dateInRealLife | date:'mediumDate' }}.
+      {{ trip()!.customers.length }} travelers currently booked.
+    </div>
+
+    <app-trip-timeline [dateInRealLife]="trip()!.dateInRealLife" />
+
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:48px;align-items:start;">
+      <div>
+        <app-trip-reviews [reviews]="trip()!.reviews" />
+        <app-trip-paradoxes [paradoxes]="trip()!.paradoxes" />
+      </div>
+
+      <div>
+        <app-trip-staff
+          [licensedAgentName]="licensedAgentName"
+          [dateInRealLife]="trip()!.dateInRealLife"
+          [customers]="trip()!.customers" />
+
+        <app-booking-box
+          [trip]="trip()!"
+          [bookedTripGuids]="bookedTripGuids()"
+          (booked)="onBooked($event)"
+          (assignAgent)="onAssignRequested()" />
+      </div>
+    </div>
+  </div>
+}
+
+@if (assignModalOpen() && trip()) {
+  <app-assign-agent-modal
+    [tripGuid]="trip()!.guid"
+    [tripName]="displayName"
+    (assigned)="onAssigned()"
+    (cancelled)="assignModalOpen.set(false)" />
+}
