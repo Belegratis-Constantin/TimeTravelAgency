@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { TripService } from '../../core/services/trip.service';
 import { AgentService } from '../../core/services/agent.service';
@@ -12,7 +12,7 @@ import { TripCardComponent } from './trip-card/trip-card.component';
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [TripCardComponent],
+  imports: [TripCardComponent, RouterLink],
   templateUrl: './landing.component.html',
 })
 export class LandingComponent implements OnInit {
