@@ -13,10 +13,17 @@ export class HeaderComponent {
   protected readonly state = inject(AppStateService);
   private readonly router = inject(Router);
 
+  enterTime(): void {
+    this.state.enterTimeMode();
+    this.router.navigate(['/loom']);
+  }
+
   requestRole(role: Role): void {
     this.state.requestRole(role);
     if (role === 'manager') {
       this.router.navigate(['/dashboard']);
+    } else if (role === 'director') {
+      this.router.navigate(['/director']);
     } else if (role === 'agent') {
       this.router.navigate(['/']);
     } else {

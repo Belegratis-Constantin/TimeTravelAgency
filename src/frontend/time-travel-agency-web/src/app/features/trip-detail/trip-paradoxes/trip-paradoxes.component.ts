@@ -1,6 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { ParadoxDto } from '../../../core/models/trip.model';
 import { paradoxMeta, paradoxTypeLabel } from '../../../shared/utils/status.utils';
+import { ParadoxService } from '../../../core/services/paradox.service';
+import { AppStateService } from '../../../state/app-state.service';
 
 @Component({
   selector: 'app-trip-paradoxes',
@@ -23,8 +25,20 @@ import { paradoxMeta, paradoxTypeLabel } from '../../../shared/utils/status.util
                   {{ meta(p.paradoxStatus).label }}
                 </span>
               </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;color:#8A93A6;">
-                <span>🔒 Immutable record</span>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#8A93A6;">
+                @if (state.isManager()) {
+                  <select (change)="changeStatus(p.guid, $any($event.target).value)"
+                          [value]="p.paradoxStatus"
+                          style="background:#1E2A3A;color:#F0EDE6;border:1px solid #2E3E54;
+                                 padding:5px 10px;border-radius:3px;font-size:12px;cursor:pointer;">
+                    <option value="InQueue">In Queue</option>
+                    <option value="InProcess">In Process</option>
+                    <option value="Solved">Solved</option>
+                    <option value="Escalated">Escalated</option>
+                  </select>
+                } @else {
+                  <span>🔒 Immutable record</span>
+                }
               </div>
             </div>
           }
@@ -39,7 +53,18 @@ import { paradoxMeta, paradoxTypeLabel } from '../../../shared/utils/status.util
 })
 export class TripParadoxesComponent {
   @Input() paradoxes: ParadoxDto[] = [];
+  @Output() changed = new EventEmitter<void>();
+
+  private readonly paradoxService = inject(ParadoxService);
+  protected readonly state = inject(AppStateService);
 
   meta(status: string) { return paradoxMeta(status); }
   typeLabel(type: string) { return paradoxTypeLabel(type); }
+
+  changeStatus(paradoxGuid: string, status: string): void {
+    const managerGuid = this.state.currentManager()?.guid;
+    this.paradoxService.changeStatus(paradoxGuid, status, managerGuid).subscribe({
+      next: () => this.changed.emit(),
+    });
+  }
 }

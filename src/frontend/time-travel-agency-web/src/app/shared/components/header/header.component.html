@@ -21,6 +21,12 @@
          style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
         The Continuum
       </a>
+      <a routerLink="/profile"
+         [style.color]="navColor('/profile')"
+         [style.borderBottom]="navBorder('/profile')"
+         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
+        My Journeys
+      </a>
     }
 
     @if (state.isManager()) {
@@ -47,6 +53,24 @@
       </a>
     }
 
+    @if (state.isTime()) {
+      <a routerLink="/loom"
+         [style.color]="navColor('/loom')"
+         [style.borderBottom]="navBorder('/loom')"
+         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;color:#B06EE8;">
+        ⧗ The Loom
+      </a>
+    }
+
+    @if (state.isDirector()) {
+      <a routerLink="/director"
+         [style.color]="navColor('/director')"
+         [style.borderBottom]="navBorder('/director')"
+         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
+        Command Centre
+      </a>
+    }
+
     <!-- Role selector -->
     <div style="position:relative;">
       <div (click)="state.toggleRoleMenu()"
@@ -69,8 +93,14 @@
                style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #2A3A50;"
                class="role-menu-item">Licensed Agent</div>
           <div (click)="requestRole('manager')"
-               style="padding:12px 16px;font-size:13px;cursor:pointer;"
+               style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #2A3A50;"
                class="role-menu-item">Manager</div>
+          <div (click)="requestRole('director')"
+               style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #2A3A50;"
+               class="role-menu-item">Director</div>
+          <div (click)="enterTime()"
+               style="padding:12px 16px;font-size:13px;cursor:pointer;color:#B06EE8;"
+               class="role-menu-item">⧗ Time Itself</div>
         </div>
       }
     </div>

@@ -1,6 +1,6 @@
 # TimeTravelAgency
 
-TimeTravelAgency is a full-stack sample project for managing fictional time-travel operations. It combines a .NET 8 Web API backend, an Angular frontend, and xUnit tests.
+TimeTravelAgency is a full-stack sample project for managing fictional time-travel operations. It combines a .NET 10 Web API backend, an Angular frontend, and xUnit tests.
 
 The domain models trips, agents, licensed support roles, customers, paradoxes, historical events, and reports. It is useful as a learning and reference project for layered backend design, Entity Framework Core modeling, and REST API development.
 
@@ -12,6 +12,7 @@ The domain models trips, agents, licensed support roles, customers, paradoxes, h
 - [Repository Structure](#repository-structure)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
+- [Scripts](#scripts)
 - [Run the Backend API](#run-the-backend-api)
 - [Run the Frontend](#run-the-frontend)
 - [Testing](#testing)
@@ -37,7 +38,7 @@ The domain models trips, agents, licensed support roles, customers, paradoxes, h
 
 This repository currently contains:
 
-- **Backend:** ASP.NET Core Web API (`net8.0`) with Entity Framework Core and SQLite.
+- **Backend:** ASP.NET Core Web API (`net10.0`) with Entity Framework Core and SQLite.
 - **Frontend:** Angular (`@angular/core` 21.x) app scaffold in a dedicated subfolder.
 - **Tests:** xUnit project referencing the backend application project.
 
@@ -45,7 +46,7 @@ The backend starts as an executable app and configures controllers, Swagger, and
 
 ## Tech Stack
 
-- **Backend:** C#, ASP.NET Core, Entity Framework Core 8, SQLite, Swashbuckle
+- **Backend:** C#, ASP.NET Core, Entity Framework Core 10, SQLite, Swashbuckle
 - **Data seeding:** Bogus
 - **Frontend:** Angular 21, TypeScript 5.9, RxJS
 - **Testing:** xUnit, Microsoft.NET.Test.Sdk, coverlet.collector
@@ -55,9 +56,17 @@ The backend starts as an executable app and configures controllers, Swagger, and
 
 ```text
 TimeTravelAgency/
+|- scripts/
+|  |- setup.sh            # Install all dependencies
+|  |- start.sh            # Start backend + frontend together
+|  |- start-backend.sh    # Start backend with hot-reload only
+|  |- start-frontend.sh   # Start Angular dev server only
+|  |- test.sh             # Run all test suites
+|  |- build.sh            # Production build (backend + frontend)
+|  |- reset-db.sh         # Delete SQLite DB (forces reseed on next start)
 |- src/
 |  |- backend/
-|  |  |- TimeTravelAgency.Application/    # .NET 8 Web API + EF Core domain
+|  |  |- TimeTravelAgency.Application/    # .NET 10 Web API + EF Core domain
 |  |- frontend/
 |     |- time-travel-agency-web/          # Angular application
 |- tests/
@@ -69,7 +78,7 @@ TimeTravelAgency/
 
 Install the following tools:
 
-- **.NET SDK 8.0+**
+- **.NET SDK 10.0+**
 - **Node.js 20+** (recommended for Angular 21)
 - **npm** (project currently specifies `npm@11.3.0`)
 
@@ -79,88 +88,96 @@ Optional:
 
 ## Quick Start
 
-### 1) Clone and restore backend dependencies
+### 1) Clone the repository
 
-#### Using HTTPS
-```powershell
+```bash
+# HTTPS
 git clone https://github.com/Belegratis-Constantin/TimeTravelAgency.git
 
-Set-Location TimeTravelAgency
-dotnet restore .\TimeTravelAgency.sln
-```
-
-#### Using SSH
-
-```powershell
+# SSH
 git clone git@github.com:Belegratis-Constantin/TimeTravelAgency.git
 
-Set-Location TimeTravelAgency
-dotnet restore .\TimeTravelAgency.sln
+cd TimeTravelAgency
 ```
 
-### 2) Start the backend API
+### 2) Install all dependencies
 
-```powershell
-dotnet run --project .\src\backend\TimeTravelAgency.Application\TimeTravelAgency.Application.csproj
+```bash
+./scripts/setup.sh
 ```
 
-Then open Swagger UI (default ASP.NET Core URL):
+This checks for .NET SDK and Node.js, restores NuGet packages, and runs `npm install` for the frontend.
 
-- `http://localhost:5000/swagger`
-- or `https://localhost:5001/swagger`
+### 3) Start the full project
 
-Exact port depends on your local launch profile.
-
-### 3) Install and run frontend
-
-```powershell
-Set-Location .\src\frontend\time-travel-agency-web
-npm install
-npm start
+```bash
+./scripts/start.sh
 ```
 
-Default Angular dev URL: `http://localhost:4200/`
+This starts both the backend and the Angular dev server in a single terminal. Press `Ctrl+C` to stop both.
+
+| Service  | URL                          |
+|----------|------------------------------|
+| Backend  | http://localhost:5000/swagger |
+| Frontend | http://localhost:4200         |
+
+## Scripts
+
+All scripts live in the `scripts/` directory and are executable bash scripts.
+
+| Script              | What it does                                              |
+|---------------------|-----------------------------------------------------------|
+| `setup.sh`          | Check prerequisites, restore .NET packages, `npm install` |
+| `start.sh`          | Start backend + frontend together (Ctrl+C stops both)     |
+| `start-backend.sh`  | Start backend only, with hot-reload (`dotnet watch`)      |
+| `start-frontend.sh` | Start Angular dev server only                             |
+| `test.sh`           | Run all test suites; `--backend` or `--frontend` flags    |
+| `build.sh`          | Release build (backend) + production build (frontend)     |
+| `reset-db.sh`       | Delete the SQLite DB — next API start recreates + reseeds |
 
 ## Run the Backend API
 
-From repository root:
+```bash
+# With hot-reload (recommended for development)
+./scripts/start-backend.sh
 
-```powershell
-dotnet run --project .\src\backend\TimeTravelAgency.Application\TimeTravelAgency.Application.csproj
+# Plain run (no file watching)
+dotnet run --project src/backend/TimeTravelAgency.Application/TimeTravelAgency.Application.csproj
 ```
 
-Useful API development command:
-
-```powershell
-dotnet watch --project .\src\backend\TimeTravelAgency.Application\TimeTravelAgency.Application.csproj
-```
+Swagger UI is available at `http://localhost:5000/swagger` once the API is running.
 
 ## Run the Frontend
 
-From `src/frontend/time-travel-agency-web`:
-
-```powershell
-npm start
+```bash
+./scripts/start-frontend.sh
 ```
 
-Build production assets:
+Or manually from `src/frontend/time-travel-agency-web`:
 
-```powershell
-npm run build
+```bash
+npm start        # dev server at http://localhost:4200
+npm run build    # production build
 ```
 
 ## Testing
 
-Run all .NET tests from repository root:
+```bash
+# Run all suites
+./scripts/test.sh
 
-```powershell
-dotnet test .\TimeTravelAgency.sln
+# Backend only
+./scripts/test.sh --backend
+
+# Frontend only
+./scripts/test.sh --frontend
 ```
 
-Run frontend tests from `src/frontend/time-travel-agency-web`:
+Or manually:
 
-```powershell
-npm test
+```bash
+dotnet test TimeTravelAgency.sln
+cd src/frontend/time-travel-agency-web && npm test
 ```
 
 ## API Overview
@@ -216,7 +233,7 @@ The UML diagram of the domain model is available here:
 ## Troubleshooting
 
 - If `npm install` fails, verify your Node and npm versions.
-- Ensure the .NET 8 SDK is installed (`dotnet --info`) if the API fails to start.
+- Ensure the .NET 10 SDK is installed (`dotnet --info`) if the API fails to start.
 - Check the actual URL printed by ASP.NET Core startup logs when Swagger is not reachable.
 - To reset an inconsistent database state, delete `TimeTravelAgencyTest.db` and restart the API.
 

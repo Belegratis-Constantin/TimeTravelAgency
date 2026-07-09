@@ -68,6 +68,74 @@ public class ManagerController : ControllerBase
         }
     }
     
+    [HttpPatch("make-agent-licensed/{managerGuid}/{agentGuid}")]
+    public async Task<IActionResult> MakeAgentLicensed(Guid managerGuid, Guid agentGuid, [FromBody] UpgradeAgentCmd cmd)
+    {
+        var manager = _context.Managers
+            .Include(m => m.Agents)
+            .FirstOrDefault(m => m.Guid == managerGuid);
+        if (manager == null)
+            return Problem("Manager not found.", statusCode: 404);
+
+        var agent = _context.Agents.FirstOrDefault(a => a.Guid == agentGuid);
+        if (agent == null)
+            return Problem("Agent not found.", statusCode: 404);
+
+        if (!manager.Agents.Any(a => a.Guid == agentGuid))
+            return Problem("Agent is not managed by this manager.", statusCode: 403);
+
+        if (agent.AgentType == "LicensedAgent")
+            return Problem("Agent is already licensed.", statusCode: 400);
+
+        try
+        {
+            await _context.Database.ExecuteSqlRawAsync(
+                "UPDATE Agents SET AgentType='LicensedAgent', LicenseNumber={0}, LicenseExpirationDate={1} WHERE Guid={2}",
+                cmd.LicenseNumber, cmd.LicenseExpirationDate.ToString("O"), agentGuid.ToString());
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message, statusCode: 500);
+        }
+
+        _context.Entry(agent).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+
+        var updated = _context.Agents.Include(a => a.SpecialisationEpoch).FirstOrDefault(a => a.Guid == agentGuid);
+        if (updated == null) return Ok("Agent promoted.");
+
+        return Ok(new AgentDto(
+            updated.Id, updated.Guid, updated.Firstname, updated.Lastname,
+            updated.DateOfBirth, updated.SpecialisationTime, updated.AgentType,
+            updated.ManagerId, updated.SpecialisationEpoch, new List<Dto.TripDto>()
+        ));
+    }
+
+    [HttpGet("{managerGuid}/trips")]
+    public IActionResult GetTripsForManager(Guid managerGuid)
+    {
+        var manager = _context.Managers.FirstOrDefault(m => m.Guid == managerGuid);
+        if (manager == null)
+            return Problem("Manager not found.", statusCode: 404);
+
+        var trips = _context.Trips
+            .Where(t => t.Manager.Guid == managerGuid)
+            .Select(t => new TripDto(
+                t.Guid, t.DateInRealLife, t.TripName, t.TripType,
+                t.TripStatus.ToString(), t.LicensedAgentId, t.ManagerId,
+                t.Paradoxes.Select(p => new ParadoxDto(p.Guid, p.ParadoxStatus.ToString(), p.ParadoxType.ToString())).ToList(),
+                t.Customers.Select(c => new CustomerDto(
+                    c.Guid, c.Firstname, c.Lastname, c.Email, c.PhoneNumber, c.DateOfBirth,
+                    new AddressDto(c.Address.Street, c.Address.City, c.Address.Zip),
+                    c.Reviews.Select(r => new ReviewDto(r.Guid, r.Stars, r.Header, r.Content)).ToList()
+                )).ToList(),
+                t.Reports.Select(r => new ReportForTripDto(r.Guid, r.Header, r.Date, r.Content)).ToList(),
+                t.Reviews.Select(r => new ReviewDto(r.Guid, r.Stars, r.Header, r.Content)).ToList(),
+                t.AgentId, t.Manager.Guid
+            )).ToList();
+
+        return Ok(trips);
+    }
+
     [HttpGet("with-id")]
     public async Task<IActionResult> GetAllManagersWithId()
     {

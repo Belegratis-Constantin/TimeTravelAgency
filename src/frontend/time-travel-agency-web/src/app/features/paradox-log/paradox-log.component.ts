@@ -31,6 +31,9 @@ interface ParadoxRow {
       @if (loading()) {
         <div style="color:#6B7488;padding:40px 0;">Loading paradox records…</div>
       }
+      @if (loadError()) {
+        <div style="color:#E05A4E;padding:40px 0;font-size:13.5px;">{{ loadError() }}</div>
+      }
 
       @if (!loading()) {
         <div style="background:#1E2A3A;border-radius:4px;overflow:hidden;">
@@ -64,19 +67,26 @@ export class ParadoxLogComponent implements OnInit {
   private readonly tripService = inject(TripService);
 
   readonly loading = signal(true);
+  readonly loadError = signal('');
   readonly rows = signal<ParadoxRow[]>([]);
 
   ngOnInit(): void {
-    this.tripService.getAll().subscribe(trips => {
-      const rows: ParadoxRow[] = trips.flatMap(t =>
-        t.paradoxes.map(p => ({
-          tripName: t.tripName ?? 'Uncatalogued',
-          paradoxType: paradoxTypeLabel(p.paradoxType),
-          paradoxStatus: p.paradoxStatus,
-        }))
-      );
-      this.rows.set(rows);
-      this.loading.set(false);
+    this.tripService.getAll().subscribe({
+      next: trips => {
+        const rows: ParadoxRow[] = trips.flatMap(t =>
+          t.paradoxes.map(p => ({
+            tripName: t.tripName ?? 'Uncatalogued',
+            paradoxType: paradoxTypeLabel(p.paradoxType),
+            paradoxStatus: p.paradoxStatus,
+          }))
+        );
+        this.rows.set(rows);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loadError.set('Could not load paradox records.');
+        this.loading.set(false);
+      },
     });
   }
 }

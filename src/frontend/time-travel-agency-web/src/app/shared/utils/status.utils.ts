@@ -22,6 +22,7 @@ export function paradoxMeta(status: string): StatusMeta {
     InQueue:   { label: 'In Queue',  ...COLORS.paradoxPending },
     InProcess: { label: 'In Process', color: '#5B8DC9', bg: 'rgba(91,141,201,0.15)' },
     Solved:    { label: 'Solved',    ...COLORS.paradoxResolved },
+    Escalated: { label: 'Escalated', color: '#E05A4E', bg: 'rgba(224,90,78,0.15)' },
   };
   return map[status] ?? { label: status, color: COLORS.textMuted, bg: 'transparent' };
 }

@@ -5,7 +5,7 @@ import { TripDto } from '../../../core/models/trip.model';
   selector: 'app-stats-panel',
   standalone: true,
   template: `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:44px;">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:20px;margin-bottom:44px;">
       <div style="background:#1E2A3A;border-radius:4px;padding:24px;">
         <div style="font-family:'Fraunces',serif;font-size:34px;">{{ totalTrips }}</div>
         <div style="font-size:12px;color:#8A93A6;letter-spacing:0.06em;text-transform:uppercase;margin-top:6px;">
@@ -16,6 +16,12 @@ import { TripDto } from '../../../core/models/trip.model';
         <div style="font-family:'Fraunces',serif;font-size:34px;color:#5B8DC9;">{{ activeTrips }}</div>
         <div style="font-size:12px;color:#8A93A6;letter-spacing:0.06em;text-transform:uppercase;margin-top:6px;">
           Active Trips
+        </div>
+      </div>
+      <div style="background:#1E2A3A;border-radius:4px;padding:24px;">
+        <div style="font-family:'Fraunces',serif;font-size:34px;color:#E05A4E;">{{ criticalTrips }}</div>
+        <div style="font-size:12px;color:#8A93A6;letter-spacing:0.06em;text-transform:uppercase;margin-top:6px;">
+          Critical
         </div>
       </div>
       <div style="background:#1E2A3A;border-radius:4px;padding:24px;">
@@ -39,7 +45,11 @@ export class StatsPanelComponent {
   get totalTrips(): number { return this.trips.length; }
 
   get activeTrips(): number {
-    return this.trips.filter(t => t.tripStatus === 'Active' || t.tripStatus === 'Critical').length;
+    return this.trips.filter(t => t.tripStatus === 'Active').length;
+  }
+
+  get criticalTrips(): number {
+    return this.trips.filter(t => t.tripType === 'CriticalTrip').length;
   }
 
   get totalCustomers(): number {
@@ -48,6 +58,6 @@ export class StatsPanelComponent {
 
   get openParadoxes(): number {
     return this.trips.reduce((sum, t) =>
-      sum + t.paradoxes.filter(p => p.paradoxStatus !== 'Resolved').length, 0);
+      sum + t.paradoxes.filter(p => p.paradoxStatus !== 'Solved').length, 0);
   }
 }

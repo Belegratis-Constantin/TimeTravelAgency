@@ -7,6 +7,7 @@ namespace TimeTravelAgency.Application.Infrastructure;
 
 public class TimeTravelAgencyContext : DbContext
 {
+    public DbSet<Director> Directors { get; set; }
     public DbSet<Agent> Agents { get; set; }
     public DbSet<LicensedAgent> LicensedAgents { get; set; }
     public DbSet<Report> Reports { get; set; }
@@ -276,14 +277,28 @@ public class TimeTravelAgencyContext : DbContext
             .WithMany(c => c.Trips)
             .UsingEntity(j => j.ToTable("TripCustomers"));
 
+        // Director
+        modelBuilder.Entity<Director>()
+            .Property(d => d.Guid)
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Director>()
+            .HasAlternateKey(d => d.Guid);
+
+        modelBuilder.Entity<Director>()
+            .HasMany(d => d.Managers)
+            .WithOne(m => m.Director)
+            .HasForeignKey(m => m.DirectorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Manager
         modelBuilder.Entity<Manager>()
             .Property(m => m.Guid)
             .ValueGeneratedOnAdd();
-        
+
         modelBuilder.Entity<Manager>()
             .HasAlternateKey(m => m.Guid);
-        
+
         modelBuilder.Entity<Manager>()
             .OwnsOne(m => m.Address);
 
@@ -478,6 +493,14 @@ public class TimeTravelAgencyContext : DbContext
             allManagers[i % allManagers.Count].AddAgent(allAgents[i]);
         for (int i = 0; i < allLicensed.Count; i++)
             allManagers[i % allManagers.Count].AddAgent(allLicensed[i]);
+        await this.SaveChangesAsync();
+
+        // Create the one Director and assign all managers to them
+        var director = new Director("Chronos Prime");
+        this.Directors.Add(director);
+        await this.SaveChangesAsync();
+        foreach (var m in this.Managers.ToList())
+            director.AddManager(m);
         await this.SaveChangesAsync();
 
         // Assign support agents to some standard trips (agent must belong to the trip's manager)

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TimeTravelAgency.Application.Cmd;
 using TimeTravelAgency.Application.Dto;
 using TimeTravelAgency.Application.Infrastructure;
 using TimeTravelAgency.Application.Model;
@@ -17,6 +18,45 @@ public class AgentController : ControllerBase
         _context = context;
     }
 
+    [HttpPost]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentCmd cmd)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var agent = new Agent(
+            cmd.Firstname,
+            cmd.Lastname,
+            cmd.DateOfBirth,
+            cmd.SpecialisationTime,
+            cmd.Address.ToModel()
+        );
+
+        if (cmd.ManagerId.HasValue)
+        {
+            var manager = await _context.Managers.FindAsync(cmd.ManagerId.Value);
+            if (manager != null)
+                manager.AddAgent(agent);
+        }
+
+        _context.Agents.Add(agent);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (ArgumentException ex)
+        {
+            return Problem(ex.Message, statusCode: 400);
+        }
+
+        return CreatedAtAction(nameof(GetById), new { guid = agent.Guid }, new AgentDto(
+            agent.Id, agent.Guid, agent.Firstname, agent.Lastname,
+            agent.DateOfBirth, agent.SpecialisationTime, agent.AgentType,
+            agent.ManagerId, agent.SpecialisationEpoch, new List<Dto.TripDto>()
+        ));
+    }
+
     [HttpGet("{guid}")]
     public async Task<IActionResult> GetById(Guid guid)
     {
@@ -28,7 +68,7 @@ public class AgentController : ControllerBase
             return Problem("Agent was not found", statusCode: 404);
 
         var tripDto = await _context.Trips
-            .Where(t => t.AgentId == agent.Id)
+            .Where(t => t.AgentId == agent.Id || t.LicensedAgentId == agent.Id)
             .Select(t => new TripDto(
                 t.Guid,
                 t.DateInRealLife,

@@ -1,33 +1,38 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { TripService } from '../../core/services/trip.service';
 import { AgentService } from '../../core/services/agent.service';
+import { CustomerService } from '../../core/services/customer.service';
 import { AppStateService } from '../../state/app-state.service';
 import { TripDto } from '../../core/models/trip.model';
 import { AgentDto } from '../../core/models/agent.model';
-import { agentFullName } from '../../shared/utils/status.utils';
+import { agentFullName, tripStatusMeta } from '../../shared/utils/status.utils';
 import { TripCardComponent } from './trip-card/trip-card.component';
+import { JoinTravellerModalComponent } from '../modals/join-traveller-modal/join-traveller-modal.component';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [TripCardComponent, RouterLink],
+  imports: [TripCardComponent, RouterLink, JoinTravellerModalComponent],
   templateUrl: './landing.component.html',
 })
 export class LandingComponent implements OnInit {
   private readonly tripService = inject(TripService);
   private readonly agentService = inject(AgentService);
+  private readonly customerService = inject(CustomerService);
   private readonly router = inject(Router);
   protected readonly state = inject(AppStateService);
 
   private readonly allTrips = signal<TripDto[]>([]);
   private readonly agents = signal<AgentDto[]>([]);
+  readonly bookedTrips = signal<TripDto[]>([]);
 
   readonly filterEra = signal('all');
   readonly filterType = signal('all');
   readonly sortOrder = signal<'soonest' | 'latest'>('soonest');
   readonly loading = signal(true);
+  readonly loadError = signal('');
 
   readonly agentMap = computed((): Map<number, string> => {
     const map = new Map<number, string>();
@@ -73,12 +78,28 @@ export class LandingComponent implements OnInit {
     forkJoin({
       trips: this.tripService.getAll(),
       agents: this.agentService.getAll(),
-    }).subscribe(({ trips, agents }) => {
-      this.allTrips.set(trips);
-      this.agents.set(agents);
-      this.loading.set(false);
+    }).subscribe({
+      next: ({ trips, agents }) => {
+        this.allTrips.set(trips);
+        this.agents.set(agents);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loadError.set('Could not load trips — is the backend running?');
+        this.loading.set(false);
+      },
     });
+
+    const customerGuid = this.state.currentCustomer()?.guid;
+    if (customerGuid) {
+      this.customerService.getTrips(customerGuid).subscribe({
+        next: trips => this.bookedTrips.set(trips),
+        error: () => {},
+      });
+    }
   }
+
+  statusMeta(status: string) { return tripStatusMeta(status); }
 
   agentNameForTrip(trip: TripDto): string {
     return this.agentMap().get(trip.licensedAgentId) ?? `Agent #${trip.licensedAgentId}`;
@@ -86,5 +107,15 @@ export class LandingComponent implements OnInit {
 
   navigateToTrip(guid: string): void {
     this.router.navigate(['/trip', guid]);
+  }
+
+  readonly showJoinModal = signal(false);
+
+  scrollToGrid(): void {
+    document.querySelector('[data-trip-grid]')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  onJoined(): void {
+    this.showJoinModal.set(false);
   }
 }

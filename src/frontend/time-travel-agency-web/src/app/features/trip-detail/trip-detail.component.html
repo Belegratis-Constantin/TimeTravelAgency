@@ -36,7 +36,7 @@
     <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:48px;align-items:start;">
       <div>
         <app-trip-reviews [reviews]="trip()!.reviews" />
-        <app-trip-paradoxes [paradoxes]="trip()!.paradoxes" />
+        <app-trip-paradoxes [paradoxes]="trip()!.paradoxes" (changed)="onParadoxChanged()" />
       </div>
 
       <div>

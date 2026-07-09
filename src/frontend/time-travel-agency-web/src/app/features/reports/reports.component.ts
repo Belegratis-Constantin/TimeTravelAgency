@@ -144,18 +144,23 @@ export class ReportsComponent implements OnInit {
 
   private loadReports(): void {
     this.loading.set(true);
-    this.tripService.getAll().subscribe(trips => {
-      this.allTrips.set(trips);
-      const rows: ReportRow[] = trips.flatMap(t =>
-        t.reports.map(r => ({
-          header: r.header,
-          date: formatDateTime(r.date),
-          tripName: t.tripName ?? 'Uncatalogued',
-          content: r.content,
-        }))
-      ).sort((a, b) => b.date.localeCompare(a.date));
-      this.rows.set(rows);
-      this.loading.set(false);
+    this.tripService.getAll().subscribe({
+      next: trips => {
+        this.allTrips.set(trips);
+        const rows: ReportRow[] = trips.flatMap(t =>
+          t.reports.map(r => ({
+            header: r.header,
+            date: formatDateTime(r.date),
+            tripName: t.tripName ?? 'Uncatalogued',
+            content: r.content,
+          }))
+        ).sort((a, b) => b.date.localeCompare(a.date));
+        this.rows.set(rows);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+      },
     });
   }
 

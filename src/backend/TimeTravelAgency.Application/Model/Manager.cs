@@ -62,6 +62,15 @@ public class Manager
     
     public virtual IReadOnlyCollection<Trip> Trips => _trips;
     public virtual IReadOnlyCollection<Agent> Agents => _agents;
+
+    public int? DirectorId { get; set; }
+    public virtual Director? Director { get; set; }
+
+    public void AssignToDirector(Director director)
+    {
+        Director = director;
+        DirectorId = director.Id;
+    }
     private const int MaxAmountManagedTrips = 5;
     
     

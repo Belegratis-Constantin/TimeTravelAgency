@@ -16,6 +16,10 @@ export class AgentService {
     return this.http.get<AgentDto>(`${this.base}/${guid}`);
   }
 
+  create(cmd: { firstname: string; lastname: string; dateOfBirth: string; specialisationTime: number; address: { street: string; city: string; zipCode: number } }): Observable<AgentDto> {
+    return this.http.post<AgentDto>(this.base, { ...cmd, agentType: 'Agent' });
+  }
+
   delete(guid: string): Observable<string> {
     return this.http.delete(`${this.base}/${guid}`, { responseType: 'text' });
   }

@@ -10,6 +10,8 @@ import { TripsTableComponent } from './trips-table/trips-table.component';
 import { AgentsPanelComponent } from './agents-panel/agents-panel.component';
 import { CreateTripModalComponent } from '../modals/create-trip-modal/create-trip-modal.component';
 import { AssignAgentModalComponent } from '../modals/assign-agent-modal/assign-agent-modal.component';
+import { CreateAgentModalComponent } from '../modals/create-agent-modal/create-agent-modal.component';
+import { PromoteAgentModalComponent } from '../modals/promote-agent-modal/promote-agent-modal.component';
 import { forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
@@ -22,6 +24,8 @@ import { switchMap } from 'rxjs/operators';
     AgentsPanelComponent,
     CreateTripModalComponent,
     AssignAgentModalComponent,
+    CreateAgentModalComponent,
+    PromoteAgentModalComponent,
   ],
   templateUrl: './dashboard.component.html',
 })
@@ -34,6 +38,9 @@ export class DashboardComponent implements OnInit {
   readonly trips = signal<TripDto[]>([]);
   readonly agents = signal<AgentDto[]>([]);
   readonly loading = signal(true);
+  readonly loadError = signal('');
+  readonly showCreateAgent = signal(false);
+  readonly showPromoteAgent = signal(false);
   readonly createModalOpen = signal(false);
   readonly assignTripGuid = signal<string | null>(null);
 
@@ -52,19 +59,39 @@ export class DashboardComponent implements OnInit {
       ? this.managerService.getAgentsForManager(managerGuid)
       : this.agentService.getAll();
 
+    const trips$ = managerGuid
+      ? this.managerService.getTripsForManager(managerGuid)
+      : this.tripService.getAll();
+
     forkJoin({
-      trips: this.tripService.getAll(),
+      trips: trips$,
       agents: agents$,
-    }).subscribe(({ trips, agents }) => {
-      this.trips.set(trips);
-      this.agents.set(agents);
-      this.loading.set(false);
+    }).subscribe({
+      next: ({ trips, agents }) => {
+        this.trips.set(trips);
+        this.agents.set(agents);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loadError.set('Could not load dashboard — is the backend running?');
+        this.loading.set(false);
+      },
     });
   }
 
   onTripCreated(): void {
     this.createModalOpen.set(false);
     this.loadData();
+  }
+
+  onAgentCreated(): void {
+    this.showCreateAgent.set(false);
+    this.ngOnInit();
+  }
+
+  onAgentPromoted(): void {
+    this.showPromoteAgent.set(false);
+    this.ngOnInit();
   }
 
   onAgentAssigned(): void {

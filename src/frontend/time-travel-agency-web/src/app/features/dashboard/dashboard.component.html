@@ -7,11 +7,23 @@
     <div style="display:flex;justify-content:space-between;align-items:center;
                 margin-bottom:32px;flex-wrap:wrap;gap:16px;">
       <div style="font-family:'Fraunces',serif;font-size:28px;">Manager Dashboard</div>
-      <button (click)="createModalOpen.set(true)"
-              style="background:#C9A84C;border:none;color:#0B1120;font-weight:600;
-                     font-size:13.5px;padding:12px 22px;border-radius:3px;cursor:pointer;">
-        + Create Trip
-      </button>
+      <div style="display:flex;gap:10px;">
+        <button (click)="showCreateAgent.set(true)"
+                style="background:transparent;border:1px solid #2E3E54;color:#B7BFCC;
+                       font-size:13px;padding:10px 18px;border-radius:3px;cursor:pointer;">
+          + Recruit Agent
+        </button>
+        <button (click)="showPromoteAgent.set(true)"
+                style="background:transparent;border:1px solid #2E3E54;color:#B7BFCC;
+                       font-size:13px;padding:10px 18px;border-radius:3px;cursor:pointer;">
+          ↑ Grant Licence
+        </button>
+        <button (click)="createModalOpen.set(true)"
+                style="background:#C9A84C;border:none;color:#0B1120;font-weight:600;
+                       font-size:13.5px;padding:12px 22px;border-radius:3px;cursor:pointer;">
+          + Create Trip
+        </button>
+      </div>
     </div>
 
     <app-stats-panel [trips]="trips()" />
@@ -36,4 +48,16 @@
     [tripName]="assignTripName"
     (assigned)="onAgentAssigned()"
     (cancelled)="assignTripGuid.set(null)" />
+}
+
+@if (showCreateAgent()) {
+  <app-create-agent-modal
+    (created)="onAgentCreated()"
+    (cancelled)="showCreateAgent.set(false)" />
+}
+
+@if (showPromoteAgent()) {
+  <app-promote-agent-modal
+    (promoted)="onAgentPromoted()"
+    (cancelled)="showPromoteAgent.set(false)" />
 }

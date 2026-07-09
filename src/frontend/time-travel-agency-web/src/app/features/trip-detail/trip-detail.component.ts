@@ -39,6 +39,7 @@ export class TripDetailComponent implements OnInit {
   readonly trip = signal<TripDto | null>(null);
   readonly agents = signal<AgentDto[]>([]);
   readonly loading = signal(true);
+  readonly loadError = signal('');
   readonly bookedTripGuids = signal<string[]>([]);
   readonly assignModalOpen = signal(false);
 
@@ -47,10 +48,16 @@ export class TripDetailComponent implements OnInit {
     forkJoin({
       trip: this.tripService.getById(guid),
       agents: this.agentService.getAll(),
-    }).subscribe(({ trip, agents }) => {
-      this.trip.set(trip);
-      this.agents.set(agents);
-      this.loading.set(false);
+    }).subscribe({
+      next: ({ trip, agents }) => {
+        this.trip.set(trip);
+        this.agents.set(agents);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loadError.set('Could not load trip — is the backend running?');
+        this.loading.set(false);
+      },
     });
   }
 
@@ -93,8 +100,18 @@ export class TripDetailComponent implements OnInit {
 
   onAssigned(): void {
     this.assignModalOpen.set(false);
-    // Refresh trip data
+    this.refreshTrip();
+  }
+
+  onParadoxChanged(): void {
+    this.refreshTrip();
+  }
+
+  private refreshTrip(): void {
     const guid = this.route.snapshot.paramMap.get('guid') ?? '';
-    this.tripService.getById(guid).subscribe(trip => this.trip.set(trip));
+    this.tripService.getById(guid).subscribe({
+      next: trip => this.trip.set(trip),
+      error: () => {},
+    });
   }
 }

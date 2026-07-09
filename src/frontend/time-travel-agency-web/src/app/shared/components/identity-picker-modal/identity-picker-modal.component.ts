@@ -2,9 +2,11 @@ import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
 import { CustomerService } from '../../../core/services/customer.service';
 import { ManagerService } from '../../../core/services/manager.service';
 import { AgentService } from '../../../core/services/agent.service';
+import { DirectorService } from '../../../core/services/director.service';
 import { CustomerDto } from '../../../core/models/trip.model';
 import { ManagerWithIdDto } from '../../../core/models/manager.model';
 import { AgentDto } from '../../../core/models/agent.model';
+import { DirectorDto } from '../../../core/models/director.model';
 import { AppStateService, Role } from '../../../state/app-state.service';
 
 @Component({
@@ -19,6 +21,7 @@ import { AppStateService, Role } from '../../../state/app-state.service';
           @if (pendingRole === 'customer') { Sign in as Customer }
           @if (pendingRole === 'agent') { Sign in as Agent }
           @if (pendingRole === 'manager') { Sign in as Manager }
+          @if (pendingRole === 'director') { Sign in as Director }
         </div>
         <div style="font-size:13px;color:#8A93A6;margin-bottom:24px;">
           Select your identity from the database.
@@ -87,6 +90,22 @@ import { AppStateService, Role } from '../../../state/app-state.service';
           </div>
         }
 
+        @if (!loading() && !error() && pendingRole === 'director') {
+          <div style="display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;margin-bottom:24px;">
+            @for (d of directors(); track d.guid) {
+              <div (click)="selectDirector(d)"
+                   style="padding:14px 16px;background:#0B1120;border-radius:3px;
+                          cursor:pointer;font-size:13.5px;border:1px solid;"
+                   [style.borderColor]="selected() === d.guid ? '#C9A84C' : '#2E3E54'">
+                <div style="font-weight:600;">{{ d.name }}</div>
+                <div style="font-size:12px;color:#8A93A6;margin-top:2px;">
+                  Oversees {{ d.managerCount }} manager{{ d.managerCount !== 1 ? 's' : '' }}
+                </div>
+              </div>
+            }
+          </div>
+        }
+
         <div style="display:flex;justify-content:flex-end;">
           <button (click)="cancel()"
                   style="background:transparent;border:1px solid #2E3E54;color:#B7BFCC;
@@ -102,11 +121,13 @@ export class IdentityPickerModalComponent implements OnInit {
   private readonly customerService = inject(CustomerService);
   private readonly managerService = inject(ManagerService);
   private readonly agentService = inject(AgentService);
+  private readonly directorService = inject(DirectorService);
   protected readonly state = inject(AppStateService);
 
   readonly customers = signal<CustomerDto[]>([]);
   readonly managers = signal<ManagerWithIdDto[]>([]);
   readonly agents = signal<AgentDto[]>([]);
+  readonly directors = signal<DirectorDto[]>([]);
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly selected = signal<string | null>(null);
@@ -134,6 +155,11 @@ export class IdentityPickerModalComponent implements OnInit {
         next: list => { this.managers.set(list); this.loading.set(false); },
         error: () => { this.loading.set(false); this.error.set(true); },
       });
+    } else if (this.pendingRole === 'director') {
+      this.directorService.get().subscribe({
+        next: d => { this.directors.set([d]); this.loading.set(false); },
+        error: () => { this.loading.set(false); this.error.set(true); },
+      });
     }
   }
 
@@ -150,6 +176,11 @@ export class IdentityPickerModalComponent implements OnInit {
   selectManager(manager: ManagerWithIdDto): void {
     this.selected.set(manager.guid);
     this.state.setManager(manager);
+  }
+
+  selectDirector(director: DirectorDto): void {
+    this.selected.set(director.guid);
+    this.state.setDirector(director);
   }
 
   cancel(): void {
