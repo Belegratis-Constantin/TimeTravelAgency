@@ -1,4 +1,7 @@
 <div style="min-height:100vh;background:#0B1120;color:#F0EDE6;">
   <app-header />
   <router-outlet />
+  @if (showTutorial()) {
+    <app-tutorial-overlay (dismissed)="dismissTutorial()" />
+  }
 </div>
