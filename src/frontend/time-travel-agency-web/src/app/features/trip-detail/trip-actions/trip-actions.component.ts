@@ -11,6 +11,7 @@ import { NotificationService } from '../../../state/notification.service';
 import { bookingInfo } from '../../../shared/utils/booking.utils';
 import { formatDateTime } from '../../../shared/utils/date.utils';
 import { isOpenParadox, paradoxTypeLabel, tripDisplayName } from '../../../shared/utils/status.utils';
+import { inQueueOrder, queueLabel } from '../../../shared/utils/paradox-queue.utils';
 import { ParadoxStabilizerComponent } from '../../paradox-stabilizer/paradox-stabilizer.component';
 import { BLOCK_TEXT, stabiliseBlock } from '../../../shared/utils/dual-lock.utils';
 
@@ -57,8 +58,10 @@ export class TripActionsComponent {
     if (this.trip().agentId === agent.id) return 'Support agent';
     return null;
   });
-  protected readonly openParadoxes = computed(() => this.feed.forTrip(this.trip().guid).filter(isOpenParadox));
+  /** Open paradoxes in queue order — only the first one can be stabilised right now. */
+  protected readonly openParadoxes = computed(() => inQueueOrder(this.feed.forTrip(this.trip().guid).filter(isOpenParadox)));
   protected readonly typeLabel = paradoxTypeLabel;
+  protected readonly queueLabel = queueLabel;
 
   /** Why the signed-in agent cannot start a round on this paradox, or null if they can. */
   protected blockText(p: ParadoxFeedDto): string | null {

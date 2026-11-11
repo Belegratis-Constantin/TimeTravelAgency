@@ -21,3 +21,15 @@
 }
 .lock-chip.on { border-color: color-mix(in srgb, var(--green) 60%, transparent); color: var(--green); }
 .lock-chip.warn { border-color: color-mix(in srgb, var(--amber) 60%, transparent); color: var(--amber); }
+.queue {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 7px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border); color: var(--text-faint);
+}
+.queue.now { border-color: color-mix(in srgb, var(--blue) 60%, transparent); color: var(--blue); }
+.reorder { display: flex; align-items: center; gap: 4px; }
+.icon-btn {
+  width: 26px; height: 26px; display: inline-grid; place-items: center; font-size: 10px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: var(--radius); background: transparent; color: var(--text-2);
+}
+.icon-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+.icon-btn:disabled { opacity: 0.35; cursor: default; }

@@ -12,6 +12,11 @@ describe('dual lock', () => {
     expect(stabiliseBlock(p({ paradoxStatus: 'Solved' }), 1)).toBe('closed');
   });
 
+  it('only lets agents work on the paradox whose turn it is', () => {
+    expect(stabiliseBlock(p({ dualLockRequired: false, paradoxStatus: 'InQueue', queuePosition: 1 }), 1)).toBe('queued');
+    expect(canStabilise(p({ dualLockRequired: false, paradoxStatus: 'InProcess', queuePosition: 0 }), 1)).toBe(true);
+  });
+
   it('assigns the roles of a dual lock', () => {
     expect(lockRoleOf(p(), 1)).toBe('licensed');
     expect(lockRoleOf(p(), 2)).toBe('support');

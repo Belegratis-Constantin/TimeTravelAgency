@@ -50,7 +50,7 @@ public class ParadoxSimulationTest : IDisposable
     }
 
     [Fact]
-    public void Paradox_Constructor_SetsCreatedAtAndQueuedStatus()
+    public void Paradox_Constructor_SetsCreatedAtAndQueueStatus()
     {
         var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
         var agent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
@@ -58,9 +58,11 @@ public class ParadoxSimulationTest : IDisposable
 
         var before = DateTime.UtcNow;
         var paradox = new Paradox(trip);
+        var next = new Paradox(trip);
 
         Assert.InRange(paradox.CreatedAt, before.AddSeconds(-1), DateTime.UtcNow.AddSeconds(1));
-        Assert.Equal(ParadoxStatus.InQueue, paradox.ParadoxStatus);
+        Assert.Equal(ParadoxStatus.InProcess, paradox.ParadoxStatus);
+        Assert.Equal(ParadoxStatus.InQueue, next.ParadoxStatus);
         Assert.True(Enum.IsDefined(paradox.ParadoxType));
     }
 
@@ -95,7 +97,9 @@ public class ParadoxSimulationTest : IDisposable
 
         Assert.NotNull(result);
         Assert.Equal(trip.Guid, result!.Paradox.TripGuid);
-        Assert.Equal("InQueue", result.Paradox.ParadoxStatus);
+        // The trip had no open paradox, so the new one is worked on immediately.
+        Assert.Equal("InProcess", result.Paradox.ParadoxStatus);
+        Assert.Equal(0, result.Paradox.QueuePosition);
         Assert.False(string.IsNullOrWhiteSpace(result.Paradox.Description));
         Assert.Equal(1, _context.Paradoxes.Count());
     }

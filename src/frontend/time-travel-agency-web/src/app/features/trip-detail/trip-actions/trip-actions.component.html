@@ -61,6 +61,7 @@
             @for (p of openParadoxes(); track p.guid) {
               <li>
                 <span>
+                  @if (queueLabel(p); as q) { <span class="queue-tag" [class.now]="p.queuePosition === 0">{{ q }}</span> }
                   {{ typeLabel(p.paradoxType) }}
                   @if (p.dualLockRequired) {
                     <span class="dual-tag">dual lock · {{ p.licensedLocked ? '✓' : '○' }} licensed · {{ p.supportLocked ? '✓' : '○' }} support</span>

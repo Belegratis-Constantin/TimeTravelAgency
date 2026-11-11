@@ -142,8 +142,56 @@ public class Trip
         Agent = null;
     }
 
-    internal void AddParadox(Paradox paradox) // Paradoxes can not be removed
+    /// <summary>Open paradoxes in processing order — the first one is the paradox that is currently being worked on.</summary>
+    [NotMapped]
+    public IReadOnlyList<Paradox> ParadoxQueue =>
+        _paradoxes.Where(p => p.IsOpen).OrderBy(p => p.QueuePosition).ThenBy(p => p.CreatedAt).ToList();
+
+    /// <summary>The paradox whose turn it is (head of the queue), or null if every paradox is solved.</summary>
+    [NotMapped]
+    public Paradox? CurrentParadox => ParadoxQueue.FirstOrDefault();
+
+    /// <summary>A new paradox is appended to the end of the queue. Paradoxes can not be removed.</summary>
+    internal void AddParadox(Paradox paradox)
     {
+        var queue = ParadoxQueue;
+        paradox.QueuePosition = queue.Count == 0 ? 0 : queue[^1].QueuePosition + 1;
         _paradoxes.Add(paradox);
+        RebalanceParadoxQueue();
+    }
+
+    /// <summary>Moves an open paradox to <paramref name="position"/> in the queue (0 = make it the current one).</summary>
+    /// <exception cref="ArgumentException">The paradox does not belong to this trip.</exception>
+    /// <exception cref="InvalidOperationException">The paradox is already solved.</exception>
+    internal void MoveParadoxInQueue(Paradox paradox, int position)
+    {
+        if (!_paradoxes.Contains(paradox)) throw new ArgumentException("The paradox does not belong to this trip.");
+        if (!paradox.IsOpen) throw new InvalidOperationException("A solved paradox is no longer in the queue.");
+
+        var queue = ParadoxQueue.Where(p => p != paradox).ToList();
+        queue.Insert(Math.Clamp(position, 0, queue.Count), paradox);
+        for (var i = 0; i < queue.Count; i++) queue[i].QueuePosition = i;
+        RebalanceParadoxQueue();
+    }
+
+    /// <summary>
+    /// Keeps the queue consistent: positions are renumbered 0..n-1, the head is in process (or stays escalated,
+    /// waiting for its dual lock), every other open paradox waits in the queue. A paradox that loses its turn
+    /// also loses any dual-lock progress, but stays a dual-lock paradox.
+    /// </summary>
+    internal void RebalanceParadoxQueue()
+    {
+        var queue = ParadoxQueue;
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var paradox = queue[i];
+            paradox.QueuePosition = i;
+            if (i == 0)
+            {
+                if (paradox.ParadoxStatus == ParadoxStatus.InQueue) paradox.SetStatus(ParadoxStatus.InProcess);
+            }
+            else if (paradox.ParadoxStatus != ParadoxStatus.InQueue)
+                paradox.SetStatus(ParadoxStatus.InQueue);
+        }
     }
 }

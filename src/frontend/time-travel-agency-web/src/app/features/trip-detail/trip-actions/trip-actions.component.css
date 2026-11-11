@@ -42,3 +42,8 @@
 .note.left.ok { color: var(--green); }
 .dual-tag { display: block; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); margin-top: 2px; }
 .block-text { font-size: 11px; color: var(--text-faint); text-align: right; max-width: 140px; }
+.queue-tag {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; margin-right: 4px;
+  border-radius: var(--radius-pill); border: 1px solid var(--border); color: var(--text-faint);
+}
+.queue-tag.now { border-color: color-mix(in srgb, var(--blue) 60%, transparent); color: var(--blue); }

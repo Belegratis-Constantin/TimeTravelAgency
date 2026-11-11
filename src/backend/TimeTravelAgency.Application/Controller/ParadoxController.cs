@@ -44,19 +44,19 @@ public class ParadoxController : ControllerBase
     /// <summary>An agent on the trip starts stabilising the paradox (→ InProcess).</summary>
     [HttpPost("{paradoxGuid}/engage/{agentGuid}")]
     public ActionResult<ParadoxFeedDto> Engage(Guid paradoxGuid, Guid agentGuid) =>
-        AgentAction(() => _paradoxService.Engage(paradoxGuid, agentGuid));
+        Run(() => _paradoxService.Engage(paradoxGuid, agentGuid));
 
     /// <summary>The agent won the stabilisation — the paradox is solved.</summary>
     [HttpPost("{paradoxGuid}/resolve/{agentGuid}")]
     public ActionResult<ParadoxFeedDto> Resolve(Guid paradoxGuid, Guid agentGuid) =>
-        AgentAction(() => _paradoxService.Resolve(paradoxGuid, agentGuid));
+        Run(() => _paradoxService.Resolve(paradoxGuid, agentGuid));
 
     /// <summary>The stabilisation failed — the paradox is escalated to the manager (and can be retried).</summary>
     [HttpPost("{paradoxGuid}/fail/{agentGuid}")]
     public ActionResult<ParadoxFeedDto> Fail(Guid paradoxGuid, Guid agentGuid) =>
-        AgentAction(() => _paradoxService.Fail(paradoxGuid, agentGuid));
+        Run(() => _paradoxService.Fail(paradoxGuid, agentGuid));
 
-    private ActionResult<ParadoxFeedDto> AgentAction(Func<ParadoxFeedDto> action)
+    private ActionResult<ParadoxFeedDto> Run(Func<ParadoxFeedDto> action)
     {
         try
         {
@@ -75,6 +75,11 @@ public class ParadoxController : ControllerBase
             return Problem(ex.Message, statusCode: 409);
         }
     }
+
+    /// <summary>The trip's manager reorders the paradox queue (position 0 = worked on now).</summary>
+    [HttpPatch("{paradoxGuid}/queue")]
+    public ActionResult<ParadoxFeedDto> MoveInQueue(Guid paradoxGuid, [FromBody] MoveParadoxCmd cmd, [FromQuery] Guid? managerGuid = null) =>
+        Run(() => _paradoxService.MoveInQueue(paradoxGuid, cmd.Position, managerGuid));
 
     [HttpPatch("{paradoxGuid}/status")]
     public IActionResult ChangeStatus(Guid paradoxGuid, [FromBody] UpdateParadoxStatusCmd cmd, [FromQuery] Guid? managerGuid = null)
