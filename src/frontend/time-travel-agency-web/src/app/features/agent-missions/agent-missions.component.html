@@ -1,0 +1,70 @@
+<div class="page">
+  <app-page-header [eyebrow]="eyebrow()" [title]="title()" [subtitle]="subtitle()" />
+
+  @if (agency.initialLoading()) {
+    <p class="state-msg">Loading missions…</p>
+  } @else {
+    <app-stat-tiles [tiles]="stats()" />
+
+    @if (openParadoxes().length > 0) {
+      <section class="section">
+        <h2 class="section-title">Paradox alerts on your missions</h2>
+        <app-paradox-list [paradoxes]="openParadoxes()" [showTrip]="true" [fresh]="feed.fresh()" />
+      </section>
+    }
+
+    <section class="section">
+      <h2 class="section-title">Assigned trips</h2>
+      <div class="grid-cards">
+        @for (t of missions(); track t.guid) {
+          <app-trip-card [trip]="t" [openParadoxes]="feed.openCountForTrip(t.guid)" [note]="roleOn(t)" />
+        } @empty {
+          <app-empty-state class="span-all" title="No missions assigned"
+                           message="A manager assigns you to trips as licensed or support agent." />
+        }
+      </div>
+    </section>
+
+    @if (missions().length > 0) {
+      <div class="split">
+        <section class="section">
+          <h2 class="section-title">Reports on your missions</h2>
+          @for (r of reports(); track r.guid) {
+            <article class="card report">
+              <div class="row row--between">
+                <strong>{{ r.header }}</strong>
+                <span class="mono faint">{{ r.date | date: 'medium' }}</span>
+              </div>
+              <div class="text-gold trip">{{ r.tripName }}</div>
+              <p class="muted">{{ r.content ?? 'No content provided.' }}</p>
+            </article>
+          } @empty {
+            <p class="empty-hint">No field reports filed yet.</p>
+          }
+        </section>
+
+        <section class="card form-card" id="report">
+          <h2 class="section-title">File field report</h2>
+          <form class="stack" [formGroup]="form" (ngSubmit)="submit()">
+            <app-form-field label="Trip" [control]="form.controls.tripGuid" for="report-trip">
+              <select class="select" id="report-trip" formControlName="tripGuid">
+                <option value="">Select a trip…</option>
+                @for (t of missions(); track t.guid) { <option [value]="t.guid">{{ tripName(t) }}</option> }
+              </select>
+            </app-form-field>
+            <app-form-field label="Header" [control]="form.controls.header" for="report-header">
+              <input class="input" id="report-header" formControlName="header" placeholder="e.g. Field debrief — week 3" />
+            </app-form-field>
+            <app-form-field label="Observations" [control]="form.controls.content" for="report-content" hint="Optional">
+              <textarea class="textarea" id="report-content" formControlName="content" rows="5"></textarea>
+            </app-form-field>
+            @if (error()) { <p class="form-error">{{ error() }}</p> }
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+              {{ submitting() ? 'Filing…' : 'File report' }}
+            </button>
+          </form>
+        </section>
+      </div>
+    }
+  }
+</div>

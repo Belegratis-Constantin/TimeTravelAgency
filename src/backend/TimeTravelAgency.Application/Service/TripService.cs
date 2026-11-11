@@ -68,8 +68,8 @@ public class TripService
                 t.ManagerId,
                 t.Paradoxes.Select(p => new ParadoxDto(
                     p.Guid,
-                    p.ParadoxStatus,
-                    p.ParadoxType)).ToList(),
+                    p.ParadoxStatus.ToString(),
+                    p.ParadoxType.ToString())).ToList(),
                 t.Customers.Select(c => new CustomerDto(
                     c.Guid,
                     c.Firstname,
@@ -111,6 +111,7 @@ public class TripService
     public void TryCreateTripByManager(CreateTripByManagerCmd cmd, Guid managerGuid)
     {
         var manager = _context.Managers
+            .Include(m => m.Trips)
             .FirstOrDefault(m => m.Guid == managerGuid);
         if (manager == null)
             throw new ArgumentException("Manager not found.");
@@ -120,7 +121,9 @@ public class TripService
         if (licensedAgent == null)
             throw new ArgumentException("Licensed agent not found.");
         
+        // Throws InvalidOperationException when the manager already runs the maximum number of active trips.
         manager.CreateTrip(cmd.DateInRealLife, licensedAgent, cmd.TripName);
+        _context.SaveChanges();
     }
 
     public void TryAssignAgentToTrip(Guid managerGuid, Guid agentGuid, Guid tripGuid)
@@ -142,6 +145,8 @@ public class TripService
         if (trip == null)
             throw new ArgumentException("Trip not found.");
 
+        // Throws InvalidOperationException when the trip already has a support agent.
         manager.AddAgentToTrip(agent, trip);
+        _context.SaveChanges();
     }
 }

@@ -1,0 +1,40 @@
+<div class="block">
+  <div class="label">AUTO-GENERATION</div>
+  @if (simulation(); as sim) {
+    <div class="status-row">
+      <span class="state" [class.on]="sim.enabled">{{ sim.enabled ? '● RUNNING' : '○ PAUSED' }}</span>
+      <button type="button" class="toggle" (click)="toggle()">{{ sim.enabled ? 'Pause' : 'Resume' }}</button>
+    </div>
+    <div class="label sub">INTERVAL</div>
+    <div class="presets" role="group" aria-label="Spawn interval">
+      @for (p of presets; track p) {
+        <button type="button" class="preset" [class.active]="sim.intervalSeconds === p" (click)="setSpawnInterval(p)">
+          {{ p < 60 ? p + 's' : p / 60 + 'm' }}
+        </button>
+      }
+    </div>
+    <dl class="facts">
+      @if (countdown()) {
+        <div><dt>Next fracture in</dt><dd>{{ countdown() }}</dd></div>
+      }
+      <div><dt>Spawned this run</dt><dd>{{ sim.totalSpawned }}</dd></div>
+    </dl>
+  } @else {
+    <div class="offline">Simulation endpoint unreachable.</div>
+  }
+</div>
+
+<div class="block">
+  <div class="label">MANUAL TRIGGER</div>
+  <label class="label sub" for="sim-target">TARGET NODE</label>
+  <select id="sim-target" class="target" [value]="target()" (change)="target.set($any($event.target).value)">
+    <option value="">— Random active trip —</option>
+    @for (t of activeTrips(); track t.guid) {
+      <option [value]="t.guid">{{ tripName(t) }}</option>
+    }
+  </select>
+  <button type="button" class="fire" [disabled]="busy()" (click)="spawn()">
+    {{ busy() ? 'FRACTURING…' : '⚡ INTRODUCE PARADOX' }}
+  </button>
+  @if (error()) { <div class="error">{{ error() }}</div> }
+</div>

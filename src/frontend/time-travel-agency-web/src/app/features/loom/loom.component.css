@@ -1,0 +1,51 @@
+/* Visual overlay HUD for "Time Itself". SVG/canvas drawing is done in the component. */
+:host { display: block; }
+.loom { position: relative; width: 100%; height: calc(100vh - 70px); overflow: hidden; background: #020408; font-family: 'Courier New', monospace; }
+.layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.sparks { z-index: 10; }
+.loom-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.halo { animation: halo-pulse 3s ease-in-out infinite; }
+.orb { cursor: pointer; animation: pulse-orb 4s ease-in-out infinite; }
+.comet { animation: comet 8s linear infinite; }
+.comet--slow { animation-duration: 12s; animation-delay: 4s; }
+
+.hud { position: absolute; }
+.integrity { top: 32px; left: 32px; width: 220px; }
+.title { top: 32px; right: 332px; text-align: right; }
+.legend { bottom: 32px; left: 32px; }
+.micro { font-size: 10px; letter-spacing: 0.12em; color: var(--text-faint); margin-bottom: 6px; }
+.micro.wide { font-size: 9px; letter-spacing: 0.25em; color: #4B556A; }
+.legend .micro { font-size: 9px; color: #4B556A; margin-bottom: 8px; }
+.sub { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+.faint-xs { font-size: 9px; color: #4B556A; margin-top: 3px; }
+.integrity .faint-xs { font-size: 10px; margin-top: 4px; }
+.meter { position: relative; height: 6px; overflow: hidden; border-radius: 3px; background: rgba(255, 255, 255, 0.07); }
+.meter div { height: 100%; border-radius: 3px; transition: width 0.8s, background 0.8s; }
+.integrity-value { margin-top: 8px; font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+.legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 9px; color: var(--text-faint); letter-spacing: 0.05em; }
+.swatch { width: 24px; height: 3px; border-radius: 2px; box-shadow: 0 0 6px currentColor; }
+
+.panel {
+  position: absolute; top: 0; right: 0; width: 300px; height: 100%; display: flex; flex-direction: column;
+  background: rgba(2, 4, 8, 0.85); border-left: 1px solid rgba(201, 168, 76, 0.08);
+}
+.panel-block { flex-shrink: 0; padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.panel-block .micro { color: var(--text-muted); }
+.node-name { font-size: 14px; color: var(--text); margin-bottom: 4px; }
+.node-type { font-size: 11px; color: var(--text-faint); }
+.node-count { margin-top: 10px; font-size: 11px; color: var(--text-muted); }
+.hint { font-size: 10px; color: #4B556A; font-style: italic; }
+.log { flex: 1; overflow-y: auto; padding: 20px; }
+.log .micro { margin-bottom: 12px; }
+.log-entry {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 14px; padding: 10px;
+  border-radius: 3px; border-left: 2px solid; background: rgba(255, 255, 255, 0.02);
+}
+.log-type { font-size: 10px; margin-bottom: 3px; }
+.log-state { flex-shrink: 0; margin-top: 2px; font-size: 9px; color: var(--red); }
+.log-state.healed { color: #4EB87A; }
+
+@keyframes pulse-orb { 0%, 100% { r: 10; opacity: 0.9; } 50% { r: 14; opacity: 1; } }
+@keyframes halo-pulse { 0%, 100% { r: 22; opacity: 0.3; } 50% { r: 28; opacity: 0.1; } }
+@keyframes comet { 0% { stroke-dashoffset: 1000; } 100% { stroke-dashoffset: 0; } }

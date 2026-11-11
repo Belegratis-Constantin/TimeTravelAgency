@@ -1,0 +1,156 @@
+<div class="loom">
+  <canvas #starCanvas class="layer"></canvas>
+
+  <!-- SVG Timeline -->
+  <svg class="loom-svg"
+       [attr.viewBox]="'0 0 ' + W + ' ' + H" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <!-- Plasma filter -->
+      <filter id="plasma" x="-50%" y="-50%" width="200%" height="200%">
+        <feTurbulence type="fractalNoise" [attr.baseFrequency]="plasmaFreq()"
+                     numOctaves="4" [attr.seed]="plasmaSeed()" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <!-- Glow filters -->
+      <filter id="glow-gold">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-red">
+        <feGaussianBlur stdDeviation="8" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-heal">
+        <feGaussianBlur stdDeviation="10" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- Radial gradient for orbs -->
+      <radialGradient id="orb-grad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#F0EDE6" stop-opacity="1"/>
+        <stop offset="60%" stop-color="#C9A84C" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#C9A84C" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Prime strand outer glow layers -->
+    <path [attr.d]="primePath()" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="24" stroke-linecap="round"/>
+    <path [attr.d]="primePath()" fill="none" stroke="rgba(201,168,76,0.18)" stroke-width="10" stroke-linecap="round"/>
+    <!-- Prime strand core -->
+    <path [attr.d]="primePath()" fill="none" stroke="#C9A84C" stroke-width="2.5"
+          stroke-linecap="round" filter="url(#glow-gold)"/>
+
+    <!-- Paradox branches -->
+    @for (b of branches(); track b.id) {
+      <g [attr.filter]="b.healed ? 'url(#glow-heal)' : 'url(#plasma)'">
+        <path [attr.d]="branchPath(b)" fill="none"
+              [attr.stroke]="b.healed ? '#4EB87A' : b.color"
+              [attr.stroke-width]="b.healed ? 1.5 : 2.5"
+              [attr.stroke-opacity]="b.healed ? 0.6 * (1 - b.healProgress) + 0.01 : 0.85"
+              stroke-linecap="round" stroke-dasharray="4 3"/>
+      </g>
+    }
+
+    <!-- Healing convergence flash -->
+    @for (b of branches(); track b.id) {
+      @if (b.healed && b.healProgress < 1) {
+        <circle [attr.cx]="b.tripNode.x" [attr.cy]="b.tripNode.y" [attr.r]="b.healProgress * 40"
+                fill="none" stroke="#4EB87A" stroke-width="2"
+                [attr.stroke-opacity]="0.6 * (1 - b.healProgress)"/>
+      }
+    }
+
+    <!-- Trip nodes -->
+    @for (node of tripNodes(); track node.trip.guid) {
+      <g>
+        <!-- halo -->
+        <circle [attr.cx]="node.x" [attr.cy]="node.y" r="24"
+                fill="none" stroke="#C9A84C" stroke-width="1"
+                stroke-opacity="0.15" class="halo"/>
+        <!-- danger ring for critical -->
+        @if (node.trip.tripType === 'CriticalTrip') {
+          <circle [attr.cx]="node.x" [attr.cy]="node.y" r="18"
+                  fill="none" stroke="#E05A4E" stroke-width="1.5"
+                  stroke-opacity="0.6" stroke-dasharray="4 3"/>
+        }
+        <!-- orb -->
+        <circle [attr.cx]="node.x" [attr.cy]="node.y" r="9"
+                fill="url(#orb-grad)"
+                class="orb"
+                (click)="selectTrip(node.trip)"/>
+        <!-- label -->
+        <text [attr.x]="node.x" [attr.y]="node.y - 30"
+              text-anchor="middle" fill="#C9A84C" font-size="10"
+              font-family="'Courier New',monospace" opacity="0.75">
+          {{ node.trip.tripName ?? 'UNNAMED' | slice:0:20 }}
+        </text>
+      </g>
+    }
+
+    <!-- Comet animation along prime strand -->
+    <path [attr.d]="primePath()" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"
+          stroke-dasharray="40 960" stroke-linecap="round"
+          class="comet"/>
+    <path [attr.d]="primePath()" fill="none" stroke="rgba(201,168,76,0.4)" stroke-width="1"
+          stroke-dasharray="20 980" stroke-linecap="round"
+          class="comet comet--slow"/>
+  </svg>
+
+
+  <!-- Integrity meter HUD -->
+  <div class="hud integrity">
+    <div class="micro">TEMPORAL INTEGRITY</div>
+    <div class="meter"><div [style.width.%]="integrity()" [style.background]="integrityColor()"></div></div>
+    <div class="integrity-value" [style.color]="integrityColor()">{{ integrity() | number: '1.0-0' }}%</div>
+    <div class="faint-xs">{{ openParadoxes() }} ACTIVE FRACTURE{{ openParadoxes() === 1 ? '' : 'S' }}</div>
+  </div>
+
+  <div class="hud title">
+    <div class="micro wide">⧗ THE LOOM</div>
+    <div class="sub">Observer Mode — Time Itself</div>
+  </div>
+
+  <div class="hud legend">
+    <div class="micro">PARADOX SPECTRUM</div>
+    @for (entry of paradoxLegend; track entry.type) {
+      <div class="legend-row">
+        <span class="swatch" [style.background]="entry.color" [style.color]="entry.color"></span>
+        <span>{{ entry.label }}</span>
+      </div>
+    }
+  </div>
+
+  <aside class="panel">
+    <div class="panel-block">
+      @if (selectedTrip(); as trip) {
+        <div class="micro">SELECTED NODE</div>
+        <div class="node-name">{{ trip.tripName }}</div>
+        <div class="node-type">{{ trip.tripType === 'CriticalTrip' ? 'CRITICAL' : 'STANDARD' }}</div>
+        <div class="node-count">
+          {{ selectedTripParadoxes().length }} paradox{{ selectedTripParadoxes().length === 1 ? '' : 'es' }}
+        </div>
+      } @else {
+        <div class="hint">Click a node to inspect…</div>
+      }
+    </div>
+
+    <!-- Simulation controls (runtime paradox generator + manual trigger) -->
+    <app-simulation-panel [trips]="agency.trips()" (spawned)="onSpawned($event)" />
+
+    <div class="log">
+      <div class="micro">FRACTURE LOG</div>
+      @for (b of branches(); track b.id) {
+        <div class="log-entry" [style.border-left-color]="b.color">
+          <div>
+            <div class="log-type" [style.color]="b.color">{{ typeLabel(b.paradox.paradoxType) }}</div>
+            <div class="faint-xs">{{ b.tripNode.trip.tripName | slice: 0 : 22 }}</div>
+          </div>
+          <div class="log-state" [class.healed]="b.healed">{{ b.healed ? '✓ HEALED' : '✗ ACTIVE' }}</div>
+        </div>
+      } @empty {
+        <div class="hint">No fractures detected.</div>
+      }
+    </div>
+  </aside>
+
+  <canvas #sparkCanvas class="layer sparks"></canvas>
+</div>

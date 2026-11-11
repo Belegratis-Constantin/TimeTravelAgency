@@ -1,0 +1,73 @@
+<div class="page">
+  <a class="back" [routerLink]="state.homeRoute()">← Back</a>
+
+  @if (agency.initialLoading()) {
+    <p class="state-msg">Loading trip…</p>
+  } @else if (trip(); as t) {
+    <header class="head">
+      <div>
+        <div class="eyebrow">{{ typeLabel() }} trip · departs {{ t.dateInRealLife | date: 'medium' }}</div>
+        <h1 class="display title">{{ name() }}</h1>
+        <p class="summary">
+          @if (destinationEra()) { Destination era: <span class="text-gold">{{ destinationEra() }}</span> · }
+          {{ t.customers.length }} traveller{{ t.customers.length === 1 ? '' : 's' }} booked
+        </p>
+      </div>
+      <div class="row">
+        <app-status-badge [status]="t.tripStatus" />
+        <app-status-badge [status]="t.tripType" kind="tripType" />
+      </div>
+    </header>
+
+    <div class="split">
+      <div>
+        <section class="section">
+          <div class="row row--between section-head">
+            <h2 class="section-title">Paradox log</h2>
+            @if (openParadoxes() > 0) {
+              <span class="badge badge--red">{{ openParadoxes() }} open</span>
+            }
+          </div>
+          <app-paradox-list [paradoxes]="paradoxes()" [editable]="canManage()" [fresh]="feed.fresh()"
+                            [pending]="feed.pendingStatus()" (statusChange)="feed.changeStatus($event.paradox, $event.status)"
+                            emptyText="No paradox incidents recorded for this trip." />
+          @if (t.tripType === 'Trip') {
+            <p class="hint">A trip is reclassified as <strong>Critical</strong> once three paradoxes have been recorded.</p>
+          }
+        </section>
+
+        <app-trip-reviews [reviews]="t.reviews" />
+
+        @if (showReports()) {
+          <section class="section">
+            <h2 class="section-title">Field reports</h2>
+            @for (r of t.reports; track r.guid) {
+              <article class="card report">
+                <div class="row row--between">
+                  <strong>{{ r.header }}</strong>
+                  <span class="mono faint">{{ r.date | date: 'medium' }}</span>
+                </div>
+                <p class="muted">{{ r.content ?? 'No content provided.' }}</p>
+              </article>
+            } @empty {
+              <p class="empty-hint">No field reports filed yet.</p>
+            }
+          </section>
+        }
+      </div>
+
+      <aside class="stack stack--lg">
+        <app-trip-actions [trip]="t" [canManage]="canManage()" (assignAgent)="assignOpen.set(true)" />
+        <app-trip-staff [trip]="t" [showTravellerNames]="!state.isCustomer()" />
+      </aside>
+    </div>
+
+    @if (assignOpen()) {
+      <app-assign-agent-modal [trip]="t" (assigned)="onAssigned()" (closed)="assignOpen.set(false)" />
+    }
+  } @else {
+    <app-empty-state title="Trip not found" message="This trip does not exist — the backend may have been restarted and reseeded.">
+      <a class="btn" [routerLink]="state.homeRoute()">Go back</a>
+    </app-empty-state>
+  }
+</div>

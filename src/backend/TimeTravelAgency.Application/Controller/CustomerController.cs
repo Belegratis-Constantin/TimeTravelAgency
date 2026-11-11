@@ -134,6 +134,33 @@ public class CustomerController : ControllerBase
         return Ok(customerDto);
     }
     
+    [HttpGet("{guid}/trips")]
+    public IActionResult GetTripsForCustomer(Guid guid)
+    {
+        var customer = _context.Customers
+            .FirstOrDefault(c => c.Guid == guid);
+        if (customer == null)
+            return Problem("Customer not found.", statusCode: 404);
+
+        var trips = _context.Trips
+            .Where(t => t.Customers.Any(c => c.Guid == guid))
+            .Select(t => new TripDto(
+                t.Guid, t.DateInRealLife, t.TripName, t.TripType,
+                t.TripStatus.ToString(), t.LicensedAgentId, t.ManagerId,
+                t.Paradoxes.Select(p => new ParadoxDto(p.Guid, p.ParadoxStatus.ToString(), p.ParadoxType.ToString())).ToList(),
+                t.Customers.Select(c => new CustomerDto(
+                    c.Guid, c.Firstname, c.Lastname, c.Email, c.PhoneNumber, c.DateOfBirth,
+                    new AddressDto(c.Address.Street, c.Address.City, c.Address.Zip),
+                    c.Reviews.Select(r => new ReviewDto(r.Guid, r.Stars, r.Header, r.Content)).ToList()
+                )).ToList(),
+                t.Reports.Select(r => new ReportForTripDto(r.Guid, r.Header, r.Date, r.Content)).ToList(),
+                t.Reviews.Select(r => new ReviewDto(r.Guid, r.Stars, r.Header, r.Content)).ToList(),
+                t.AgentId, t.Manager.Guid
+            )).ToList();
+
+        return Ok(trips);
+    }
+
     [HttpGet("validate-email")]
     public IActionResult ValidateEmail([FromQuery] string email)
     {

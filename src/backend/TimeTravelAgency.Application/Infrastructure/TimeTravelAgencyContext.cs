@@ -7,6 +7,7 @@ namespace TimeTravelAgency.Application.Infrastructure;
 
 public class TimeTravelAgencyContext : DbContext
 {
+    public DbSet<Director> Directors { get; set; }
     public DbSet<Agent> Agents { get; set; }
     public DbSet<LicensedAgent> LicensedAgents { get; set; }
     public DbSet<Report> Reports { get; set; }
@@ -276,14 +277,28 @@ public class TimeTravelAgencyContext : DbContext
             .WithMany(c => c.Trips)
             .UsingEntity(j => j.ToTable("TripCustomers"));
 
+        // Director
+        modelBuilder.Entity<Director>()
+            .Property(d => d.Guid)
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Director>()
+            .HasAlternateKey(d => d.Guid);
+
+        modelBuilder.Entity<Director>()
+            .HasMany(d => d.Managers)
+            .WithOne(m => m.Director)
+            .HasForeignKey(m => m.DirectorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Manager
         modelBuilder.Entity<Manager>()
             .Property(m => m.Guid)
             .ValueGeneratedOnAdd();
-        
+
         modelBuilder.Entity<Manager>()
             .HasAlternateKey(m => m.Guid);
-        
+
         modelBuilder.Entity<Manager>()
             .OwnsOne(m => m.Address);
 
@@ -389,27 +404,35 @@ public class TimeTravelAgencyContext : DbContext
         this.Customers.AddRange(customers);
         await this.SaveChangesAsync();
 
+        var eraNames = new[] {
+            "Belle Époque Paris", "Renaissance Florence", "Ancient Rome", "Victorian London",
+            "Roaring Twenties New York", "Ming Dynasty China", "Ancient Egypt", "Medieval Kyoto",
+            "Golden Age Baghdad", "Age of Exploration Lisbon", "Edo Period Tokyo", "Enlightenment Vienna"
+        };
         var trips = new Faker<Trip>("de").CustomInstantiator(f => new Trip(
             dateInRealLife: f.Date.Future(),
             licensedAgent: f.Random.ListItem(licensedAgents),
-            manager: this.Managers.First()
+            manager: this.Managers.First(),
+            tripName: f.PickRandom(eraNames)
         )).Generate(5);
         this.Trips.AddRange(trips);
         await this.SaveChangesAsync();
-        
+
         var tripsPast = new Faker<Trip>("de").CustomInstantiator(f => new Trip(
             dateInRealLife: f.Date.Past(),
             licensedAgent: f.Random.ListItem(licensedAgents),
-            manager: this.Managers.Skip(1).First()
+            manager: this.Managers.Skip(1).First(),
+            tripName: f.PickRandom(eraNames)
         )).Generate(5);
         this.Trips.AddRange(tripsPast);
         await this.SaveChangesAsync();
 
         var criticalTrips = new Faker<CriticalTrip>("de").CustomInstantiator(f => new CriticalTrip(
-            licensedAgent: f.Random.ListItem(licensedAgents),
-            dateInRealLife: f.Date.Future(),
             licensedSupportAgent: f.Random.ListItem(licensedAgents),
-            manager: this.Managers.First()
+            dateInRealLife: f.Date.Future(),
+            licensedAgent: f.Random.ListItem(licensedAgents),
+            manager: this.Managers.First(),
+            tripName: f.PickRandom(eraNames)
         )).Generate(5);
         this.CriticalTrips.AddRange(criticalTrips);
         await this.SaveChangesAsync();
@@ -462,9 +485,30 @@ public class TimeTravelAgencyContext : DbContext
         this.Reviews.AddRange(reviewWithContent);
         await this.SaveChangesAsync();
         
-        var manager = this.Managers.First();
-        manager.AddAgent(this.Agents.First());
-        manager.AddAgent(this.LicensedAgents.First());
+        // Distribute agents across managers
+        var allManagers = this.Managers.ToList();
+        var allAgents = this.Agents.ToList();
+        var allLicensed = this.LicensedAgents.ToList();
+        for (int i = 0; i < allAgents.Count; i++)
+            allManagers[i % allManagers.Count].AddAgent(allAgents[i]);
+        for (int i = 0; i < allLicensed.Count; i++)
+            allManagers[i % allManagers.Count].AddAgent(allLicensed[i]);
+        await this.SaveChangesAsync();
+
+        // Create the one Director and assign all managers to them
+        var director = new Director("Chronos Prime");
+        this.Directors.Add(director);
+        await this.SaveChangesAsync();
+        foreach (var m in this.Managers.ToList())
+            director.AddManager(m);
+        await this.SaveChangesAsync();
+
+        // Assign support agents to some standard trips (agent must belong to the trip's manager)
+        var tripsForManager0 = this.Trips.OfType<Trip>()
+            .Where(t => !(t is CriticalTrip) && t.ManagerId == allManagers[0].Id).ToList();
+        var agentsForManager0 = allAgents.Where(a => a.ManagerId == allManagers[0].Id).ToList();
+        for (int i = 0; i < Math.Min(3, Math.Min(tripsForManager0.Count, agentsForManager0.Count)); i++)
+            allManagers[0].AddAgentToTrip(agentsForManager0[i], tripsForManager0[i]);
         await this.SaveChangesAsync();
     }
 }

@@ -1,0 +1,66 @@
+<section class="hero">
+  <div class="mono kicker">EST. 2150 · BY INVITATION ONLY</div>
+  <h1 class="display headline">Every era,<br />held open for you.</h1>
+  <p class="lede">A private passage across history, escorted by our licensed agents. Reserve your century.</p>
+  <div class="row hero-actions">
+    <button type="button" class="btn btn--primary" (click)="departures.scrollIntoView({ behavior: 'smooth' })">Browse departures</button>
+    <a class="btn btn--outline-gold" routerLink="/timeline">⟳ Explore The Continuum</a>
+    @if (!state.currentCustomer()) {
+      <button type="button" class="btn btn--outline-gold" (click)="state.joinModalOpen.set(true)">Join as traveller</button>
+    }
+  </div>
+</section>
+
+<div class="page" #departures>
+  <div class="row row--between toolbar">
+    <h2 class="display section-heading">Upcoming departures</h2>
+
+    <div class="row filters">
+      <label class="sr-only" for="f-destination">Destination</label>
+      <select id="f-destination" class="select select--compact" [value]="destination()"
+              (change)="destination.set($any($event.target).value)">
+        <option value="all">All destinations</option>
+        @for (d of destinations(); track d) { <option [value]="d">{{ d }}</option> }
+      </select>
+
+      <label class="sr-only" for="f-type">Trip type</label>
+      <select id="f-type" class="select select--compact" [value]="tripType()" (change)="tripType.set($any($event.target).value)">
+        <option value="all">All types</option>
+        <option value="Trip">Standard</option>
+        <option value="CriticalTrip">Critical</option>
+      </select>
+
+      <label class="sr-only" for="f-sort">Sort</label>
+      <select id="f-sort" class="select select--compact" [value]="sortOrder()" (change)="sortOrder.set($any($event.target).value)">
+        <option value="soonest">Soonest first</option>
+        <option value="latest">Latest first</option>
+      </select>
+
+      <label class="check">
+        <input type="checkbox" [checked]="bookableOnly()" (change)="bookableOnly.set($any($event.target).checked)" />
+        Bookable only
+      </label>
+    </div>
+  </div>
+
+  @if (agency.initialLoading()) {
+    <p class="state-msg">Loading destinations…</p>
+  } @else if (agency.error() && agency.trips().length === 0) {
+    <div class="state-msg state-msg--error">
+      <p>{{ agency.error() }}</p>
+      <button type="button" class="btn" (click)="agency.refresh()">Retry</button>
+    </div>
+  } @else {
+    <div class="grid-cards">
+      @for (trip of trips(); track trip.guid) {
+        <app-trip-card [trip]="trip" [agentName]="agency.agentName(trip.licensedAgentId)"
+                       [openParadoxes]="feed.openCountForTrip(trip.guid)"
+                       [note]="isBooked(trip) ? '✓ You are booked on this trip' : null" />
+      } @empty {
+        <app-empty-state class="span-all" title="No trips match these filters">
+          <button type="button" class="btn" (click)="resetFilters()">Reset filters</button>
+        </app-empty-state>
+      }
+    </div>
+  }
+</div>

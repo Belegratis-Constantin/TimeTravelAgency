@@ -1,0 +1,48 @@
+<header class="bar">
+  <a routerLink="/" class="brand display">Time·Travel <em>Agency</em></a>
+
+  <nav class="nav" aria-label="Main">
+    @for (item of navItems(); track item.path) {
+      <a class="nav-link" [routerLink]="item.path" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: item.exact ?? false }">{{ item.label }}</a>
+    }
+  </nav>
+
+  <div class="tools">
+    @if (!feed.online()) {
+      <span class="badge badge--rust" title="The paradox feed cannot reach the backend">Offline</span>
+    } @else if (showParadoxCounter()) {
+      <a class="paradox-counter" [routerLink]="paradoxTarget()" [class.alert]="feed.scopedOpenCount() > 0"
+         [attr.aria-label]="feed.scopedOpenCount() + ' open paradoxes'">
+        <span class="dot"></span>{{ feed.scopedOpenCount() }} open paradox{{ feed.scopedOpenCount() === 1 ? '' : 'es' }}
+      </a>
+    }
+
+    @if (state.isCustomer() && !state.currentCustomer()) {
+      <button type="button" class="btn btn--sm btn--outline-gold" (click)="state.requestRole('customer')">Sign in</button>
+    }
+
+    <div class="role">
+      <button type="button" class="role-trigger" [class.time]="state.isTime()" (click)="menuOpen.set(!menuOpen())"
+              aria-haspopup="menu" [attr.aria-expanded]="menuOpen()">
+        <span class="role-label">{{ state.roleDefinition().label }}</span>
+        <span class="role-name">{{ state.displayName() }}</span>
+        <span class="caret" aria-hidden="true">▾</span>
+      </button>
+
+      @if (menuOpen()) {
+        <ul class="role-menu" role="menu">
+          @for (r of roles; track r.role) {
+            <li role="none">
+              <button type="button" role="menuitem" class="role-item" [class.time]="r.role === 'time'"
+                      [class.current]="r.role === state.role()" (click)="selectRole(r.role)">
+                {{ r.role === 'time' ? '⧗ ' : '' }}{{ r.label }}
+                @if (r.role === state.role()) { <span class="check">✓</span> }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+</header>

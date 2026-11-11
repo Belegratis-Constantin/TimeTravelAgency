@@ -1,0 +1,36 @@
+@if (paradoxes().length === 0) {
+  <p class="empty-hint">{{ emptyText() }}</p>
+} @else {
+  <ul class="list">
+    @for (p of paradoxes(); track p.guid) {
+      <li class="item" [class.fresh]="fresh().has(p.guid)" [class.solved]="p.paradoxStatus === 'Solved'"
+          [style.border-left-color]="typeColor(p.paradoxType)">
+        <div class="top">
+          <div>
+            <div class="type">{{ typeLabel(p.paradoxType) }}
+              @if (fresh().has(p.guid)) { <span class="badge badge--red new">New</span> }
+            </div>
+            <div class="meta">
+              @if (showTrip()) {
+                <a [routerLink]="['/trip', p.tripGuid]">{{ tripName(p) }}</a> ·
+              }
+              detected {{ ago(p.createdAt) }}
+            </div>
+          </div>
+          @if (editable()) {
+            <label class="sr-only" [attr.for]="'status-' + p.guid">Status</label>
+            <select class="select select--compact" [id]="'status-' + p.guid" [value]="p.paradoxStatus"
+                    [disabled]="pending() === p.guid" (change)="onSelect(p, $any($event.target).value)">
+              @for (s of statuses; track s) {
+                <option [value]="s">{{ statusLabel(s) }}</option>
+              }
+            </select>
+          } @else {
+            <app-status-badge [status]="p.paradoxStatus" kind="paradox" />
+          }
+        </div>
+        <p class="description">{{ p.description }}</p>
+      </li>
+    }
+  </ul>
+}

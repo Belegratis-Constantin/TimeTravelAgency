@@ -11,12 +11,12 @@ public class Paradox
     
     // Constructors
 
-    public Paradox(Trip trip)
+    public Paradox(Trip trip, ParadoxType? paradoxType = null)
     {
         Guid = Guid.NewGuid();
         ParadoxStatus = ParadoxStatus.InQueue;
-        Random rnd = new Random();
-        ParadoxType = (ParadoxType)rnd.Next(0, 3);
+        ParadoxType = paradoxType ?? RandomType();
+        CreatedAt = DateTime.UtcNow;
         
         Trip = trip;
         TripId = trip.Id;
@@ -36,6 +36,7 @@ public class Paradox
     public Guid Guid { get; set; }
     public ParadoxStatus ParadoxStatus { get; set; }
     public ParadoxType ParadoxType { get; set; }
+    public DateTime CreatedAt { get; private set; }
 
     [MaxLength(255)]
     public string ParadoxDescription
@@ -59,4 +60,10 @@ public class Paradox
     
     public int TripId { get; set; }
     public virtual Trip Trip { get; set; }
+
+    private static ParadoxType RandomType()
+    {
+        var values = Enum.GetValues<ParadoxType>();
+        return values[Random.Shared.Next(values.Length)];
+    }
 }
