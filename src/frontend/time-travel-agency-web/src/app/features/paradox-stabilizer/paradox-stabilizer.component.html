@@ -3,16 +3,21 @@
     @switch (phase()) {
       @case ('briefing') {
         <div class="briefing">
+          @if (error()) { <p class="form-error">{{ error() }}</p> }
           <div class="mono kicker">FIELD STABILISATION · ATTEMPT {{ attempt() }}</div>
           <p class="lead">{{ briefing() }}</p>
           <ol class="rules">
             <li>Tune <strong>frequency</strong>, <strong>phase</strong> and <strong>amplitude</strong> of your counter-wave
               <span class="swatch swatch--gold"></span> until it overlays the paradox wave <span class="swatch swatch--accent"></span>.</li>
+            <li>Starting puts the paradox <strong>in process</strong> — only then can it be stabilised.</li>
             <li>Hold resonance above {{ threshold * 100 }}% until the lock ring is full.</li>
             <li>Run out of time and the paradox is escalated to the trip's manager — you can try again.</li>
           </ol>
           <p class="fine">{{ paradox().description }}</p>
         </div>
+      }
+      @case ('engaging') {
+        <p class="mono engaging" aria-live="polite">TAKING OVER THE PARADOX…</p>
       }
       @default {
         <div class="hud">
@@ -83,6 +88,9 @@
       @case ('briefing') {
         <button type="button" class="btn" (click)="close()">Later</button>
         <button type="button" class="btn btn--primary" (click)="begin()">Begin stabilisation</button>
+      }
+      @case ('engaging') {
+        <button type="button" class="btn btn--primary" disabled>Engaging…</button>
       }
       @case ('playing') {
         <button type="button" class="btn" (click)="close()">Abort</button>

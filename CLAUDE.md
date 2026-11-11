@@ -139,5 +139,5 @@ src/app/
 - `GET /api/Director`, `PATCH /api/Director/{directorGuid}/managers/{managerGuid}` — place manager under command
 - `GET /api/Paradox` — paradox feed (newest first, with trip context)
 - `POST /api/Paradox/trip/{tripGuid}` — add paradox to a trip under way (else 409); `PATCH /api/Paradox/{guid}/status?managerGuid=` — change status
-- `POST /api/Paradox/{guid}/engage|resolve|fail/{agentGuid}` — field stabilisation by an agent on the trip (→ InProcess / Solved / Escalated; 403 if not on the trip)
+- `POST /api/Paradox/{guid}/engage|resolve|fail/{agentGuid}` — field stabilisation by an agent on the trip (→ InProcess / Solved / Escalated; 403 if not on the trip; resolve/fail only while InProcess, else 409)
 - `GET|PUT /api/Simulation` — runtime generator state `{ enabled, intervalSeconds }`; `POST /api/Simulation/spawn` — paradox on a random trip under way

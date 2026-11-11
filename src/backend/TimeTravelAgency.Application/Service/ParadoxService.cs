@@ -102,19 +102,24 @@ public class ParadoxService
         return ToFeedDto(paradox);
     }
 
-    /// <summary>The agent stabilised the timeline — the paradox is solved.</summary>
+    /// <summary>The agent stabilised the timeline — the paradox is solved. Only possible while it is in process.</summary>
     public ParadoxFeedDto Resolve(Guid paradoxGuid, Guid agentGuid)
     {
         var (paradox, agent) = LoadForAgent(paradoxGuid, agentGuid);
+        RequireInProcess(paradox);
         paradox.SetStatus(ParadoxStatus.Solved, agent);
         _context.SaveChanges();
         return ToFeedDto(paradox);
     }
 
-    /// <summary>The stabilisation attempt failed — the paradox is escalated to the trip's manager. It can be retried.</summary>
+    /// <summary>
+    /// The stabilisation attempt failed — the paradox is escalated to the trip's manager. Only possible while it is
+    /// in process; it can be retried by engaging again.
+    /// </summary>
     public ParadoxFeedDto Fail(Guid paradoxGuid, Guid agentGuid)
     {
         var (paradox, _) = LoadForAgent(paradoxGuid, agentGuid);
+        RequireInProcess(paradox);
         paradox.SetStatus(ParadoxStatus.Escalated);
         _context.SaveChanges();
         return ToFeedDto(paradox);
@@ -143,6 +148,13 @@ public class ParadoxService
             throw new InvalidOperationException("This paradox has already been stabilised.");
 
         return (paradox, agent);
+    }
+
+    /// <exception cref="InvalidOperationException">Paradox is not being worked on (InProcess).</exception>
+    private static void RequireInProcess(Paradox paradox)
+    {
+        if (paradox.ParadoxStatus != ParadoxStatus.InProcess)
+            throw new InvalidOperationException("A paradox can only be stabilised while it is in process — engage it first.");
     }
 
     private static bool IsOnTrip(Trip trip, Agent agent) =>

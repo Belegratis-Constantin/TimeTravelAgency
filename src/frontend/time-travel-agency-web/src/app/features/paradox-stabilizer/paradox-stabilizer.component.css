@@ -66,3 +66,4 @@
   .lock { width: 64px; height: 64px; }
   .scope { height: 160px; }
 }
+.engaging { text-align: center; padding: 40px 0; color: var(--text-muted); letter-spacing: 0.12em; }

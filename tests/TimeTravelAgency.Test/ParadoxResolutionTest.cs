@@ -92,6 +92,7 @@ public class ParadoxResolutionTest : IDisposable
         var service = new ParadoxService(_context);
 
         var first = service.AddParadoxToTrip(trip.Guid);
+        service.Engage(first.Paradox.Guid, agent.Guid);
         service.Resolve(first.Paradox.Guid, agent.Guid);
         service.AddParadoxToTrip(trip.Guid);
         var third = service.AddParadoxToTrip(trip.Guid);
@@ -118,6 +119,21 @@ public class ParadoxResolutionTest : IDisposable
         Assert.Throws<InvalidOperationException>(() => service.Resolve(spawned.Paradox.Guid, agent.Guid));
     }
 
+    [Theory]
+    [InlineData(ParadoxStatus.InQueue)]
+    [InlineData(ParadoxStatus.Escalated)]
+    public async Task Agent_CannotResolveOrFail_WhenNotInProcess(ParadoxStatus status)
+    {
+        var (trip, agent) = await CreateTripAsync(TimeSpan.FromMinutes(-5));
+        var service = new ParadoxService(_context);
+        var spawned = service.AddParadoxToTrip(trip.Guid);
+        if (status != ParadoxStatus.InQueue) service.ChangeStatus(spawned.Paradox.Guid, status.ToString());
+
+        Assert.Throws<InvalidOperationException>(() => service.Resolve(spawned.Paradox.Guid, agent.Guid));
+        Assert.Throws<InvalidOperationException>(() => service.Fail(spawned.Paradox.Guid, agent.Guid));
+        Assert.Equal(status, _context.Paradoxes.AsNoTracking().Single().ParadoxStatus);
+    }
+
     [Fact]
     public async Task Agent_Fail_EscalatesParadox_AndCanRetry()
     {
@@ -125,7 +141,12 @@ public class ParadoxResolutionTest : IDisposable
         var service = new ParadoxService(_context);
         var spawned = service.AddParadoxToTrip(trip.Guid);
 
+        service.Engage(spawned.Paradox.Guid, agent.Guid);
         Assert.Equal("Escalated", service.Fail(spawned.Paradox.Guid, agent.Guid).ParadoxStatus);
+
+        // Retrying means engaging again — an escalated paradox cannot be solved directly.
+        Assert.Throws<InvalidOperationException>(() => service.Resolve(spawned.Paradox.Guid, agent.Guid));
+        service.Engage(spawned.Paradox.Guid, agent.Guid);
         Assert.Equal("Solved", service.Resolve(spawned.Paradox.Guid, agent.Guid).ParadoxStatus);
     }
 
@@ -137,6 +158,7 @@ public class ParadoxResolutionTest : IDisposable
         var service = new ParadoxService(_context);
         var spawned = service.AddParadoxToTrip(trip.Guid);
 
+        Assert.Throws<UnauthorizedAccessException>(() => service.Engage(spawned.Paradox.Guid, outsider.Guid));
         Assert.Throws<UnauthorizedAccessException>(() => service.Resolve(spawned.Paradox.Guid, outsider.Guid));
     }
 

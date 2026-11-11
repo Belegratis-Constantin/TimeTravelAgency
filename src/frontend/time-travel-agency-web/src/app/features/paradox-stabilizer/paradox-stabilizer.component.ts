@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { ParadoxFeedDto } from '../../core/models/paradox.model';
 import { ParadoxFeedStore } from '../../state/paradox-feed.store';
+import { toErrorMessage } from '../../core/http/error-message';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { paradoxTypeColor, paradoxTypeLabel, tripDisplayName } from '../../shared/utils/status.utils';
 import {
   createPuzzle, LOCK_HOLD_MS, LOCK_THRESHOLD, RANGES, resonance, targetAt, TYPE_RULES, WaveParams, wavePath,
 } from './phase-lock';
 
-type Phase = 'briefing' | 'playing' | 'reporting' | 'won' | 'lost';
+type Phase = 'briefing' | 'engaging' | 'playing' | 'reporting' | 'won' | 'lost';
 type Param = keyof WaveParams;
 
 const VIEW_W = 600;
@@ -68,21 +69,32 @@ export class ParadoxStabilizerComponent {
     inject(DestroyRef).onDestroy(() => this.stopLoop());
   }
 
+  /** The paradox must be in process before the game starts — only then does the backend accept the outcome. */
   protected begin(): void {
-    const puzzle = this.puzzle();
-    this.wave.set({ ...puzzle.start });
-    this.elapsed.set(0);
-    this.lockMs.set(0);
     this.error.set(null);
-    this.phase.set('playing');
-    this.feed.engage(this.paradox());
-    this.lastTick = performance.now();
-    this.frame = requestAnimationFrame(t => this.tick(t));
+    this.phase.set('engaging');
+    this.feed.engage(this.paradox()).subscribe({
+      next: () => this.startGame(),
+      error: err => {
+        this.error.set(toErrorMessage(err, 'Could not take over this paradox.'));
+        this.phase.set('briefing');
+      },
+    });
   }
 
   protected retry(): void {
     this.attempt.update(n => n + 1);
     this.begin();
+  }
+
+  private startGame(): void {
+    const puzzle = this.puzzle();
+    this.wave.set({ ...puzzle.start });
+    this.elapsed.set(0);
+    this.lockMs.set(0);
+    this.phase.set('playing');
+    this.lastTick = performance.now();
+    this.frame = requestAnimationFrame(t => this.tick(t));
   }
 
   protected set(param: Param, value: string): void {

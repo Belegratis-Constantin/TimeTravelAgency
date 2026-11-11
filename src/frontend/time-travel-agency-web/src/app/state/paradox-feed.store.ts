@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { catchError, EMPTY, merge, Observable, Subject, switchMap, tap, timer } from 'rxjs';
+import { catchError, EMPTY, merge, Observable, Subject, switchMap, tap, throwError, timer } from 'rxjs';
 import { ParadoxService } from '../core/services/paradox.service';
 import { ParadoxFeedDto, ParadoxStatus, SpawnParadoxResultDto } from '../core/models/paradox.model';
 import { toErrorMessage } from '../core/http/error-message';
@@ -97,16 +97,14 @@ export class ParadoxFeedStore {
   }
 
   /**
-   * Field stabilisation by the signed-in agent: `engage` marks the paradox InProcess when the game starts,
-   * `stabilise` reports the outcome (won → Solved, lost → Escalated to the manager, can be retried).
+   * Field stabilisation by the signed-in agent: `engage` puts the paradox InProcess before the game starts —
+   * the backend only accepts an outcome for a paradox that is in process. `stabilise` then reports the outcome
+   * (won → Solved, lost → Escalated to the manager; a retry engages again).
    */
-  engage(paradox: ParadoxFeedDto): void {
+  engage(paradox: ParadoxFeedDto): Observable<ParadoxFeedDto> {
     const agent = this.app.currentAgent();
-    if (!agent || paradox.paradoxStatus === 'InProcess') return;
-    this.api.engage(paradox.guid, agent.guid).subscribe({
-      next: updated => this.replace(updated),
-      error: () => { /* the game still runs; the outcome call reports errors */ },
-    });
+    if (!agent) return throwError(() => new Error('Only a signed-in agent can stabilise paradoxes.'));
+    return this.api.engage(paradox.guid, agent.guid).pipe(tap(updated => this.replace(updated)));
   }
 
   stabilise(paradox: ParadoxFeedDto, won: boolean): Observable<ParadoxFeedDto> {
