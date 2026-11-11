@@ -17,6 +17,7 @@ import { agentTypeLabel, epochLabel, fullName, isOpenParadox, tripDisplayName } 
 import { TripDto } from '../../core/models/trip.model';
 import { ParadoxFeedDto } from '../../core/models/paradox.model';
 import { ParadoxStabilizerComponent } from '../paradox-stabilizer/paradox-stabilizer.component';
+import { BLOCK_TEXT, canStabilise, stabiliseBlock } from '../../shared/utils/dual-lock.utils';
 
 @Component({
   selector: 'app-agent-missions',
@@ -95,6 +96,11 @@ export class AgentMissionsComponent {
   });
 
   protected readonly tripName = tripDisplayName;
+  protected readonly canAct = (p: ParadoxFeedDto) => canStabilise(p, this.agent()?.id);
+  protected readonly actionHint = (p: ParadoxFeedDto) => {
+    const block = stabiliseBlock(p, this.agent()?.id);
+    return block === 'none' || block === 'closed' ? null : BLOCK_TEXT[block];
+  };
 
   constructor() {
     effect(() => {

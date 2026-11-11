@@ -12,6 +12,7 @@ import { bookingInfo } from '../../../shared/utils/booking.utils';
 import { formatDateTime } from '../../../shared/utils/date.utils';
 import { isOpenParadox, paradoxTypeLabel, tripDisplayName } from '../../../shared/utils/status.utils';
 import { ParadoxStabilizerComponent } from '../../paradox-stabilizer/paradox-stabilizer.component';
+import { BLOCK_TEXT, stabiliseBlock } from '../../../shared/utils/dual-lock.utils';
 
 const CONFIRMATION_MS = 1800;
 
@@ -58,6 +59,17 @@ export class TripActionsComponent {
   });
   protected readonly openParadoxes = computed(() => this.feed.forTrip(this.trip().guid).filter(isOpenParadox));
   protected readonly typeLabel = paradoxTypeLabel;
+
+  /** Why the signed-in agent cannot start a round on this paradox, or null if they can. */
+  protected blockText(p: ParadoxFeedDto): string | null {
+    const block = stabiliseBlock(p, this.state.currentAgent()?.id);
+    return block === 'none' || block === 'closed' ? null : BLOCK_TEXT[block];
+  }
+
+  /** Escalated paradoxes that cannot be worked on until the manager assigns a support agent. */
+  protected readonly blockedBySupport = computed(() =>
+    !this.trip().agentId && this.openParadoxes().some(p => p.dualLockRequired),
+  );
 
   protected book(): void {
     const customer = this.state.currentCustomer();

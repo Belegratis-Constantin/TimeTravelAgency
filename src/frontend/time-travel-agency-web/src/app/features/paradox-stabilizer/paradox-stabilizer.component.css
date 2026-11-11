@@ -67,3 +67,11 @@
   .scope { height: 160px; }
 }
 .engaging { text-align: center; padding: 40px 0; color: var(--text-muted); letter-spacing: 0.12em; }
+.dual-brief {
+  margin: 0 0 14px; padding: 12px 14px; border-radius: var(--radius); font-size: 13px; color: var(--text-muted);
+  border: 1px solid color-mix(in srgb, var(--red) 40%, transparent); background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+.dual-brief p { margin: 0 0 10px; line-height: 1.5; }
+.dual-state { display: flex; gap: 8px; }
+.lock-chip { font-size: 11px; padding: 2px 8px; border-radius: var(--radius-pill); border: 1px solid var(--border); color: var(--text-muted); }
+.lock-chip.on { border-color: color-mix(in srgb, var(--green) 60%, transparent); color: var(--green); }

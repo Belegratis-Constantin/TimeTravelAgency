@@ -115,8 +115,11 @@ export class ParadoxFeedStore {
       tap({
         next: updated => {
           this.replace(updated);
-          if (won) this.notifications.success('Timeline stabilised', `${paradoxTypeLabel(paradox.paradoxType)} on “${tripDisplayName(paradox)}” is solved.`);
-          else this.notifications.error('Stabilisation failed', `${paradoxTypeLabel(paradox.paradoxType)} was escalated to the trip's manager. Try again.`);
+          const name = `${paradoxTypeLabel(paradox.paradoxType)} on “${tripDisplayName(paradox)}”`;
+          if (won && updated.paradoxStatus === 'Solved') this.notifications.success('Timeline stabilised', `${name} is solved.`);
+          else if (won) this.notifications.success('Lock holds', `${name}: waiting for your partner's round.`);
+          else if (paradox.dualLockRequired) this.notifications.error('Dual lock broken', `${name}: both agents have to win a round again.`);
+          else this.notifications.error('Stabilisation failed', `${name} was escalated — it now needs a dual lock.`);
         },
         error: err => this.notifications.error('Could not report the result', toErrorMessage(err)),
       }),

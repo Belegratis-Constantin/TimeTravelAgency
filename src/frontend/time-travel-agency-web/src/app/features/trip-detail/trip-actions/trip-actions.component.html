@@ -60,8 +60,17 @@
           <ul class="threats">
             @for (p of openParadoxes(); track p.guid) {
               <li>
-                <span>{{ typeLabel(p.paradoxType) }}</span>
-                <button type="button" class="btn btn--danger btn--sm" (click)="stabilising.set(p)">Stabilise</button>
+                <span>
+                  {{ typeLabel(p.paradoxType) }}
+                  @if (p.dualLockRequired) {
+                    <span class="dual-tag">dual lock · {{ p.licensedLocked ? '✓' : '○' }} licensed · {{ p.supportLocked ? '✓' : '○' }} support</span>
+                  }
+                </span>
+                @if (blockText(p); as text) {
+                  <span class="block-text">{{ text }}</span>
+                } @else {
+                  <button type="button" class="btn btn--danger btn--sm" (click)="stabilising.set(p)">Stabilise</button>
+                }
               </li>
             }
           </ul>
@@ -82,6 +91,10 @@
         @if (trip().agentId) {
           <p class="note left">A support agent is assigned. Paradox statuses can be changed in the log on the left.</p>
         } @else {
+          @if (blockedBySupport()) {
+            <p class="note left warn-text">An escalated paradox needs a dual lock by the licensed and a support agent.
+              Assign a support agent so your team can stabilise it.</p>
+          }
           <button type="button" class="btn btn--outline-gold btn--block" (click)="assignAgent.emit()">Assign support agent</button>
         }
       </div>

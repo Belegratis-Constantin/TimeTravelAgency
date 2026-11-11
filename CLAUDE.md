@@ -96,7 +96,7 @@ src/app/
     ├── era-timeline/     # customer: The Continuum visualisation (+ timeline-pin, timeline-scrubber, boarding-card)
     ├── customer-profile/ # customer: My Journeys + paradox alerts on booked trips
     ├── trip-detail/      # every role; trip-actions = role-specific panel (book+cancel / stabilise+report / assign / introduce paradox)
-    ├── paradox-stabilizer/ # agent: "Phase Lock" mini-game (pure rules in phase-lock.ts) — win = Solved, lose = Escalated
+    ├── paradox-stabilizer/ # agent: "Phase Lock" mini-game (pure rules in phase-lock.ts) — win = Solved, lose = Escalated → dual lock (shared/utils/dual-lock.utils.ts)
     ├── agent-missions/   # agent: assigned trips, alerts, file field reports
     ├── dashboard/        # manager: KPIs, trips table, team
     ├── paradox-log/      # manager (edit own trips) + director (read-only): live paradox log
@@ -139,5 +139,5 @@ src/app/
 - `GET /api/Director`, `PATCH /api/Director/{directorGuid}/managers/{managerGuid}` — place manager under command
 - `GET /api/Paradox` — paradox feed (newest first, with trip context)
 - `POST /api/Paradox/trip/{tripGuid}` — add paradox to a trip under way (else 409); `PATCH /api/Paradox/{guid}/status?managerGuid=` — change status
-- `POST /api/Paradox/{guid}/engage|resolve|fail/{agentGuid}` — field stabilisation by an agent on the trip (→ InProcess / Solved / Escalated; 403 if not on the trip; resolve/fail only while InProcess, else 409)
+- `POST /api/Paradox/{guid}/engage|resolve|fail/{agentGuid}` — field stabilisation by an agent on the trip (→ InProcess / Solved / Escalated; 403 if not on the trip; resolve/fail only while InProcess, else 409). Escalated paradoxes need a **dual lock**: licensed agent and support agent (`trip.agentId`) each `resolve` once; a `fail` by either breaks both locks; without a support agent `engage` returns 409
 - `GET|PUT /api/Simulation` — runtime generator state `{ enabled, intervalSeconds }`; `POST /api/Simulation/spawn` — paradox on a random trip under way

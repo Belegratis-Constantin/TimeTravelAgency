@@ -2,13 +2,16 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input
 import { ParadoxFeedDto } from '../../core/models/paradox.model';
 import { ParadoxFeedStore } from '../../state/paradox-feed.store';
 import { toErrorMessage } from '../../core/http/error-message';
+import { AppStateService } from '../../state/app-state.service';
+import { BLOCK_TEXT, stabiliseBlock } from '../../shared/utils/dual-lock.utils';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { paradoxTypeColor, paradoxTypeLabel, tripDisplayName } from '../../shared/utils/status.utils';
 import {
   createPuzzle, LOCK_HOLD_MS, LOCK_THRESHOLD, RANGES, resonance, targetAt, TYPE_RULES, WaveParams, wavePath,
 } from './phase-lock';
 
-type Phase = 'briefing' | 'engaging' | 'playing' | 'reporting' | 'won' | 'lost';
+/** `held`: dual lock — this agent's lock holds, the partner's round is still missing. */
+type Phase = 'briefing' | 'engaging' | 'playing' | 'reporting' | 'won' | 'held' | 'lost';
 type Param = keyof WaveParams;
 
 const VIEW_W = 600;
@@ -17,6 +20,8 @@ const VIEW_H = 200;
 /**
  * Field stabilisation of a paradox as a mini-game ("Phase Lock"): tune the counter-wave until it resonates with the
  * paradox wave and hold the lock. Winning solves the paradox, running out of time escalates it to the manager.
+ * An escalated paradox needs a dual lock: licensed and support agent each win a (harder) round; if either of them
+ * loses, both locks break and both have to play again.
  */
 @Component({
   selector: 'app-paradox-stabilizer',
@@ -30,6 +35,7 @@ export class ParadoxStabilizerComponent {
   readonly closed = output<void>();
 
   private readonly feed = inject(ParadoxFeedStore);
+  private readonly state = inject(AppStateService);
 
   protected readonly ranges = RANGES;
   protected readonly viewW = VIEW_W;
@@ -43,7 +49,20 @@ export class ParadoxStabilizerComponent {
   protected readonly attempt = signal(1);
   protected readonly wave = signal<WaveParams>({ frequency: 1, phase: 0, amplitude: 0.5 });
 
-  protected readonly puzzle = computed(() => createPuzzle(`${this.paradox().guid}#${this.attempt()}`, this.paradox().paradoxType));
+  /** Live version from the feed — the paradox can become escalated (dual lock) while the dialog is open. */
+  protected readonly current = computed(() => this.feed.paradoxes().find(p => p.guid === this.paradox().guid) ?? this.paradox());
+  protected readonly dual = computed(() => this.current().dualLockRequired);
+  /** Why this agent cannot start a round right now (e.g. own dual lock already holds), or null. */
+  protected readonly blockText = computed(() => {
+    const block = stabiliseBlock(this.current(), this.state.currentAgent()?.id);
+    return block === 'none' ? null : block === 'closed' ? 'This paradox is already stabilised.' : BLOCK_TEXT[block];
+  });
+  /** Fixed for the duration of one round, so a status change mid-round does not swap the puzzle. */
+  protected readonly roundDual = signal(false);
+
+  protected readonly puzzle = computed(() =>
+    createPuzzle(`${this.paradox().guid}#${this.attempt()}`, this.paradox().paradoxType, this.roundDual()),
+  );
   protected readonly accent = computed(() => paradoxTypeColor(this.paradox().paradoxType));
   protected readonly typeLabel = computed(() => paradoxTypeLabel(this.paradox().paradoxType));
   protected readonly tripName = computed(() => tripDisplayName(this.paradox()));
@@ -88,6 +107,7 @@ export class ParadoxStabilizerComponent {
   }
 
   private startGame(): void {
+    this.roundDual.set(this.dual());
     const puzzle = this.puzzle();
     this.wave.set({ ...puzzle.start });
     this.elapsed.set(0);
@@ -123,7 +143,7 @@ export class ParadoxStabilizerComponent {
     this.stopLoop();
     this.phase.set('reporting');
     this.feed.stabilise(this.paradox(), won).subscribe({
-      next: () => this.phase.set(won ? 'won' : 'lost'),
+      next: updated => this.phase.set(!won ? 'lost' : updated.paradoxStatus === 'Solved' ? 'won' : 'held'),
       error: () => {
         this.error.set('The result could not be transmitted to headquarters.');
         this.phase.set(won ? 'won' : 'lost');

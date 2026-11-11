@@ -12,3 +12,12 @@
 .description { margin: 10px 0 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
 .side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .solved-by { margin: 8px 0 0; font-size: 12px; color: var(--green); }
+.action-hint { font-size: 11px; color: var(--text-faint); max-width: 180px; text-align: right; }
+.dual { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.dual-label { font-size: 10px; letter-spacing: 0.14em; color: var(--red); }
+.lock-chip {
+  font-size: 11px; padding: 2px 8px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+.lock-chip.on { border-color: color-mix(in srgb, var(--green) 60%, transparent); color: var(--green); }
+.lock-chip.warn { border-color: color-mix(in srgb, var(--amber) 60%, transparent); color: var(--amber); }

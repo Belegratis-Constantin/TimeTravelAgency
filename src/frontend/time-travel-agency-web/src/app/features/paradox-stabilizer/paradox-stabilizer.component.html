@@ -4,14 +4,30 @@
       @case ('briefing') {
         <div class="briefing">
           @if (error()) { <p class="form-error">{{ error() }}</p> }
-          <div class="mono kicker">FIELD STABILISATION · ATTEMPT {{ attempt() }}</div>
+          @if (blockText(); as text) { <p class="form-error">{{ text }}</p> }
+          <div class="mono kicker">{{ dual() ? 'DUAL LOCK' : 'FIELD STABILISATION' }} · ATTEMPT {{ attempt() }}</div>
           <p class="lead">{{ briefing() }}</p>
+          @if (dual()) {
+            <div class="dual-brief">
+              <p>This paradox was <strong>escalated</strong>. It only collapses when the <strong>licensed</strong> and the
+                <strong>support agent</strong> each win a round — and the rounds are harder.
+                If either of you loses, <strong>both locks break</strong> and you both play again.</p>
+              <div class="dual-state">
+                <span class="lock-chip" [class.on]="current().licensedLocked">{{ current().licensedLocked ? '✓' : '○' }} Licensed</span>
+                <span class="lock-chip" [class.on]="current().supportLocked">{{ current().supportLocked ? '✓' : '○' }} Support</span>
+              </div>
+            </div>
+          }
           <ol class="rules">
             <li>Tune <strong>frequency</strong>, <strong>phase</strong> and <strong>amplitude</strong> of your counter-wave
               <span class="swatch swatch--gold"></span> until it overlays the paradox wave <span class="swatch swatch--accent"></span>.</li>
             <li>Starting puts the paradox <strong>in process</strong> — only then can it be stabilised.</li>
             <li>Hold resonance above {{ threshold * 100 }}% until the lock ring is full.</li>
-            <li>Run out of time and the paradox is escalated to the trip's manager — you can try again.</li>
+            @if (dual()) {
+              <li>Run out of time and both locks break — you and your partner start over.</li>
+            } @else {
+              <li>Run out of time and the paradox is escalated to the trip's manager — then it needs a dual lock.</li>
+            }
           </ol>
           <p class="fine">{{ paradox().description }}</p>
         </div>
@@ -71,12 +87,23 @@
                 <div class="display result-title ok">Timeline stabilised</div>
                 <p class="muted">The paradox collapsed into a consistent history. It no longer threatens the trip.</p>
               }
+              @case ('held') {
+                <div class="display result-title ok">Your lock holds</div>
+                <p class="muted">Half of the dual lock is in place. The paradox collapses as soon as your partner wins their round —
+                  if they lose, you both start over.</p>
+              }
               @case ('lost') {
                 <div class="display result-title warn">Lock lost</div>
-                <p class="muted">The paradox was escalated to the trip's manager. Recalibrate and try again.</p>
+                @if (roundDual()) {
+                  <p class="muted">Both locks broke. You and your partner have to win a round again.</p>
+                } @else {
+                  <p class="muted">The paradox was escalated to the trip's manager. From now on it needs a dual lock
+                    by the licensed and the support agent.</p>
+                }
               }
             }
             @if (error()) { <p class="form-error">{{ error() }}</p> }
+            @if (phase() === 'lost' && blockText(); as text) { <p class="form-error">{{ text }}</p> }
           </div>
         }
       }
@@ -87,7 +114,9 @@
     @switch (phase()) {
       @case ('briefing') {
         <button type="button" class="btn" (click)="close()">Later</button>
-        <button type="button" class="btn btn--primary" (click)="begin()">Begin stabilisation</button>
+        <button type="button" class="btn btn--primary" [disabled]="!!blockText()" [attr.title]="blockText()" (click)="begin()">
+          Begin stabilisation
+        </button>
       }
       @case ('engaging') {
         <button type="button" class="btn btn--primary" disabled>Engaging…</button>
@@ -97,9 +126,14 @@
       }
       @case ('lost') {
         <button type="button" class="btn" (click)="close()">Close</button>
-        <button type="button" class="btn btn--primary" (click)="retry()">Try again</button>
+        <button type="button" class="btn btn--primary" [disabled]="!!blockText()" [attr.title]="blockText()" (click)="retry()">
+          Try again
+        </button>
       }
       @case ('won') {
+        <button type="button" class="btn btn--primary" (click)="close()">Back to the field</button>
+      }
+      @case ('held') {
         <button type="button" class="btn btn--primary" (click)="close()">Back to the field</button>
       }
     }

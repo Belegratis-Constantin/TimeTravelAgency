@@ -31,6 +31,10 @@ export class ParadoxListComponent {
   readonly emptyText = input('No paradox incidents recorded.');
   /** When set, open paradoxes get an action button with this label (e.g. agents: "Stabilise"). */
   readonly actionLabel = input<string | null>(null);
+  /** Decides per paradox whether the action button is shown (default: every open paradox). */
+  readonly canAct = input<((p: ParadoxFeedDto) => boolean) | null>(null);
+  /** Optional hint shown instead of the button when `canAct` says no. */
+  readonly actionHint = input<((p: ParadoxFeedDto) => string | null) | null>(null);
   /** Optional lookup for "solved by …" lines. */
   readonly agentName = input<((id: number) => string | null) | null>(null);
 
@@ -43,6 +47,17 @@ export class ParadoxListComponent {
   protected readonly statusLabel = (s: string) => paradoxMeta(s).label;
   protected readonly tripName = tripDisplayName;
   protected readonly ago = relativeTime;
+
+  protected showAction(p: ParadoxFeedDto): boolean {
+    if (!this.actionLabel() || p.paradoxStatus === 'Solved') return false;
+    const can = this.canAct();
+    return can ? can(p) : true;
+  }
+
+  protected hintFor(p: ParadoxFeedDto): string | null {
+    if (!this.actionLabel() || p.paradoxStatus === 'Solved' || this.showAction(p)) return null;
+    return this.actionHint()?.(p) ?? null;
+  }
 
   protected onSelect(paradox: ParadoxFeedDto, value: string): void {
     if (value !== paradox.paradoxStatus) this.statusChange.emit({ paradox, status: value as ParadoxStatus });

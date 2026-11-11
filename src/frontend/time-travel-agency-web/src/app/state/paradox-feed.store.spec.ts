@@ -9,7 +9,8 @@ import { PARADOX_POLL_MS, ParadoxFeedStore } from './paradox-feed.store';
 const paradox = (guid: string, overrides: Partial<ParadoxFeedDto> = {}): ParadoxFeedDto => ({
   guid, paradoxStatus: 'InQueue', paradoxType: 'GrandFatherParadox', description: 'desc', createdAt: new Date().toISOString(),
   tripGuid: 't1', tripName: 'Ancient Rome', tripType: 'Trip', managerGuid: 'm1', licensedAgentId: 1, agentId: null,
-  tripStatus: 'Active', resolvedAt: null, resolvedByAgentId: null, ...overrides,
+  tripStatus: 'Active', resolvedAt: null, resolvedByAgentId: null,
+  dualLockRequired: false, licensedLocked: false, supportLocked: false, tripHasSupportAgent: false, ...overrides,
 });
 
 describe('ParadoxFeedStore', () => {

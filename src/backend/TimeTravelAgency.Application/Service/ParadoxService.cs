@@ -90,10 +90,16 @@ public class ParadoxService
         _context.SaveChanges();
     }
 
-    /// <summary>An agent on the trip starts stabilising the paradox (status → InProcess).</summary>
+    /// <summary>
+    /// An agent on the trip starts stabilising the paradox (status → InProcess).
+    /// An escalated paradox needs a dual lock, so only the trip's licensed and support agent can engage it —
+    /// and only once a support agent is assigned.
+    /// </summary>
     public ParadoxFeedDto Engage(Guid paradoxGuid, Guid agentGuid)
     {
-        var (paradox, _) = LoadForAgent(paradoxGuid, agentGuid);
+        var (paradox, agent) = LoadForAgent(paradoxGuid, agentGuid);
+        if (paradox.DualLockRequired) DualLockRoleOf(paradox.Trip, agent);
+
         if (paradox.ParadoxStatus != ParadoxStatus.InProcess)
         {
             paradox.SetStatus(ParadoxStatus.InProcess);
@@ -102,27 +108,53 @@ public class ParadoxService
         return ToFeedDto(paradox);
     }
 
-    /// <summary>The agent stabilised the timeline — the paradox is solved. Only possible while it is in process.</summary>
+    /// <summary>
+    /// The agent won the stabilisation round. Only possible while the paradox is in process.
+    /// Normally that solves the paradox; with a dual lock it only records this agent's lock, and the paradox is
+    /// solved once the partner's lock holds as well.
+    /// </summary>
     public ParadoxFeedDto Resolve(Guid paradoxGuid, Guid agentGuid)
     {
         var (paradox, agent) = LoadForAgent(paradoxGuid, agentGuid);
-        RequireInProcess(paradox);
-        paradox.SetStatus(ParadoxStatus.Solved, agent);
+
+        if (paradox.DualLockRequired)
+            paradox.RegisterLock(DualLockRoleOf(paradox.Trip, agent), agent);
+        else
+        {
+            RequireInProcess(paradox);
+            paradox.SetStatus(ParadoxStatus.Solved, agent);
+        }
+
         _context.SaveChanges();
         return ToFeedDto(paradox);
     }
 
     /// <summary>
-    /// The stabilisation attempt failed — the paradox is escalated to the trip's manager. Only possible while it is
-    /// in process; it can be retried by engaging again.
+    /// The stabilisation round was lost — the paradox is escalated to the trip's manager and from then on needs a
+    /// dual lock. If a dual lock was already under way, both locks break: licensed and support agent start over.
+    /// Only possible while the paradox is in process.
     /// </summary>
     public ParadoxFeedDto Fail(Guid paradoxGuid, Guid agentGuid)
     {
-        var (paradox, _) = LoadForAgent(paradoxGuid, agentGuid);
+        var (paradox, agent) = LoadForAgent(paradoxGuid, agentGuid);
+        if (paradox.DualLockRequired) DualLockRoleOf(paradox.Trip, agent);
         RequireInProcess(paradox);
+
         paradox.SetStatus(ParadoxStatus.Escalated);
         _context.SaveChanges();
         return ToFeedDto(paradox);
+    }
+
+    /// <exception cref="UnauthorizedAccessException">Agent is neither the licensed nor the support agent.</exception>
+    /// <exception cref="InvalidOperationException">The trip has no support agent yet.</exception>
+    private static DualLockRole DualLockRoleOf(Trip trip, Agent agent)
+    {
+        if (trip.AgentId == null)
+            throw new InvalidOperationException(
+                "This escalated paradox needs a dual lock — the manager has to assign a support agent to the trip first.");
+        if (trip.LicensedAgentId == agent.Id) return DualLockRole.Licensed;
+        if (trip.AgentId == agent.Id) return DualLockRole.Support;
+        throw new UnauthorizedAccessException("A dual lock needs the trip's licensed agent and its support agent.");
     }
 
     private Paradox LoadParadox(Guid paradoxGuid) =>
@@ -209,6 +241,10 @@ public class ParadoxService
         p.Trip.AgentId,
         p.Trip.StatusAt(DateTime.UtcNow).ToString(),
         p.ResolvedAt.HasValue ? DateTime.SpecifyKind(p.ResolvedAt.Value, DateTimeKind.Utc) : null,
-        p.ResolvedByAgentId
+        p.ResolvedByAgentId,
+        p.DualLockRequired,
+        p.LicensedLockAt.HasValue,
+        p.SupportLockAt.HasValue,
+        p.Trip.AgentId.HasValue
     );
 }

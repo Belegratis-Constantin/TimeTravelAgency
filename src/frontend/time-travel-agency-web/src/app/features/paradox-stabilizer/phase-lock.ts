@@ -88,7 +88,11 @@ export function seededRandom(seed: string): () => number {
 
 const snap = (value: number, step: number) => Math.round(value / step) * step;
 
-export function createPuzzle(seed: string, type: ParadoxType): PhaseLockPuzzle {
+/** Dual-lock rounds (escalated paradoxes) are harder: less time and a faster drifting wave. */
+export const DUAL_LOCK_TIME_FACTOR = 0.7;
+export const DUAL_LOCK_EXTRA_DRIFT = 5;
+
+export function createPuzzle(seed: string, type: ParadoxType, dualLock = false): PhaseLockPuzzle {
   const rnd = seededRandom(seed);
   const target: WaveParams = {
     frequency: snap(1.5 + rnd() * 3, RANGES.frequency.step),
@@ -102,7 +106,13 @@ export function createPuzzle(seed: string, type: ParadoxType): PhaseLockPuzzle {
     amplitude: snap(target.amplitude > 0.65 ? 0.32 + rnd() * 0.1 : 0.85 + rnd() * 0.13, RANGES.amplitude.step),
   };
   const rules = TYPE_RULES[type] ?? TYPE_RULES.GrandFatherParadox;
-  return { target, start, driftDegPerSec: rules.driftDegPerSec, timeLimitMs: rules.timeLimitMs, type };
+  return {
+    target,
+    start,
+    driftDegPerSec: rules.driftDegPerSec + (dualLock ? DUAL_LOCK_EXTRA_DRIFT : 0),
+    timeLimitMs: Math.round(rules.timeLimitMs * (dualLock ? DUAL_LOCK_TIME_FACTOR : 1)),
+    type,
+  };
 }
 
 /** The paradox wave at a given elapsed time (its phase drifts). */

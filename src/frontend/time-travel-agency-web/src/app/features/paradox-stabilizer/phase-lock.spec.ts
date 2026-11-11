@@ -30,6 +30,14 @@ describe('phase lock', () => {
       .toBe(createPuzzle('paradox-3', 'BootstrapParadox').target.phase);
   });
 
+  it('makes dual-lock rounds harder', () => {
+    const normal = createPuzzle('p', 'BootstrapParadox');
+    const dual = createPuzzle('p', 'BootstrapParadox', true);
+    expect(dual.timeLimitMs).toBeLessThan(normal.timeLimitMs);
+    expect(dual.driftDegPerSec).toBeGreaterThan(normal.driftDegPerSec);
+    expect(dual.target).toEqual(normal.target);
+  });
+
   it('renders an SVG path', () => {
     const puzzle = createPuzzle('p', 'PredestinationParadox');
     expect(wavePath(puzzle.type, puzzle.target, 600, 200, 10)).toMatch(/^M0\.0,[\d.]+(L[\d.]+,[\d.]+){9}$/);

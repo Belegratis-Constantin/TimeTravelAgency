@@ -4,7 +4,8 @@ import { findArrivals, isParadoxRelevant, RelevanceContext } from './paradox-rel
 const paradox = (overrides: Partial<ParadoxFeedDto> = {}): ParadoxFeedDto => ({
   guid: 'p1', paradoxStatus: 'InQueue', paradoxType: 'BootstrapParadox', description: '', createdAt: '2026-01-01T00:00:00Z',
   tripGuid: 't1', tripName: 'Rome', tripType: 'Trip', managerGuid: 'm1', licensedAgentId: 7, agentId: 3,
-  tripStatus: 'Active', resolvedAt: null, resolvedByAgentId: null, ...overrides,
+  tripStatus: 'Active', resolvedAt: null, resolvedByAgentId: null,
+  dualLockRequired: false, licensedLocked: false, supportLocked: false, tripHasSupportAgent: false, ...overrides,
 });
 
 const ctx = (overrides: Partial<RelevanceContext>): RelevanceContext => ({

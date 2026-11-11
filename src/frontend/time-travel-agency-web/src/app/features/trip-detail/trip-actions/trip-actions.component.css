@@ -40,3 +40,5 @@
   background: color-mix(in srgb, var(--red) 8%, transparent); font-size: 13px;
 }
 .note.left.ok { color: var(--green); }
+.dual-tag { display: block; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); margin-top: 2px; }
+.block-text { font-size: 11px; color: var(--text-faint); text-align: right; max-width: 140px; }

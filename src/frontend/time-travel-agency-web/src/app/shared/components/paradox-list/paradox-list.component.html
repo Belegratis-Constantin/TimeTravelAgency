@@ -28,13 +28,26 @@
           } @else {
             <div class="side">
               <app-status-badge [status]="p.paradoxStatus" kind="paradox" />
-              @if (actionLabel() && p.paradoxStatus !== 'Solved') {
+              @if (showAction(p)) {
                 <button type="button" class="btn btn--primary btn--sm" (click)="act.emit(p)">{{ actionLabel() }}</button>
+              } @else if (hintFor(p); as hint) {
+                <span class="action-hint">{{ hint }}</span>
               }
             </div>
           }
         </div>
         <p class="description">{{ p.description }}</p>
+        @if (p.dualLockRequired && p.paradoxStatus !== 'Solved') {
+          <div class="dual" aria-label="Dual lock progress">
+            <span class="mono dual-label">DUAL LOCK</span>
+            @if (p.tripHasSupportAgent) {
+              <span class="lock-chip" [class.on]="p.licensedLocked">{{ p.licensedLocked ? '✓' : '○' }} Licensed</span>
+              <span class="lock-chip" [class.on]="p.supportLocked">{{ p.supportLocked ? '✓' : '○' }} Support</span>
+            } @else {
+              <span class="lock-chip warn">Support agent required — the manager must assign one</span>
+            }
+          </div>
+        }
         @if (p.paradoxStatus === 'Solved' && p.resolvedByAgentId !== null && agentName(); as name) {
           <p class="solved-by">Stabilised in the field by {{ name(p.resolvedByAgentId) }}</p>
         }
