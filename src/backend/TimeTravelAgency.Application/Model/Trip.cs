@@ -129,8 +129,11 @@ public class Trip
 
     internal void AddAgent(Agent agent)
     {
-        if (Agent != null)
+        // AgentId is checked as well because the Agent navigation is not always loaded (no lazy-loading proxies).
+        if (Agent != null || AgentId != null)
             throw new InvalidOperationException("Agent for this trip is already set.");
+        if (ReferenceEquals(agent, LicensedAgent) || (agent.Id != 0 && agent.Id == LicensedAgentId))
+            throw new InvalidOperationException("The licensed agent of a trip cannot also be its support agent.");
         
         AgentId = agent.Id;
         Agent = agent;

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ManagerService } from '../../../core/services/manager.service';
 import { toErrorMessage } from '../../../core/http/error-message';
 import { TripDto } from '../../../core/models/trip.model';
@@ -19,7 +19,7 @@ import { agentTypeLabel, fullName, tripDisplayName } from '../../../shared/utils
       @if (candidates().length === 0) {
         <p class="empty-hint">None of your agents is available. Recruit an agent first.</p>
       } @else {
-        <form id="assign-form" (ngSubmit)="submit()">
+        <form id="assign-form" [formGroup]="form" (ngSubmit)="submit()">
           <app-form-field label="Agent" [control]="agent" for="assign-agent"
                           hint="Only agents managed by you can be assigned. The licensed agent of the trip is excluded.">
             <select class="select" id="assign-agent" [formControl]="agent">
@@ -55,6 +55,8 @@ export class AssignAgentModalComponent {
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly agent = new FormControl('', { nonNullable: true, validators: [Validators.required] });
+  /** Binding the form to a FormGroup makes Angular handle (ngSubmit) instead of a native page-reloading submit. */
+  protected readonly form = new FormGroup({ agent: this.agent });
 
   protected readonly tripName = computed(() => tripDisplayName(this.trip()));
 
