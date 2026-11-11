@@ -15,6 +15,9 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
 import { agentTypeLabel, epochLabel, fullName, isOpenParadox, tripDisplayName } from '../../shared/utils/status.utils';
 import { TripDto } from '../../core/models/trip.model';
+import { ParadoxFeedDto } from '../../core/models/paradox.model';
+import { ParadoxStabilizerComponent } from '../paradox-stabilizer/paradox-stabilizer.component';
+import { BLOCK_TEXT, canStabilise, stabiliseBlock } from '../../shared/utils/dual-lock.utils';
 
 @Component({
   selector: 'app-agent-missions',
@@ -28,6 +31,7 @@ import { TripDto } from '../../core/models/trip.model';
     ParadoxListComponent,
     EmptyStateComponent,
     FormFieldComponent,
+    ParadoxStabilizerComponent,
   ],
   templateUrl: './agent-missions.component.html',
   styleUrl: './agent-missions.component.css',
@@ -42,6 +46,7 @@ export class AgentMissionsComponent {
   private readonly tripApi = inject(TripService);
   private readonly notifications = inject(NotificationService);
 
+  protected readonly stabilising = signal<ParadoxFeedDto | null>(null);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -66,6 +71,10 @@ export class AgentMissionsComponent {
     [...this.agency.scopedTrips()].sort((a, b) => Date.parse(a.dateInRealLife) - Date.parse(b.dateInRealLife)),
   );
   protected readonly openParadoxes = computed(() => this.feed.scoped().filter(isOpenParadox));
+  protected readonly solvedByMe = computed(() => {
+    const id = this.agent()?.id;
+    return id === undefined ? [] : this.feed.paradoxes().filter(p => p.resolvedByAgentId === id);
+  });
 
   protected readonly reports = computed(() =>
     this.missions()
@@ -78,14 +87,20 @@ export class AgentMissionsComponent {
     const missions = this.missions();
     return [
       { label: 'Missions', value: missions.length },
-      { label: 'As licensed agent', value: missions.filter(t => t.licensedAgentId === id).length, tone: 'gold' },
+      { label: 'Under way', value: missions.filter(t => t.tripStatus === 'Active').length, tone: 'gold' },
+      { label: 'As licensed agent', value: missions.filter(t => t.licensedAgentId === id).length },
       { label: 'As support agent', value: missions.filter(t => t.agentId === id).length, tone: 'blue' },
       { label: 'Open paradoxes', value: this.openParadoxes().length, tone: this.openParadoxes().length ? 'red' : 'green' },
-      { label: 'Reports on file', value: this.reports().length },
+      { label: 'Stabilised by you', value: this.solvedByMe().length, tone: 'green' },
     ];
   });
 
   protected readonly tripName = tripDisplayName;
+  protected readonly canAct = (p: ParadoxFeedDto) => canStabilise(p, this.agent()?.id);
+  protected readonly actionHint = (p: ParadoxFeedDto) => {
+    const block = stabiliseBlock(p, this.agent()?.id);
+    return block === 'none' || block === 'closed' ? null : BLOCK_TEXT[block];
+  };
 
   constructor() {
     effect(() => {

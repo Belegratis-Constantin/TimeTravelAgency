@@ -20,6 +20,16 @@ export interface ParadoxFeedDto extends ParadoxDto {
   managerGuid: string;
   licensedAgentId: number;
   agentId: number | null;
+  /** Lifecycle status of the paradox's trip. */
+  tripStatus: string;
+  resolvedAt: string | null;
+  /** Agent who stabilised the paradox in the field (AgentDto.id). */
+  resolvedByAgentId: number | null;
+  /** Escalated once: licensed and support agent both have to win a round (dual lock). */
+  dualLockRequired: boolean;
+  licensedLocked: boolean;
+  supportLocked: boolean;
+  tripHasSupportAgent: boolean;
 }
 
 export interface SpawnParadoxResultDto {

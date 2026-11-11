@@ -9,7 +9,11 @@
     @if (openParadoxes().length > 0) {
       <section class="section">
         <h2 class="section-title">Paradox alerts on your missions</h2>
-        <app-paradox-list [paradoxes]="openParadoxes()" [showTrip]="true" [fresh]="feed.fresh()" />
+        <p class="hint">Stabilise them in the field before a trip turns critical. A lost round escalates the paradox: from then on it
+          needs a dual lock — the licensed and the support agent each have to win a round, and if one of you loses, both start over.</p>
+        <app-paradox-list [paradoxes]="openParadoxes()" [showTrip]="true" [fresh]="feed.fresh()"
+                          actionLabel="Stabilise" [canAct]="canAct" [actionHint]="actionHint"
+                          (act)="stabilising.set($event)" />
       </section>
     }
 
@@ -24,6 +28,10 @@
         }
       </div>
     </section>
+
+    @if (solvedByMe().length > 0) {
+      <p class="streak">✦ You have stabilised {{ solvedByMe().length }} paradox{{ solvedByMe().length === 1 ? '' : 'es' }} in the field.</p>
+    }
 
     @if (missions().length > 0) {
       <div class="split">
@@ -68,3 +76,7 @@
     }
   }
 </div>
+
+@if (stabilising(); as p) {
+  <app-paradox-stabilizer [paradox]="p" (closed)="stabilising.set(null)" />
+}

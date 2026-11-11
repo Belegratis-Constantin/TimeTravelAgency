@@ -3,8 +3,6 @@ import { Role } from './app-state.service';
 
 export interface RelevanceContext {
   role: Role;
-  /** Trips the current customer has booked. */
-  bookedTripGuids: ReadonlySet<string>;
   agentId: number | null;
   managerGuid: string | null;
 }
@@ -12,7 +10,8 @@ export interface RelevanceContext {
 /** Whether a paradox concerns the signed-in identity (drives notifications and the header counter). */
 export function isParadoxRelevant(p: ParadoxFeedDto, ctx: RelevanceContext): boolean {
   switch (ctx.role) {
-    case 'customer': return ctx.bookedTripGuids.has(p.tripGuid);
+    // Paradoxes are internal agency business — customers are never told about them.
+    case 'customer': return false;
     case 'agent': return ctx.agentId !== null && (p.licensedAgentId === ctx.agentId || p.agentId === ctx.agentId);
     case 'manager': return ctx.managerGuid !== null && p.managerGuid === ctx.managerGuid;
     case 'director':

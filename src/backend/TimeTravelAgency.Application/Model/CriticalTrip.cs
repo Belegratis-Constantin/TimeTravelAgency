@@ -4,8 +4,9 @@ public class CriticalTrip : Trip
 {
     // Constructors
 
-    public CriticalTrip(LicensedAgent licensedSupportAgent, DateTime dateInRealLife, LicensedAgent licensedAgent, Manager manager, string? tripName=null)
-        : base(dateInRealLife, licensedAgent, manager, tripName)
+    public CriticalTrip(LicensedAgent licensedSupportAgent, DateTime dateInRealLife, LicensedAgent licensedAgent, Manager manager, string? tripName=null,
+        int durationMinutes = DefaultDurationMinutes)
+        : base(dateInRealLife, licensedAgent, manager, tripName, durationMinutes: durationMinutes)
     {
         LicensedSupportAgent = licensedSupportAgent;
     }

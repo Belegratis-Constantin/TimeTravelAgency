@@ -8,9 +8,6 @@
       <div class="kicker">Time Travel Agency · Boarding Pass</div>
       <div class="title-row">
         <h2 class="title">{{ name() }}</h2>
-        @if (trip().tripType === 'CriticalTrip') {
-          <span class="critical">⚠ CRITICAL</span>
-        }
       </div>
       <div class="route">
         <span>NOW</span><span class="dash"></span><span class="star">✦</span><span class="dash"></span>
@@ -30,19 +27,6 @@
       }
     </div>
 
-    @if (openParadoxes() > 0) {
-      <div class="exposure">
-        <div class="row-between">
-          <span class="micro">Paradox Exposure</span>
-          <span class="dim">{{ openParadoxes() }} open incident{{ openParadoxes() !== 1 ? 's' : '' }}</span>
-        </div>
-        <div class="meter">
-          <div [style.width.%]="openParadoxes() * 25 > 100 ? 100 : openParadoxes() * 25"
-               [style.background]="riskColor()" [style.box-shadow]="'0 0 6px ' + riskColor()"></div>
-        </div>
-      </div>
-    }
-
     @if (rating(); as stars) {
       <div class="rating row-between">
         <span class="micro">Traveller Rating</span>
@@ -55,10 +39,12 @@
         @if (bookingStatus() === 'booked' || justBooked()) {
           <button type="button" class="cta-btn confirmed" disabled><span>✓</span> Seat Confirmed</button>
         } @else if (bookingStatus() === 'unavailable') {
-          <button type="button" class="cta-btn unavailable" disabled>{{ trip().tripStatus }} — Unavailable</button>
+          <button type="button" class="cta-btn unavailable" disabled>Cancelled — Unavailable</button>
+        } @else if (bookingStatus() === 'conflict') {
+          <button type="button" class="cta-btn closed" disabled>Already travelling on “{{ conflictName() }}”</button>
         } @else if (bookingStatus() !== 'bookable') {
           <button type="button" class="cta-btn closed" disabled>
-            {{ bookingStatus() === 'departed' ? 'Departed · Archived' : 'Boarding Closed · Departs Soon' }}
+            {{ bookingStatus() === 'underway' ? 'Under way · Departed' : 'Returned · Archived' }}
           </button>
         } @else {
           <button type="button" class="cta-btn book" [disabled]="booking()" (click)="book()">

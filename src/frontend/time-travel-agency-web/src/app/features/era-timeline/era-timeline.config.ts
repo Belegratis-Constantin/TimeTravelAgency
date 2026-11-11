@@ -1,7 +1,7 @@
 import { TripDto } from '../../core/models/trip.model';
 import { AgentDto } from '../../core/models/agent.model';
 
-export type Risk = 'low' | 'elevated' | 'critical';
+export type Phase = 'open' | 'underway' | 'closed';
 
 // ─── Era Zone Definitions ─────────────────────────────────────────────────────
 
@@ -96,14 +96,20 @@ export function formatYear(year: number): string {
   return year.toString();
 }
 
-/** Risk is driven by the number of unresolved paradoxes on the trip (live from the paradox feed). */
-export function riskLevel(openParadoxes: number): Risk {
-  const n = openParadoxes;
-  return n === 0 ? 'low' : n <= 2 ? 'elevated' : 'critical';
+/**
+ * Customer-facing state of a departure. (Paradoxes and critical classification are internal agency business
+ * and deliberately not shown on the Continuum.)
+ */
+export function tripPhase(trip: Pick<TripDto, 'tripStatus'>): Phase {
+  switch (trip.tripStatus) {
+    case 'Scheduled': return 'open';
+    case 'Active': return 'underway';
+    default: return 'closed';
+  }
 }
 
-export const RISK_COLORS = { low: '#3FAE79', elevated: '#D9A24E', critical: '#E05A4E' } as const;
-export const RISK_LABELS = { low: 'Low Risk', elevated: 'Elevated', critical: 'Critical Risk' } as const;
+export const PHASE_COLORS = { open: '#3FAE79', underway: '#C9A84C', closed: '#6B7488' } as const;
+export const PHASE_LABELS = { open: 'Boarding open', underway: 'Under way', closed: 'Archived' } as const;
 
 export interface TripPin {
   trip: TripDto;
@@ -111,8 +117,7 @@ export interface TripPin {
   x: number;
   zone: EraZone;
   stemHeight: number;
-  isCritical: boolean;
-  risk: 'low' | 'elevated' | 'critical';
+  phase: Phase;
   signalBars: number;
 }
 

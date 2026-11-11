@@ -66,7 +66,7 @@ public class DirectorController : ControllerBase
                     new List<CustomerDto>(),
                     new List<ReportForTripDto>(),
                     new List<ReviewDto>(),
-                    t.AgentId, t.Manager.Guid
+                    t.AgentId, t.Manager.Guid, t.DurationMinutes
                 )).ToList()
         )).ToList();
 

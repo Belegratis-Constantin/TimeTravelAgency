@@ -95,21 +95,23 @@ public class Manager
             trip.RemoveAgent(agent);
     }
     
-    public Trip CreateTrip(DateTime dateInRealLife, LicensedAgent licensedAgent, string? tripName = null)
+    public Trip CreateTrip(DateTime dateInRealLife, LicensedAgent licensedAgent, string? tripName = null,
+        int durationMinutes = Trip.DefaultDurationMinutes)
     {
-        if (_trips.Count(t => t.TripStatus == TripStatus.Active) >= MaxAmountManagedTrips) 
-            throw new InvalidOperationException($"Cannot manage more than {MaxAmountManagedTrips} trips.");
+        if (_trips.Count(t => t.IsOpen) >= MaxAmountManagedTrips) 
+            throw new InvalidOperationException($"Cannot manage more than {MaxAmountManagedTrips} open trips.");
 
-        var trip = new Trip(dateInRealLife, licensedAgent, this, tripName);
+        var trip = new Trip(dateInRealLife, licensedAgent, this, tripName, durationMinutes: durationMinutes);
 
         _trips.Add(trip);
 
         return trip;
     }
 
+    /// <summary>Ends a trip that has already departed (early return). Scheduled or cancelled trips are left untouched.</summary>
     public void CompleteTrip(Trip trip)
     {
-        if (trip.DateInRealLife < DateTime.Now)
+        if (trip.TripStatus != TripStatus.Cancelled && trip.DateInRealLife <= DateTime.UtcNow)
             trip.TripStatus = TripStatus.Completed;
     }
 
@@ -152,6 +154,11 @@ public class Manager
 
         var paradoxCounter = trip.Paradoxes.Count(paradox => paradox.ParadoxStatus == ParadoxStatus.InQueue || paradox.ParadoxStatus == ParadoxStatus.InProcess);
 
+        if (trip.StatusAt(DateTime.UtcNow) != TripStatus.Active)
+        {
+            throw new InvalidOperationException("Only a trip that is currently under way can become critical.");
+        }
+
         if (paradoxCounter < 2)
         {
             throw new InvalidOperationException($"Cannot make a trip critical by less than 2 paradoxes."); 
@@ -167,19 +174,20 @@ public class Manager
     
     private CriticalTrip CreateCriticalTrip(Trip trip, LicensedAgent licensedSupportAgent, string? tripName = null)
     {
-        if (_trips.Count(t => t.TripStatus == TripStatus.Active) >= MaxAmountManagedTrips) 
-            throw new InvalidOperationException($"Cannot manage more than {MaxAmountManagedTrips} trips.");
+        // The critical trip replaces the original one, so the licensed agent must not be double-booked.
+        trip.LicensedAgent.RemoveTrip(trip);
 
         var criticalTrip = new CriticalTrip(
             licensedSupportAgent,
             trip.DateInRealLife,
             trip.LicensedAgent,
             this, 
-            tripName
+            tripName,
+            trip.DurationMinutes
         );
 
         _trips.Remove(trip);
-        _trips.Add(trip);
+        _trips.Add(criticalTrip);
         
         AddAgentToTrip(licensedSupportAgent, criticalTrip);
 

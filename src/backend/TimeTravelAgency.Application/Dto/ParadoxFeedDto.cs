@@ -15,5 +15,14 @@ public record ParadoxFeedDto(
     string TripType,
     Guid ManagerGuid,
     int LicensedAgentId,
-    int? AgentId
+    int? AgentId,
+    string TripStatus = "Active",
+    DateTime? ResolvedAt = null,
+    int? ResolvedByAgentId = null,
+    /// <summary>Escalated once: needs a lock by both the licensed and the support agent.</summary>
+    bool DualLockRequired = false,
+    bool LicensedLocked = false,
+    bool SupportLocked = false,
+    /// <summary>Whether the trip has a support agent (required for a dual lock).</summary>
+    bool TripHasSupportAgent = false
 );

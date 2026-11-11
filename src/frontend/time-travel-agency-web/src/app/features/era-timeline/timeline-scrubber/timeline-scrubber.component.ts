@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { ERA_ZONES, EraZone, formatYear, RISK_COLORS, TOTAL_W, TripPin, ZONE_W } from '../era-timeline.config';
+import { ERA_ZONES, EraZone, formatYear, PHASE_COLORS, TOTAL_W, TripPin, ZONE_W } from '../era-timeline.config';
 
 /** Bottom "mission clock": minimap of all eras and trips, click to seek. */
 @Component({
@@ -22,7 +22,7 @@ export class TimelineScrubberComponent {
   protected readonly eraZones = ERA_ZONES;
   protected readonly zoneWidth = ZONE_W;
   protected readonly totalWidth = TOTAL_W;
-  protected readonly riskColors = RISK_COLORS;
+  protected readonly phaseColors = PHASE_COLORS;
   protected readonly formatYear = formatYear;
 
   protected onClick(event: MouseEvent): void {

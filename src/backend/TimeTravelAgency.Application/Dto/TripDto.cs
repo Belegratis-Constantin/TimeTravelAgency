@@ -14,5 +14,10 @@ public record TripDto
     List<ReportForTripDto> Reports,
     List<ReviewDto> Reviews,
     int? AgentId = null,
-    Guid? ManagerGuid = null
-);
+    Guid? ManagerGuid = null,
+    int DurationMinutes = 0
+)
+{
+    /// <summary>Return in real life = departure + duration.</summary>
+    public DateTime ReturnInRealLife => DateInRealLife.AddMinutes(DurationMinutes);
+}

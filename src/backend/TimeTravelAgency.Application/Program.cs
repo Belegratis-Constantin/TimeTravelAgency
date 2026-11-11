@@ -28,6 +28,9 @@ public class Program
         builder.Services.AddSingleton(simulationOptions);
         builder.Services.AddSingleton<ParadoxSimulationState>();
         builder.Services.AddHostedService<ParadoxSimulationService>();
+
+        // Trip lifecycle: Scheduled → Active (under way) → Completed, driven by departure and return time
+        builder.Services.AddHostedService<TripLifecycleService>();
         
         var app = builder.Build();
         

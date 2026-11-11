@@ -3,3 +3,5 @@
 .report .trip { font-size: 12.5px; margin-top: 4px; }
 .report p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; }
 .form-card { position: sticky; top: 96px; }
+.hint { margin: -6px 0 14px; font-size: 13px; color: var(--text-muted); }
+.streak { margin: 0 0 28px; font-size: 13px; color: var(--green); font-family: var(--font-mono); letter-spacing: 0.04em; }

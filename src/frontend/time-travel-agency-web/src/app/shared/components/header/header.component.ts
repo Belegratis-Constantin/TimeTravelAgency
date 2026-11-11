@@ -61,7 +61,8 @@ export class HeaderComponent {
     NAV[this.state.role()].filter(item => !item.requiresIdentity || this.state.hasIdentity(this.state.role())),
   );
 
-  protected readonly showParadoxCounter = computed(() => this.state.hasIdentity(this.state.role()));
+  /** Paradoxes are internal — customers never see the counter. */
+  protected readonly showParadoxCounter = computed(() => !this.state.isCustomer() && this.state.hasIdentity(this.state.role()));
   protected readonly paradoxTarget = computed(() => PARADOX_TARGET[this.state.role()]);
 
   protected selectRole(role: Role): void {

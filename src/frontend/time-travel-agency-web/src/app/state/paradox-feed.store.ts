@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { catchError, EMPTY, merge, Observable, Subject, switchMap, tap, timer } from 'rxjs';
+import { catchError, EMPTY, merge, Observable, Subject, switchMap, tap, throwError, timer } from 'rxjs';
 import { ParadoxService } from '../core/services/paradox.service';
 import { ParadoxFeedDto, ParadoxStatus, SpawnParadoxResultDto } from '../core/models/paradox.model';
 import { toErrorMessage } from '../core/http/error-message';
@@ -47,9 +47,6 @@ export class ParadoxFeedStore {
 
   private readonly relevance = computed((): RelevanceContext => ({
     role: this.app.role(),
-    bookedTripGuids: new Set(
-      this.app.isCustomer() ? this.agency.scopedTrips().map(t => t.guid) : [],
-    ),
     agentId: this.app.currentAgent()?.id ?? null,
     managerGuid: this.app.currentManager()?.guid ?? null,
   }));
@@ -99,7 +96,37 @@ export class ParadoxFeedStore {
     });
   }
 
-  /** Tears a paradox into the given trip, or into a random active trip when no trip is given. */
+  /**
+   * Field stabilisation by the signed-in agent: `engage` puts the paradox InProcess before the game starts —
+   * the backend only accepts an outcome for a paradox that is in process. `stabilise` then reports the outcome
+   * (won → Solved, lost → Escalated to the manager; a retry engages again).
+   */
+  engage(paradox: ParadoxFeedDto): Observable<ParadoxFeedDto> {
+    const agent = this.app.currentAgent();
+    if (!agent) return throwError(() => new Error('Only a signed-in agent can stabilise paradoxes.'));
+    return this.api.engage(paradox.guid, agent.guid).pipe(tap(updated => this.replace(updated)));
+  }
+
+  stabilise(paradox: ParadoxFeedDto, won: boolean): Observable<ParadoxFeedDto> {
+    const agent = this.app.currentAgent();
+    if (!agent) throw new Error('Only a signed-in agent can stabilise paradoxes.');
+    const request = won ? this.api.resolve(paradox.guid, agent.guid) : this.api.fail(paradox.guid, agent.guid);
+    return request.pipe(
+      tap({
+        next: updated => {
+          this.replace(updated);
+          const name = `${paradoxTypeLabel(paradox.paradoxType)} on “${tripDisplayName(paradox)}”`;
+          if (won && updated.paradoxStatus === 'Solved') this.notifications.success('Timeline stabilised', `${name} is solved.`);
+          else if (won) this.notifications.success('Lock holds', `${name}: waiting for your partner's round.`);
+          else if (paradox.dualLockRequired) this.notifications.error('Dual lock broken', `${name}: both agents have to win a round again.`);
+          else this.notifications.error('Stabilisation failed', `${name} was escalated — it now needs a dual lock.`);
+        },
+        error: err => this.notifications.error('Could not report the result', toErrorMessage(err)),
+      }),
+    );
+  }
+
+  /** Tears a paradox into the given trip (must be under way), or into a random running trip when no trip is given. */
   introduce(tripGuid?: string): Observable<SpawnParadoxResultDto> {
     const request = tripGuid ? this.api.addToTrip(tripGuid) : this.api.spawnRandom();
     return request.pipe(tap(() => this.refresh()));
@@ -111,6 +138,10 @@ export class ParadoxFeedStore {
 
   openCountForTrip(tripGuid: string): number {
     return this.forTrip(tripGuid).filter(isOpenParadox).length;
+  }
+
+  private replace(updated: ParadoxFeedDto): void {
+    this.paradoxes.update(list => list.map(p => (p.guid === updated.guid ? updated : p)));
   }
 
   private apply(list: ParadoxFeedDto[]): void {

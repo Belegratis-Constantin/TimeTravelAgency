@@ -10,7 +10,8 @@ export interface StatusMeta {
 }
 
 const TRIP_STATUS: Record<TripStatus, StatusMeta> = {
-  Active: { label: 'Active', tone: 'blue' },
+  Scheduled: { label: 'Scheduled', tone: 'blue' },
+  Active: { label: 'Under way', tone: 'gold' },
   Completed: { label: 'Completed', tone: 'neutral' },
   Cancelled: { label: 'Cancelled', tone: 'rust' },
 };
@@ -51,6 +52,9 @@ export function paradoxTypeColor(type: string): string {
 export function isOpenParadox(p: { paradoxStatus: string }): boolean {
   return p.paradoxStatus !== 'Solved';
 }
+
+/** Open paradoxes on a running trip at which it is reclassified as critical (mirrors ParadoxService). */
+export const CRITICAL_PARADOX_THRESHOLD = 3;
 
 export function tripTypeLabel(tripType: TripType | string): string {
   return tripType === 'CriticalTrip' ? 'Critical' : 'Standard';

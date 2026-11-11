@@ -48,15 +48,19 @@ Single-project ASP.NET Core 8 Web API — no separate layer assemblies. All laye
 - **`Model/`** — Domain entities with encapsulated state. Collection fields are private, exposed as `IReadOnlyCollection<T>`; all mutation methods are `internal` so only domain logic and EF Core can call them. `Trip` uses TPH inheritance with `CriticalTrip` as a subtype (`TripType` discriminator column).
 - **`Infrastructure/TimeTravelAgencyContext.cs`** — EF Core `DbContext`. Lazy-loading proxies are only enabled in `OnConfiguring` when no options are passed; `Program.cs` passes options **without** proxies, so always `Include()` navigations you read in memory. `Initialize(recreate: bool)` drops/recreates the schema; `Seed()` populates data using Bogus. Both are called on every startup, so **all data is ephemeral**.
 - **`Controller/`** — Thin controllers that accept `Cmd` objects, call either the `DbContext` directly or a `Service`, and return `Dto` projections via manual LINQ (no AutoMapper, no repository layer).
-- **`Service/`** — `TripService` and `CustomerService` hold business logic that spans multiple entities (booking validation, agent assignment, trip creation by manager). `ParadoxService` (DI-registered) adds paradoxes, serves the paradox feed and auto-reclassifies a trip as `CriticalTrip` at 3 paradoxes.
-- **Runtime paradoxes** — `ParadoxSimulationService` (hosted `BackgroundService`) adds a random paradox to a random active trip every `IntervalSeconds`. Defaults come from `appsettings.json` → `ParadoxSimulation` (`Enabled`, `IntervalSeconds`; override e.g. via env `ParadoxSimulation__IntervalSeconds=10`). `ParadoxSimulationState` (singleton) holds the runtime-adjustable settings exposed via `/api/Simulation`.
+- **`Service/`** — `TripService` and `CustomerService` hold business logic that spans multiple entities (booking/cancellation, agent assignment, trip creation by manager). `ParadoxService` (DI-registered) adds paradoxes (only to trips under way), serves the paradox feed, lets assigned agents engage/resolve/fail paradoxes and auto-reclassifies a running trip as `CriticalTrip` at 3 **unresolved** paradoxes.
+- **Trip lifecycle** — `TripStatus`: `Scheduled` → `Active` (under way: departure ≤ now < departure + `DurationMinutes`) → `Completed`; `Cancelled` is final. `Trip.StatusAt(now)` derives it from the schedule; `TripLifecycleService` (hosted, every 5 s) persists the transitions. Trip times are UTC (`DateInRealLife` has a UTC value converter).
+- **Runtime paradoxes** — `ParadoxSimulationService` (hosted `BackgroundService`) adds a random paradox to a random trip that is under way (and has fewer than 4 open paradoxes) every `IntervalSeconds` (default 120). Defaults come from `appsettings.json` → `ParadoxSimulation` (`Enabled`, `IntervalSeconds`; override e.g. via env `ParadoxSimulation__IntervalSeconds=10`). `ParadoxSimulationState` (singleton) holds the runtime-adjustable settings exposed via `/api/Simulation`.
 - **`Cmd/`** — Input models for POST/PATCH with data annotations.
 - **`Dto/`** — Output shapes; projected inline in queries.
 - **`DataAnnotation/`** — Custom validation attributes (`MinimumAgeAttribute`, `PhoneNumberAttribute`).
 
 **Key domain rules:**
 - A `Trip` requires a `LicensedAgent` and a `Manager`; an `Agent` is optional and assigned later.
-- `Paradox` records are append-only on a `Trip` — there is no removal method.
+- `Paradox` records are append-only on a `Trip` — there is no removal method. They only emerge on trips that are under way.
+- Only a trip that is under way can become critical (3 unresolved paradoxes). Solving paradoxes keeps a trip from turning critical.
+- Booking: only `Scheduled` trips, until departure; a customer's open trips must never overlap in real-life time (so at most one is `Active`). Cancellation until 1 h before departure.
+- Customers never see paradoxes or the critical classification (enforced in the UI).
 - Public API identifiers are always GUIDs, never integer PKs.
 - `Agent.SpecialisationEpoch` is resolved during `SaveChanges` (not in the constructor).
 
@@ -91,7 +95,8 @@ src/app/
     ├── landing/          # customer: departures grid with filters
     ├── era-timeline/     # customer: The Continuum visualisation (+ timeline-pin, timeline-scrubber, boarding-card)
     ├── customer-profile/ # customer: My Journeys + paradox alerts on booked trips
-    ├── trip-detail/      # every role; trip-actions = role-specific panel (book / report / assign / introduce paradox)
+    ├── trip-detail/      # every role; trip-actions = role-specific panel (book+cancel / stabilise+report / assign / introduce paradox)
+    ├── paradox-stabilizer/ # agent: "Phase Lock" mini-game (pure rules in phase-lock.ts) — win = Solved, lose = Escalated → dual lock (shared/utils/dual-lock.utils.ts)
     ├── agent-missions/   # agent: assigned trips, alerts, file field reports
     ├── dashboard/        # manager: KPIs, trips table, team
     ├── paradox-log/      # manager (edit own trips) + director (read-only): live paradox log
@@ -115,20 +120,24 @@ src/app/
 - `trip.licensedAgentId` / `trip.agentId` (int) → `AgentDto.id`; `agent.managerId` → `ManagerWithIdDto.id`
 - A trip's destination era = the licensed agent's `specialisationEpochId`
 - `trip.tripType` → `"Trip"` or `"CriticalTrip"` (TPH discriminator strings, not "Normal"/"Critical")
+- `trip.tripStatus` → `"Scheduled"`, `"Active"` (under way), `"Completed"`, `"Cancelled"`; `trip.returnInRealLife` = departure + `durationMinutes`
+- Booking rules for the UI live in `shared/utils/booking.utils.ts` (`bookingInfo()`), mirroring `Customer.AssignToTrip` / `CheckOutOfTrip`
 - `paradoxStatus` / `paradoxType` → serialized as strings (e.g. `"InQueue"`, `"GrandFatherParadox"`)
 - All public API identifiers are GUIDs
 
 **API endpoints used (proxied via `/api/*` → `http://localhost:5000`):**
 - `GET /api/Trip`, `GET /api/Trip/{guid}` — trips incl. customers, reports, reviews, `managerGuid`
-- `POST /api/Trip/{tripGuid}/book/{customerGuid}` — book a trip
+- `POST /api/Trip/{tripGuid}/book/{customerGuid}` — book a trip (409: under way/over/cancelled, already booked, overlapping booking)
+- `DELETE /api/Trip/{tripGuid}/book/{customerGuid}` — cancel a booking (until 1 h before departure)
 - `POST /api/Trip/{tripGuid}/report/{agentGuid}` — file a field report (body: `{ header, content }`)
 - `GET /api/Agent`, `POST /api/Agent` — agents (incl. LicensedAgents via TPH); create with `managerId`
 - `GET /api/Customer`, `POST /api/Customer`
 - `GET /api/Manager/with-id`, `POST /api/Manager`
-- `POST /api/Manager/create-trip/{managerGuid}` — create trip (max. 5 active trips per manager → 409)
+- `POST /api/Manager/create-trip/{managerGuid}` — create trip (body incl. `durationMinutes`; must depart in the future; max. 5 open trips per manager → 409)
 - `PATCH /api/Manager/assign-agent-to-trip/{managerGuid}/{agentGuid}/{tripGuid}` — assign support agent (already set → 409)
 - `PATCH /api/Manager/make-agent-licensed/{managerGuid}/{agentGuid}` — grant licence
 - `GET /api/Director`, `PATCH /api/Director/{directorGuid}/managers/{managerGuid}` — place manager under command
 - `GET /api/Paradox` — paradox feed (newest first, with trip context)
-- `POST /api/Paradox/trip/{tripGuid}` — add paradox to a trip; `PATCH /api/Paradox/{guid}/status?managerGuid=` — change status
-- `GET|PUT /api/Simulation` — runtime generator state `{ enabled, intervalSeconds }`; `POST /api/Simulation/spawn` — paradox on a random active trip
+- `POST /api/Paradox/trip/{tripGuid}` — add paradox to a trip under way (else 409); `PATCH /api/Paradox/{guid}/status?managerGuid=` — change status
+- `POST /api/Paradox/{guid}/engage|resolve|fail/{agentGuid}` — field stabilisation by an agent on the trip (→ InProcess / Solved / Escalated; 403 if not on the trip; resolve/fail only while InProcess, else 409). Escalated paradoxes need a **dual lock**: licensed agent and support agent (`trip.agentId`) each `resolve` once; a `fail` by either breaks both locks; without a support agent `engage` returns 409; managers cannot set such a paradox to `Solved` (409)
+- `GET|PUT /api/Simulation` — runtime generator state `{ enabled, intervalSeconds }`; `POST /api/Simulation/spawn` — paradox on a random trip under way

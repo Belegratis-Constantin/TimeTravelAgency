@@ -20,6 +20,10 @@ export class TripService {
     return this.http.post(`${this.base}/${tripGuid}/book/${customerGuid}`, null, { responseType: 'text' });
   }
 
+  cancelBooking(tripGuid: string, customerGuid: string): Observable<string> {
+    return this.http.delete(`${this.base}/${tripGuid}/book/${customerGuid}`, { responseType: 'text' });
+  }
+
   fileReport(tripGuid: string, agentGuid: string, cmd: CreateReportCmd): Observable<ReportDto> {
     return this.http.post<ReportDto>(`${this.base}/${tripGuid}/report/${agentGuid}`, cmd);
   }

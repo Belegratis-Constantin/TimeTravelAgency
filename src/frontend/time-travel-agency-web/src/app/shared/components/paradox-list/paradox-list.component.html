@@ -22,14 +22,37 @@
             <select class="select select--compact" [id]="'status-' + p.guid" [value]="p.paradoxStatus"
                     [disabled]="pending() === p.guid" (change)="onSelect(p, $any($event.target).value)">
               @for (s of statuses; track s) {
-                <option [value]="s">{{ statusLabel(s) }}</option>
+                <option [value]="s" [disabled]="s === 'Solved' && p.dualLockRequired && p.paradoxStatus !== 'Solved'">
+                  {{ statusLabel(s) }}{{ s === 'Solved' && p.dualLockRequired && p.paradoxStatus !== 'Solved' ? ' — agents only (dual lock)' : '' }}
+                </option>
               }
             </select>
           } @else {
-            <app-status-badge [status]="p.paradoxStatus" kind="paradox" />
+            <div class="side">
+              <app-status-badge [status]="p.paradoxStatus" kind="paradox" />
+              @if (showAction(p)) {
+                <button type="button" class="btn btn--primary btn--sm" (click)="act.emit(p)">{{ actionLabel() }}</button>
+              } @else if (hintFor(p); as hint) {
+                <span class="action-hint">{{ hint }}</span>
+              }
+            </div>
           }
         </div>
         <p class="description">{{ p.description }}</p>
+        @if (p.dualLockRequired && p.paradoxStatus !== 'Solved') {
+          <div class="dual" aria-label="Dual lock progress">
+            <span class="mono dual-label">DUAL LOCK</span>
+            @if (p.tripHasSupportAgent) {
+              <span class="lock-chip" [class.on]="p.licensedLocked">{{ p.licensedLocked ? '✓' : '○' }} Licensed</span>
+              <span class="lock-chip" [class.on]="p.supportLocked">{{ p.supportLocked ? '✓' : '○' }} Support</span>
+            } @else {
+              <span class="lock-chip warn">Support agent required — the manager must assign one</span>
+            }
+          </div>
+        }
+        @if (p.paradoxStatus === 'Solved' && p.resolvedByAgentId !== null && agentName(); as name) {
+          <p class="solved-by">Stabilised in the field by {{ name(p.resolvedByAgentId) }}</p>
+        }
       </li>
     }
   </ul>

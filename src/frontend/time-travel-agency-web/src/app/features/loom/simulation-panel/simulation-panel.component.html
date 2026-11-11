@@ -28,7 +28,7 @@
   <div class="label">MANUAL TRIGGER</div>
   <label class="label sub" for="sim-target">TARGET NODE</label>
   <select id="sim-target" class="target" [value]="target()" (change)="target.set($any($event.target).value)">
-    <option value="">— Random active trip —</option>
+    <option value="">— Random trip under way —</option>
     @for (t of activeTrips(); track t.guid) {
       <option [value]="t.guid">{{ tripName(t) }}</option>
     }

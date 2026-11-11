@@ -28,6 +28,19 @@ export class ParadoxService {
     return this.http.patch(`${this.base}/${paradoxGuid}/status`, { status }, { params, responseType: 'text' });
   }
 
+  /** Field stabilisation by an agent on the paradox's trip. */
+  engage(paradoxGuid: string, agentGuid: string): Observable<ParadoxFeedDto> {
+    return this.http.post<ParadoxFeedDto>(`${this.base}/${paradoxGuid}/engage/${agentGuid}`, null);
+  }
+
+  resolve(paradoxGuid: string, agentGuid: string): Observable<ParadoxFeedDto> {
+    return this.http.post<ParadoxFeedDto>(`${this.base}/${paradoxGuid}/resolve/${agentGuid}`, null);
+  }
+
+  fail(paradoxGuid: string, agentGuid: string): Observable<ParadoxFeedDto> {
+    return this.http.post<ParadoxFeedDto>(`${this.base}/${paradoxGuid}/fail/${agentGuid}`, null);
+  }
+
   getSimulation(): Observable<ParadoxSimulationDto> {
     return this.http.get<ParadoxSimulationDto>(this.simulationBase);
   }

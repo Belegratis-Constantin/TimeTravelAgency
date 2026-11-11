@@ -102,20 +102,10 @@ public abstract class Participant
 
     private void ValidateTrip(Trip trip)
     {
-        if (_trips.Where(t => t.DateInRealLife > DateTime.Now &&
-                              t.TripStatus == TripStatus.Active).Any(existingTrip => TripsOverlap(existingTrip, trip)))
+        // Nobody can be on two trips at the same time: open trips must not share real-life time.
+        if (_trips.Where(t => t != trip && t.IsOpen).Any(existingTrip => existingTrip.OverlapsWith(trip)))
         {
             throw new InvalidOperationException("Participant cannot join overlapping trips.");
         }
-    }
-
-    private static bool TripsOverlap(Trip existingTrip, Trip newTrip)
-    {
-        var existingStart = existingTrip.DateInRealLife;
-        var newStart = newTrip.DateInRealLife;
-        
-        return newStart < existingStart.Add(TimeSpan.FromHours(1)) 
-               && newStart > existingStart.Subtract(TimeSpan.FromHours(1));
-
     }
 }

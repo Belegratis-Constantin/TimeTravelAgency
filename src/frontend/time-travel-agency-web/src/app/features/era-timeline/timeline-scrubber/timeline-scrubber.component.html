@@ -7,7 +7,7 @@
     </div>
   }
   @for (pin of pins(); track pin.trip.guid) {
-    <div class="marker" [class.blink]="pin.risk === 'critical'" [style.--risk]="riskColors[pin.risk]"
+    <div class="marker" [class.blink]="pin.phase === 'underway'" [style.--risk]="phaseColors[pin.phase]"
          [style.left.%]="(pin.x / totalWidth) * 100"></div>
   }
   <div class="viewport" [style.left.%]="viewportLeft()" [style.width.%]="viewportWidth()">

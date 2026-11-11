@@ -22,6 +22,10 @@ import { epochLabel, fullName } from '../../../shared/utils/status.utils';
         <app-form-field label="Departure" [control]="form.controls.dateInRealLife" for="trip-date">
           <input class="input" id="trip-date" type="datetime-local" formControlName="dateInRealLife" />
         </app-form-field>
+        <app-form-field label="Duration (hours)" [control]="form.controls.durationHours" for="trip-duration"
+                        hint="Real-life time the travellers are away. Nobody can be on two trips at once.">
+          <input class="input" id="trip-duration" type="number" min="0.25" max="720" step="0.25" formControlName="durationHours" />
+        </app-form-field>
         <app-form-field label="Licensed agent" [control]="form.controls.licensedAgentGuid" for="trip-agent"
                         hint="The agent's specialisation epoch determines the destination era.">
           <select class="select" id="trip-agent" formControlName="licensedAgentGuid">
@@ -64,6 +68,7 @@ export class CreateTripModalComponent {
   protected readonly form = new FormGroup({
     tripName: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(255)] }),
     dateInRealLife: new FormControl('', { nonNullable: true, validators: [Validators.required, futureDate()] }),
+    durationHours: new FormControl(4, { nonNullable: true, validators: [Validators.required, Validators.min(0.25), Validators.max(720)] }),
     licensedAgentGuid: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
@@ -73,13 +78,14 @@ export class CreateTripModalComponent {
       this.form.markAllAsTouched();
       return;
     }
-    const { tripName, dateInRealLife, licensedAgentGuid } = this.form.getRawValue();
+    const { tripName, dateInRealLife, durationHours, licensedAgentGuid } = this.form.getRawValue();
     this.submitting.set(true);
     this.error.set(null);
 
     this.api.createTrip(manager.guid, {
       tripName: tripName.trim() || null,
       dateInRealLife: new Date(dateInRealLife).toISOString(),
+      durationMinutes: Math.round(durationHours * 60),
       licensedAgentGuid,
     }).subscribe({
       next: () => this.created.emit(),

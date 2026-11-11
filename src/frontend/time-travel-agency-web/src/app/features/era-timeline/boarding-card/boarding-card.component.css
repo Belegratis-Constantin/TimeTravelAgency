@@ -27,10 +27,6 @@
 .zone { text-align: right; margin-top: 4px; opacity: 0.4; letter-spacing: normal; }
 .title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
 .title { font-family: var(--font-display); font-size: 21px; line-height: 1.25; }
-.critical {
-  flex-shrink: 0; padding: 3px 8px; border-radius: 2px; font-size: 8px; font-weight: 700; letter-spacing: 0.12em; color: var(--red);
-  background: rgba(224, 90, 78, 0.2); border: 1px solid rgba(224, 90, 78, 0.5); animation: led-blink 2s ease-in-out infinite;
-}
 .route { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); }
 .route .dash { flex: 1; border-top: 1px dashed rgba(255, 255, 255, 0.1); }
 .route .star { color: var(--accent); animation: led-blink 3s ease-in-out infinite; }
@@ -51,9 +47,6 @@
 .fact-value { font-size: 12.5px; color: var(--text-2); }
 .row-between { display: flex; justify-content: space-between; align-items: center; }
 .dim { font-size: 10px; color: #3E5068; }
-.exposure { margin-bottom: 16px; }
-.meter { height: 4px; margin-top: 5px; background: #0D1826; border-radius: 2px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.04); }
-.meter div { height: 100%; border-radius: 2px; transition: width 0.5s; }
 .rating { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
 .stars { color: var(--gold); font-size: 12px; }
 

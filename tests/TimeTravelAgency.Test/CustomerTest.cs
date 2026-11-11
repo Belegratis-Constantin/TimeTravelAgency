@@ -170,7 +170,7 @@ public class CustomerTest
         
         var review = customer.WriteReview("Review", 4, trip);
         
-        Assert.Equal(TripStatus.Active, trip.TripStatus);
+        Assert.Equal(TripStatus.Scheduled, trip.TripStatus);
         Assert.Null(review);
     }
 }

@@ -17,24 +17,35 @@ public class TripService
 
     public void TryBookTrip(Guid customerGuid, Guid tripGuid)
     {
-        var customer = _context.Customers.FirstOrDefault(c => c.Guid == customerGuid);
-        if (customer == null)
-            throw new ArgumentException("Customer does not exist.");
+        var (customer, trip) = LoadBooking(customerGuid, tripGuid);
+
+        // Throws InvalidOperationException when the trip is not bookable or overlaps another booking.
+        customer.AssignToTrip(trip);
+        _context.SaveChanges();
+    }
+
+    public void TryCancelBooking(Guid customerGuid, Guid tripGuid)
+    {
+        var (customer, trip) = LoadBooking(customerGuid, tripGuid);
+
+        // Throws InvalidOperationException when not booked or too close to departure.
+        customer.CheckOutOfTrip(trip);
+        _context.SaveChanges();
+    }
+
+    private (Customer customer, Trip trip) LoadBooking(Guid customerGuid, Guid tripGuid)
+    {
+        var customer = _context.Customers
+            .Include(c => c.Trips)
+            .FirstOrDefault(c => c.Guid == customerGuid)
+            ?? throw new ArgumentException("Customer does not exist.");
 
         var trip = _context.Trips
-            .Include(trip => trip.Customers)
-            .FirstOrDefault(t => t.Guid == tripGuid);
-        if (trip == null)
-            throw new ArgumentException("Trip does not exist.");
+            .Include(t => t.Customers)
+            .FirstOrDefault(t => t.Guid == tripGuid)
+            ?? throw new ArgumentException("Trip does not exist.");
 
-        if (trip.Customers.Contains(customer))
-            throw new InvalidOperationException("Trip is already booked.");
-
-        if (trip.DateInRealLife < (DateTime.UtcNow - TimeSpan.FromHours(1)))
-            throw new InvalidOperationException("Trip cannot be booked in the past or one hour before it starts.");
-
-        trip.AddCustomer(customer);
-        _context.SaveChanges();
+        return (customer, trip);
     }
 
     public List<TripDto> GetUpcomingTrips(bool sorted = true)
@@ -102,7 +113,8 @@ public class TripService
                     r.Content)
                 ).ToList(), 
                 t.AgentId,
-                t.Manager.Guid))
+                t.Manager.Guid,
+                t.DurationMinutes))
             .ToList();
 
         return upcomingTrips;
@@ -117,12 +129,17 @@ public class TripService
             throw new ArgumentException("Manager not found.");
     
         var licensedAgent = _context.LicensedAgents
+            .Include(a => a.Trips)
             .FirstOrDefault(a => a.Guid == cmd.LicensedAgentGuid);
         if (licensedAgent == null)
             throw new ArgumentException("Licensed agent not found.");
         
-        // Throws InvalidOperationException when the manager already runs the maximum number of active trips.
-        manager.CreateTrip(cmd.DateInRealLife, licensedAgent, cmd.TripName);
+        if (cmd.DateInRealLife.ToUniversalTime() <= DateTime.UtcNow)
+            throw new InvalidOperationException("A new trip must depart in the future.");
+
+        // Throws InvalidOperationException when the manager already runs the maximum number of open trips
+        // or the licensed agent is already on a trip at that time.
+        manager.CreateTrip(cmd.DateInRealLife.ToUniversalTime(), licensedAgent, cmd.TripName, cmd.DurationMinutes);
         _context.SaveChanges();
     }
 
