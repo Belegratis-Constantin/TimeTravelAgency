@@ -28,6 +28,12 @@ export class ParadoxService {
     return this.http.patch(`${this.base}/${paradoxGuid}/status`, { status }, { params, responseType: 'text' });
   }
 
+  /** The trip's manager reorders its paradox queue (position 0 = worked on now). */
+  moveInQueue(paradoxGuid: string, position: number, managerGuid?: string): Observable<ParadoxFeedDto> {
+    const params = managerGuid ? new HttpParams().set('managerGuid', managerGuid) : undefined;
+    return this.http.patch<ParadoxFeedDto>(`${this.base}/${paradoxGuid}/queue`, { position }, { params });
+  }
+
   /** Field stabilisation by an agent on the paradox's trip. */
   engage(paradoxGuid: string, agentGuid: string): Observable<ParadoxFeedDto> {
     return this.http.post<ParadoxFeedDto>(`${this.base}/${paradoxGuid}/engage/${agentGuid}`, null);

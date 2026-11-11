@@ -144,9 +144,13 @@ public class ParadoxTest
         var manager = new Manager("Heinz", "Herzog", "heinz@herzog.com", "+1234567890", new Address("Street", 1010, "City"));
         var licencedAgent = new LicensedAgent("Karl", "Mayer", DateTime.Now.AddYears(-20), 2025, 7, DateTime.Now.AddDays(5), new Address("Street", 1010, "City"));
         var trip = manager.CreateTrip(DateTime.Now.AddDays(15), licencedAgent);
-        var paradox = new Paradox(trip);
-        
-        Assert.Equal(ParadoxStatus.InQueue, paradox.ParadoxStatus);
+        var first = new Paradox(trip);
+        var second = new Paradox(trip);
+
+        // The first paradox of a trip is worked on right away, every further one is lined up behind it.
+        Assert.Equal(ParadoxStatus.InProcess, first.ParadoxStatus);
+        Assert.Equal(ParadoxStatus.InQueue, second.ParadoxStatus);
+        Assert.Equal(1, second.QueuePosition);
     }
     
     [Fact]

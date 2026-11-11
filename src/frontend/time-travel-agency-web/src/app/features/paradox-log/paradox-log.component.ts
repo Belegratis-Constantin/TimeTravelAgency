@@ -36,6 +36,7 @@ type StatusFilter = 'open' | 'all' | ParadoxStatus;
       <app-paradox-list [paradoxes]="filtered()" [showTrip]="true" [editable]="state.isManager()"
                         [fresh]="feed.fresh()" [pending]="feed.pendingStatus()"
                         (statusChange)="feed.changeStatus($event.paradox, $event.status)"
+                        (move)="feed.moveInQueue($event.paradox, $event.position)"
                         emptyText="No paradoxes match this filter." />
     </div>
   `,

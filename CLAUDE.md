@@ -59,6 +59,7 @@ Single-project ASP.NET Core 8 Web API — no separate layer assemblies. All laye
 - A `Trip` requires a `LicensedAgent` and a `Manager`; an `Agent` is optional and assigned later.
 - `Paradox` records are append-only on a `Trip` — there is no removal method. They only emerge on trips that are under way.
 - Only a trip that is under way can become critical (3 unresolved paradoxes). Solving paradoxes keeps a trip from turning critical.
+- **Paradox queue per trip** (`Trip.ParadoxQueue`, `Paradox.QueuePosition`): exactly one open paradox is worked on at a time — the head is `InProcess` (or `Escalated`, waiting for its dual lock), all others are `InQueue`. New paradoxes join the end; when the head is solved the next one moves up automatically (`Trip.RebalanceParadoxQueue()`). Agents can only engage/resolve/fail the head (else 409). The trip's manager reorders the queue; a paradox that loses its turn keeps `DualLockRequired` but loses its lock progress.
 - Booking: only `Scheduled` trips, until departure; a customer's open trips must never overlap in real-life time (so at most one is `Active`). Cancellation until 1 h before departure.
 - Customers never see paradoxes or the critical classification (enforced in the UI).
 - Public API identifiers are always GUIDs, never integer PKs.
@@ -138,6 +139,7 @@ src/app/
 - `PATCH /api/Manager/make-agent-licensed/{managerGuid}/{agentGuid}` — grant licence
 - `GET /api/Director`, `PATCH /api/Director/{directorGuid}/managers/{managerGuid}` — place manager under command
 - `GET /api/Paradox` — paradox feed (newest first, with trip context)
-- `POST /api/Paradox/trip/{tripGuid}` — add paradox to a trip under way (else 409); `PATCH /api/Paradox/{guid}/status?managerGuid=` — change status
+- `POST /api/Paradox/trip/{tripGuid}` — add paradox to a trip under way (else 409); `PATCH /api/Paradox/{guid}/status?managerGuid=` — change status (`InProcess`/`Escalated` → moves it to the front of the queue, `InQueue` → to the end, `Solved` → next one moves up)
+- `PATCH /api/Paradox/{guid}/queue?managerGuid=` — reorder the trip's paradox queue (body: `{ position }`, 0 = work on it now; solved → 409, other manager → 403). Feed items carry `queuePosition` (null once solved); `shared/utils/paradox-queue.utils.ts` sorts/labels the queue
 - `POST /api/Paradox/{guid}/engage|resolve|fail/{agentGuid}` — field stabilisation by an agent on the trip (→ InProcess / Solved / Escalated; 403 if not on the trip; resolve/fail only while InProcess, else 409). Escalated paradoxes need a **dual lock**: licensed agent and support agent (`trip.agentId`) each `resolve` once; a `fail` by either breaks both locks; without a support agent `engage` returns 409; managers cannot set such a paradox to `Solved` (409)
 - `GET|PUT /api/Simulation` — runtime generator state `{ enabled, intervalSeconds }`; `POST /api/Simulation/spawn` — paradox on a random trip under way

@@ -24,5 +24,7 @@ public record ParadoxFeedDto(
     bool LicensedLocked = false,
     bool SupportLocked = false,
     /// <summary>Whether the trip has a support agent (required for a dual lock).</summary>
-    bool TripHasSupportAgent = false
+    bool TripHasSupportAgent = false,
+    /// <summary>Place in the trip's queue (0 = currently being worked on); null once solved.</summary>
+    int? QueuePosition = null
 );

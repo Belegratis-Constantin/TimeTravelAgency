@@ -50,7 +50,9 @@ public class LicensedAgent : Agent
     {
         if (Trips.Contains(paradox.Trip) && paradox.ParadoxStatus == ParadoxStatus.InProcess)
         {
-            paradox.ParadoxStatus = ParadoxStatus.Solved;
+            paradox.SetStatus(ParadoxStatus.Solved, this);
+            // The next paradox in the trip's queue takes its place.
+            paradox.Trip.RebalanceParadoxQueue();
         }
     }
 }

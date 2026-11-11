@@ -30,6 +30,8 @@ export interface ParadoxFeedDto extends ParadoxDto {
   licensedLocked: boolean;
   supportLocked: boolean;
   tripHasSupportAgent: boolean;
+  /** Place in the trip's paradox queue (0 = currently being worked on); null once solved. */
+  queuePosition: number | null;
 }
 
 export interface SpawnParadoxResultDto {

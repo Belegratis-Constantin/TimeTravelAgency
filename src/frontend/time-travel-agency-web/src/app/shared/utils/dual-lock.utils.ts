@@ -4,7 +4,8 @@ import { isOpenParadox } from './status.utils';
 export type LockRole = 'licensed' | 'support';
 
 type LockFields = Pick<ParadoxFeedDto,
-  'paradoxStatus' | 'licensedAgentId' | 'agentId' | 'dualLockRequired' | 'licensedLocked' | 'supportLocked' | 'tripHasSupportAgent'>;
+  'paradoxStatus' | 'licensedAgentId' | 'agentId' | 'dualLockRequired' | 'licensedLocked' | 'supportLocked' | 'tripHasSupportAgent'>
+  & Partial<Pick<ParadoxFeedDto, 'queuePosition'>>;
 
 /** The agent's part in a dual lock (mirrors ParadoxService.DualLockRoleOf). */
 export function lockRoleOf(p: LockFields, agentId: number | null | undefined): LockRole | null {
@@ -14,11 +15,13 @@ export function lockRoleOf(p: LockFields, agentId: number | null | undefined): L
   return null;
 }
 
-export type StabiliseBlock = 'none' | 'closed' | 'needsSupport' | 'notPartner' | 'waitingForPartner';
+export type StabiliseBlock = 'none' | 'closed' | 'queued' | 'needsSupport' | 'notPartner' | 'waitingForPartner';
 
 /** Why an agent cannot (yet) start a stabilisation round — 'none' means they can. */
 export function stabiliseBlock(p: LockFields, agentId: number | null | undefined): StabiliseBlock {
   if (!isOpenParadox(p)) return 'closed';
+  // A trip works its paradoxes one at a time — only the head of the queue is in process (mirrors ParadoxService.RequireTurn).
+  if (p.queuePosition != null && p.queuePosition > 0) return 'queued';
   if (!p.dualLockRequired) return 'none';
   if (!p.tripHasSupportAgent) return 'needsSupport';
   const role = lockRoleOf(p, agentId);
@@ -32,6 +35,7 @@ export function canStabilise(p: LockFields, agentId: number | null | undefined):
 }
 
 export const BLOCK_TEXT: Record<Exclude<StabiliseBlock, 'none' | 'closed'>, string> = {
+  queued: 'Queued — waiting for its turn',
   needsSupport: 'Needs a support agent',
   notPartner: 'Dual lock: licensed + support agent',
   waitingForPartner: 'Your lock holds — waiting for your partner',

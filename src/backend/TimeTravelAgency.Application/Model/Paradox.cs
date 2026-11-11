@@ -45,6 +45,12 @@ public class Paradox
     public bool IsOpen => ParadoxStatus != ParadoxStatus.Solved;
 
     /// <summary>
+    /// Place in the trip's paradox queue (0 = the paradox that is currently being worked on).
+    /// Only meaningful while the paradox is open; maintained by <see cref="Trip.RebalanceParadoxQueue"/>.
+    /// </summary>
+    public int QueuePosition { get; internal set; }
+
+    /// <summary>
     /// Set once the paradox has been escalated: from then on it can only be solved with a dual lock —
     /// the trip's licensed agent and its support agent each have to win a stabilisation round.
     /// </summary>

@@ -7,7 +7,12 @@
           [style.border-left-color]="typeColor(p.paradoxType)">
         <div class="top">
           <div>
-            <div class="type">{{ typeLabel(p.paradoxType) }}
+            <div class="type">
+              @if (queueLabel(p); as q) {
+                <span class="queue" [class.now]="p.queuePosition === 0"
+                      [attr.title]="p.queuePosition === 0 ? 'Being worked on now' : 'Waiting in the trip\'s queue'">{{ q }}</span>
+              }
+              {{ typeLabel(p.paradoxType) }}
               @if (fresh().has(p.guid)) { <span class="badge badge--red new">New</span> }
             </div>
             <div class="meta">
@@ -18,6 +23,19 @@
             </div>
           </div>
           @if (editable()) {
+            <div class="side">
+            @if (p.queuePosition != null) {
+              <div class="reorder" role="group" [attr.aria-label]="'Queue order of ' + typeLabel(p.paradoxType)">
+                @if (p.queuePosition > 0) {
+                  <button type="button" class="btn btn--outline-gold btn--sm" [disabled]="pending() === p.guid"
+                          (click)="move.emit({ paradox: p, position: 0 })">Work on now</button>
+                }
+                <button type="button" class="icon-btn" aria-label="Move up in queue" [disabled]="pending() === p.guid || p.queuePosition === 0"
+                        (click)="moveBy(p, -1)">▲</button>
+                <button type="button" class="icon-btn" aria-label="Move down in queue" [disabled]="pending() === p.guid || isLastInQueue(p)"
+                        (click)="moveBy(p, 1)">▼</button>
+              </div>
+            }
             <label class="sr-only" [attr.for]="'status-' + p.guid">Status</label>
             <select class="select select--compact" [id]="'status-' + p.guid" [value]="p.paradoxStatus"
                     [disabled]="pending() === p.guid" (change)="onSelect(p, $any($event.target).value)">
@@ -27,6 +45,7 @@
                 </option>
               }
             </select>
+            </div>
           } @else {
             <div class="side">
               <app-status-badge [status]="p.paradoxStatus" kind="paradox" />

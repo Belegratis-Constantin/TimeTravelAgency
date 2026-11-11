@@ -467,7 +467,8 @@ public class TimeTravelAgencyContext : DbContext
             new Paradox(newYork, ParadoxType.InformationParadox),
             new Paradox(newYork, ParadoxType.PredestinationParadox),
         };
-        nyParadoxes[2].SetStatus(ParadoxStatus.InProcess);
+        // The manager has pulled the predestination paradox to the front of the queue.
+        newYork.MoveParadoxInQueue(nyParadoxes[2], 0);
         this.Paradoxes.Add(parisParadox);
         this.Paradoxes.AddRange(nyParadoxes);
         await this.SaveChangesAsync();

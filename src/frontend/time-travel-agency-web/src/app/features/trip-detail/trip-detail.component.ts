@@ -9,6 +9,7 @@ import { ParadoxListComponent } from '../../shared/components/paradox-list/parad
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { AssignAgentModalComponent } from '../modals/assign-agent-modal/assign-agent-modal.component';
 import { CRITICAL_PARADOX_THRESHOLD, epochLabel, isOpenParadox, tripDisplayName, tripTypeLabel } from '../../shared/utils/status.utils';
+import { inQueueOrder } from '../../shared/utils/paradox-queue.utils';
 import { TripReviewsComponent } from './trip-reviews/trip-reviews.component';
 import { TripStaffComponent } from './trip-staff/trip-staff.component';
 import { TripActionsComponent } from './trip-actions/trip-actions.component';
@@ -51,7 +52,8 @@ export class TripDetailComponent {
     return t ? epochLabel(this.agency.agentsById().get(t.licensedAgentId)?.specialisationEpochId) : null;
   });
 
-  protected readonly paradoxes = computed(() => this.feed.forTrip(this.guid()));
+  /** In working order: the current paradox first, then the queue, then the solved ones. */
+  protected readonly paradoxes = computed(() => inQueueOrder(this.feed.forTrip(this.guid())));
   protected readonly openParadoxes = computed(() => this.paradoxes().filter(isOpenParadox).length);
 
   /** Only the manager responsible for the trip may change paradox statuses (enforced by the backend too). */

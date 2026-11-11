@@ -9,6 +9,8 @@ namespace TimeTravelAgency.Application.Service;
 /// Paradoxes only emerge on trips that are currently under way (<see cref="TripStatus.Active"/>).
 /// A running trip with <see cref="CriticalParadoxThreshold"/> unresolved paradoxes is reclassified as <see cref="CriticalTrip"/>.
 /// Agents on the trip stabilise paradoxes in the field (engage → resolve / fail).
+/// Each trip works its open paradoxes one at a time: new paradoxes join the end of the queue, the head is in process,
+/// and when it is solved the next one moves up. The trip's manager can reorder the queue.
 /// </summary>
 public class ParadoxService
 {
@@ -82,27 +84,68 @@ public class ParadoxService
             throw new ArgumentException($"Unknown status '{status}'. Valid values: InQueue, InProcess, Solved, Escalated.");
 
         var paradox = LoadParadox(paradoxGuid);
-
-        if (managerGuid.HasValue && paradox.Trip.Manager.Guid != managerGuid.Value)
-            throw new UnauthorizedAccessException("Manager does not own this paradox's trip.");
+        RequireOwningManager(paradox, managerGuid);
 
         // An escalated paradox only collapses through the agents' dual lock — it cannot be signed off as solved.
         if (parsed == ParadoxStatus.Solved && paradox.DualLockRequired && paradox.IsOpen)
             throw new InvalidOperationException(
                 "An escalated paradox can only be solved in the field: the licensed and the support agent need a dual lock.");
 
-        paradox.SetStatus(parsed);
+        var trip = paradox.Trip;
+        switch (parsed)
+        {
+            // Only one paradox per trip is in process: putting one in process (or escalating it) makes it the current one.
+            case ParadoxStatus.InProcess:
+            case ParadoxStatus.Escalated:
+                paradox.SetStatus(parsed);
+                trip.MoveParadoxInQueue(paradox, 0);
+                break;
+            // Sending a paradox back to the queue (or reopening a solved one) lines it up at the end.
+            case ParadoxStatus.InQueue:
+                paradox.SetStatus(parsed);
+                trip.MoveParadoxInQueue(paradox, int.MaxValue);
+                break;
+            default:
+                paradox.SetStatus(parsed);
+                trip.RebalanceParadoxQueue();
+                break;
+        }
         _context.SaveChanges();
     }
 
     /// <summary>
-    /// An agent on the trip starts stabilising the paradox (status → InProcess).
+    /// The trip's manager decides which paradox is up next: moves an open paradox to <paramref name="position"/>
+    /// in its trip's queue (0 = it is worked on now; the previous one goes back to the queue).
+    /// </summary>
+    /// <exception cref="ArgumentException">Paradox not found.</exception>
+    /// <exception cref="UnauthorizedAccessException">Manager does not own the trip.</exception>
+    /// <exception cref="InvalidOperationException">Paradox is already solved.</exception>
+    public ParadoxFeedDto MoveInQueue(Guid paradoxGuid, int position, Guid? managerGuid = null)
+    {
+        var paradox = LoadParadox(paradoxGuid);
+        RequireOwningManager(paradox, managerGuid);
+
+        paradox.Trip.MoveParadoxInQueue(paradox, position);
+        _context.SaveChanges();
+        return ToFeedDto(paradox);
+    }
+
+    private static void RequireOwningManager(Paradox paradox, Guid? managerGuid)
+    {
+        if (managerGuid.HasValue && paradox.Trip.Manager.Guid != managerGuid.Value)
+            throw new UnauthorizedAccessException("Manager does not own this paradox's trip.");
+    }
+
+    /// <summary>
+    /// An agent on the trip starts a stabilisation round. Only the paradox whose turn it is (head of the trip's queue)
+    /// can be engaged; normally it is already in process, an escalated one is put back in process.
     /// An escalated paradox needs a dual lock, so only the trip's licensed and support agent can engage it —
     /// and only once a support agent is assigned.
     /// </summary>
     public ParadoxFeedDto Engage(Guid paradoxGuid, Guid agentGuid)
     {
         var (paradox, agent) = LoadForAgent(paradoxGuid, agentGuid);
+        RequireTurn(paradox);
         if (paradox.DualLockRequired) DualLockRoleOf(paradox.Trip, agent);
 
         if (paradox.ParadoxStatus != ParadoxStatus.InProcess)
@@ -130,6 +173,8 @@ public class ParadoxService
             paradox.SetStatus(ParadoxStatus.Solved, agent);
         }
 
+        // Once solved, the next paradox in the queue takes its place.
+        paradox.Trip.RebalanceParadoxQueue();
         _context.SaveChanges();
         return ToFeedDto(paradox);
     }
@@ -166,6 +211,8 @@ public class ParadoxService
         _context.Paradoxes
             .Include(p => p.Trip)
             .ThenInclude(t => t.Manager)
+            .Include(p => p.Trip)
+            .ThenInclude(t => t.Paradoxes)
             .FirstOrDefault(p => p.Guid == paradoxGuid)
         ?? throw new ArgumentException($"Paradox {paradoxGuid} not found.");
 
@@ -185,6 +232,14 @@ public class ParadoxService
             throw new InvalidOperationException("This paradox has already been stabilised.");
 
         return (paradox, agent);
+    }
+
+    /// <exception cref="InvalidOperationException">Another paradox of the trip is up first.</exception>
+    private static void RequireTurn(Paradox paradox)
+    {
+        if (paradox.Trip.CurrentParadox != paradox)
+            throw new InvalidOperationException(
+                $"This paradox is waiting in the queue (position {paradox.QueuePosition + 1}) — another paradox of this trip is being worked on first.");
     }
 
     /// <exception cref="InvalidOperationException">Paradox is not being worked on (InProcess).</exception>
@@ -250,6 +305,7 @@ public class ParadoxService
         p.DualLockRequired,
         p.LicensedLockAt.HasValue,
         p.SupportLockAt.HasValue,
-        p.Trip.AgentId.HasValue
+        p.Trip.AgentId.HasValue,
+        p.IsOpen ? p.QueuePosition : null
     );
 }

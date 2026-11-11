@@ -85,13 +85,31 @@ export class ParadoxFeedStore {
     this.api.changeStatus(paradox.guid, status, managerGuid).subscribe({
       next: () => {
         this.pendingStatus.set(null);
-        // Optimistic local update; the next poll confirms it.
+        // Optimistic local update; the re-poll brings the rest of the trip's queue in line (only one is in process).
         this.paradoxes.update(list => list.map(p => (p.guid === paradox.guid ? { ...p, paradoxStatus: status } : p)));
+        this.refresh();
         this.notifications.success('Paradox updated', `${paradoxTypeLabel(paradox.paradoxType)} is now ${paradoxMeta(status).label}.`);
       },
       error: err => {
         this.pendingStatus.set(null);
         this.notifications.error('Could not update paradox', toErrorMessage(err));
+      },
+    });
+  }
+
+  /** The owning manager decides which paradox of a trip is worked on next (position 0 = now). */
+  moveInQueue(paradox: ParadoxFeedDto, position: number): void {
+    const managerGuid = this.app.currentManager()?.guid;
+    this.pendingStatus.set(paradox.guid);
+    this.api.moveInQueue(paradox.guid, position, managerGuid).subscribe({
+      next: () => {
+        this.pendingStatus.set(null);
+        this.refresh();
+        if (position === 0) this.notifications.success('Queue updated', `${paradoxTypeLabel(paradox.paradoxType)} is now being worked on.`);
+      },
+      error: err => {
+        this.pendingStatus.set(null);
+        this.notifications.error('Could not reorder the queue', toErrorMessage(err));
       },
     });
   }
@@ -142,6 +160,8 @@ export class ParadoxFeedStore {
 
   private replace(updated: ParadoxFeedDto): void {
     this.paradoxes.update(list => list.map(p => (p.guid === updated.guid ? updated : p)));
+    // Solving a paradox moves the next one of the trip up — re-poll to show it.
+    if (updated.paradoxStatus === 'Solved') this.refresh();
   }
 
   private apply(list: ParadoxFeedDto[]): void {
