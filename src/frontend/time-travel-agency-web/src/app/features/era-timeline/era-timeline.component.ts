@@ -891,7 +891,7 @@ export class EraTimelineComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Computed ───────────────────────────────────────────────────────
   readonly pins = computed((): TripPin[] => {
     const map = this.agentMap();
-    return this.trips().map((trip, i) => {
+    const pins = this.trips().map((trip, i) => {
       const year = tripDestYear(trip, map);
       const x = yearToPx(year);
       const stemHeight = 28 + (i % 4) * 18;
@@ -904,6 +904,18 @@ export class EraTimelineComponent implements OnInit, AfterViewInit, OnDestroy {
         signalBars: stemHeight <= 46 ? 1 : stemHeight <= 64 ? 2 : 3,
       };
     });
+
+    // Spread pins that are too close on the x-axis so they don't overlap
+    const MIN_GAP = 34;
+    const sorted = [...pins].sort((a, b) => a.x - b.x);
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].x - sorted[i - 1].x < MIN_GAP) {
+        sorted[i].x = sorted[i - 1].x + MIN_GAP;
+        sorted[i].zone = zoneForPx(sorted[i].x);
+      }
+    }
+
+    return pins;
   });
 
   readonly yearTicks = computed(() => {

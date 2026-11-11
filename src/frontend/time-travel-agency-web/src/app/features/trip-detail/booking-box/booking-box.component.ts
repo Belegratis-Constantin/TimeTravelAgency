@@ -11,9 +11,50 @@ type CtaState = 'booked' | 'departed' | 'unavailable' | 'boarding' | 'bookable';
 @Component({
   selector: 'app-booking-box',
   standalone: true,
+  styles: [`
+    @keyframes confirm-flash {
+      0%   { opacity: 0; transform: scale(0.88); }
+      18%  { opacity: 1; transform: scale(1.04); }
+      70%  { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.02); }
+    }
+    @keyframes check-pop {
+      0%   { transform: scale(0); opacity: 0; }
+      60%  { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes ring-expand {
+      0%   { transform: scale(0.6); opacity: 0.8; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+  `],
   template: `
     @if (state.isCustomer()) {
-      <div style="background:#1E2A3A;border-radius:4px;padding:24px;">
+      <div style="background:#1E2A3A;border-radius:4px;padding:24px;position:relative;overflow:hidden;">
+
+        <!-- Booking confirmation flash -->
+        @if (justBooked()) {
+          <div style="position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;
+                      align-items:center;justify-content:center;
+                      background:rgba(10,24,18,0.94);
+                      animation:confirm-flash 1.8s ease forwards;pointer-events:none;">
+            <div style="position:relative;width:56px;height:56px;margin-bottom:14px;">
+              <div style="position:absolute;inset:0;border-radius:50%;border:2px solid #3FAE79;
+                          animation:ring-expand 0.7s ease forwards;"></div>
+              <div style="position:absolute;inset:0;border-radius:50%;background:rgba(63,174,121,0.15);
+                          display:flex;align-items:center;justify-content:center;">
+                <span style="color:#3FAE79;font-size:26px;line-height:1;
+                             animation:check-pop 0.4s cubic-bezier(.34,1.56,.64,1) 0.15s both;">✓</span>
+              </div>
+            </div>
+            <div style="font-family:'Fraunces',serif;font-size:15px;color:#3FAE79;margin-bottom:4px;">
+              Journey Booked
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#2E6647;
+                        letter-spacing:0.18em;">TEMPORAL SEAT CONFIRMED</div>
+          </div>
+        }
+
         @switch (ctaState()) {
           @case ('booked') {
             <button disabled style="width:100%;display:flex;align-items:center;justify-content:center;
@@ -115,6 +156,7 @@ export class BookingBoxComponent {
 
   readonly booking = signal(false);
   readonly errorMsg = signal('');
+  readonly justBooked = signal(false);
 
   readonly ctaState = computed((): CtaState => {
     if (this.bookedTripGuids.includes(this.trip.guid)) return 'booked';
@@ -135,6 +177,8 @@ export class BookingBoxComponent {
     this.tripService.bookTrip(this.trip.guid, customer.guid).subscribe({
       next: () => {
         this.booking.set(false);
+        this.justBooked.set(true);
+        setTimeout(() => this.justBooked.set(false), 1800);
         this.booked.emit(this.trip.guid);
       },
       error: (err) => {
