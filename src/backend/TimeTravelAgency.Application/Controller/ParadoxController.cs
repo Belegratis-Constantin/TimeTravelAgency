@@ -92,5 +92,9 @@ public class ParadoxController : ControllerBase
         {
             return Problem(ex.Message, statusCode: 403);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(ex.Message, statusCode: 409);
+        }
     }
 }

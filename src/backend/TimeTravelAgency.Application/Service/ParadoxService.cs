@@ -86,6 +86,11 @@ public class ParadoxService
         if (managerGuid.HasValue && paradox.Trip.Manager.Guid != managerGuid.Value)
             throw new UnauthorizedAccessException("Manager does not own this paradox's trip.");
 
+        // An escalated paradox only collapses through the agents' dual lock — it cannot be signed off as solved.
+        if (parsed == ParadoxStatus.Solved && paradox.DualLockRequired && paradox.IsOpen)
+            throw new InvalidOperationException(
+                "An escalated paradox can only be solved in the field: the licensed and the support agent need a dual lock.");
+
         paradox.SetStatus(parsed);
         _context.SaveChanges();
     }

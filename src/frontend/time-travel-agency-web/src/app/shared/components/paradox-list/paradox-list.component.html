@@ -22,7 +22,9 @@
             <select class="select select--compact" [id]="'status-' + p.guid" [value]="p.paradoxStatus"
                     [disabled]="pending() === p.guid" (change)="onSelect(p, $any($event.target).value)">
               @for (s of statuses; track s) {
-                <option [value]="s">{{ statusLabel(s) }}</option>
+                <option [value]="s" [disabled]="s === 'Solved' && p.dualLockRequired && p.paradoxStatus !== 'Solved'">
+                  {{ statusLabel(s) }}{{ s === 'Solved' && p.dualLockRequired && p.paradoxStatus !== 'Solved' ? ' — agents only (dual lock)' : '' }}
+                </option>
               }
             </select>
           } @else {

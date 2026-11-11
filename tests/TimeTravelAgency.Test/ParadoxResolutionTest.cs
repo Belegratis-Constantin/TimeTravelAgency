@@ -216,6 +216,22 @@ public class ParadoxResolutionTest : IDisposable
         Assert.Equal("InProcess", service.Resolve(spawned.Paradox.Guid, licensed.Guid).ParadoxStatus);
     }
 
+    [Fact]
+    public async Task Manager_CannotSolveEscalatedParadox()
+    {
+        var (trip, licensed, _) = await CreateDualTripAsync();
+        var service = new ParadoxService(_context);
+        var guid = await EscalatedParadoxAsync(service, trip, licensed);
+
+        Assert.Throws<InvalidOperationException>(() => service.ChangeStatus(guid, "Solved"));
+        Assert.Equal(ParadoxStatus.Escalated, _context.Paradoxes.AsNoTracking().Single().ParadoxStatus);
+
+        // Other status changes stay allowed, and a normal paradox can still be signed off.
+        service.ChangeStatus(guid, "InProcess");
+        var normal = service.AddParadoxToTrip(trip.Guid);
+        service.ChangeStatus(normal.Paradox.Guid, "Solved");
+    }
+
     /// <summary>Spawns a paradox and lets the licensed agent lose a round, so it is escalated.</summary>
     private static Task<Guid> EscalatedParadoxAsync(ParadoxService service, Trip trip, LicensedAgent licensed)
     {
