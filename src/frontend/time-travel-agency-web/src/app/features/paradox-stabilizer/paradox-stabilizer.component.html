@@ -1,0 +1,99 @@
+<app-modal title="Phase Lock" [subtitle]="typeLabel() + ' · ' + tripName()" [width]="680" (closed)="close()">
+  <div class="game" [style.--accent]="accent()" [class.is-locked]="locked() && phase() === 'playing'">
+    @switch (phase()) {
+      @case ('briefing') {
+        <div class="briefing">
+          <div class="mono kicker">FIELD STABILISATION · ATTEMPT {{ attempt() }}</div>
+          <p class="lead">{{ briefing() }}</p>
+          <ol class="rules">
+            <li>Tune <strong>frequency</strong>, <strong>phase</strong> and <strong>amplitude</strong> of your counter-wave
+              <span class="swatch swatch--gold"></span> until it overlays the paradox wave <span class="swatch swatch--accent"></span>.</li>
+            <li>Hold resonance above {{ threshold * 100 }}% until the lock ring is full.</li>
+            <li>Run out of time and the paradox is escalated to the trip's manager — you can try again.</li>
+          </ol>
+          <p class="fine">{{ paradox().description }}</p>
+        </div>
+      }
+      @default {
+        <div class="hud">
+          <div class="readout">
+            <span class="mono label">RESONANCE</span>
+            <span class="display value" [class.ok]="locked()">{{ resonancePct() }}%</span>
+          </div>
+          <div class="lock" [style.--lock]="lockPct()" role="img" [attr.aria-label]="'Lock ' + lockPct().toFixed(0) + '%'">
+            <span class="mono">{{ locked() ? 'LOCKING' : 'NO LOCK' }}</span>
+          </div>
+          <div class="readout readout--end">
+            <span class="mono label">TIME</span>
+            <span class="display value" [class.warn]="remainingSec() <= 10">{{ remainingSec() }}s</span>
+          </div>
+        </div>
+        <div class="timebar" aria-hidden="true"><div class="timebar-fill" [style.width.%]="timePct()"></div></div>
+
+        <svg class="scope" [attr.viewBox]="'0 0 ' + viewW + ' ' + viewH" preserveAspectRatio="none"
+             role="img" aria-label="Paradox wave and counter-wave" [style.--instability]="instability()">
+          <line class="axis" x1="0" [attr.y1]="viewH / 2" [attr.x2]="viewW" [attr.y2]="viewH / 2" />
+          @for (x of [100, 200, 300, 400, 500]; track x) {
+            <line class="grid" [attr.x1]="x" y1="0" [attr.x2]="x" [attr.y2]="viewH" />
+          }
+          <path class="wave wave--target" [attr.d]="targetPath()" />
+          <path class="wave wave--agent" [attr.d]="wavePathD()" />
+        </svg>
+
+        @if (phase() === 'playing') {
+          <div class="controls">
+            <label class="control">
+              <span class="mono label">FREQUENCY <span class="num">{{ wave().frequency.toFixed(2) }}</span></span>
+              <input type="range" [min]="ranges.frequency.min" [max]="ranges.frequency.max" [step]="ranges.frequency.step"
+                     [value]="wave().frequency" (input)="set('frequency', $any($event.target).value)" />
+            </label>
+            <label class="control">
+              <span class="mono label">PHASE <span class="num">{{ wave().phase }}°</span></span>
+              <input type="range" [min]="ranges.phase.min" [max]="ranges.phase.max" [step]="ranges.phase.step"
+                     [value]="wave().phase" (input)="set('phase', $any($event.target).value)" />
+            </label>
+            <label class="control">
+              <span class="mono label">AMPLITUDE <span class="num">{{ (wave().amplitude * 100).toFixed(0) }}%</span></span>
+              <input type="range" [min]="ranges.amplitude.min" [max]="ranges.amplitude.max" [step]="ranges.amplitude.step"
+                     [value]="wave().amplitude" (input)="set('amplitude', $any($event.target).value)" />
+            </label>
+          </div>
+        } @else {
+          <div class="result" aria-live="polite">
+            @switch (phase()) {
+              @case ('reporting') { <p class="mono">TRANSMITTING RESULT…</p> }
+              @case ('won') {
+                <div class="display result-title ok">Timeline stabilised</div>
+                <p class="muted">The paradox collapsed into a consistent history. It no longer threatens the trip.</p>
+              }
+              @case ('lost') {
+                <div class="display result-title warn">Lock lost</div>
+                <p class="muted">The paradox was escalated to the trip's manager. Recalibrate and try again.</p>
+              }
+            }
+            @if (error()) { <p class="form-error">{{ error() }}</p> }
+          </div>
+        }
+      }
+    }
+  </div>
+
+  <div modal-actions>
+    @switch (phase()) {
+      @case ('briefing') {
+        <button type="button" class="btn" (click)="close()">Later</button>
+        <button type="button" class="btn btn--primary" (click)="begin()">Begin stabilisation</button>
+      }
+      @case ('playing') {
+        <button type="button" class="btn" (click)="close()">Abort</button>
+      }
+      @case ('lost') {
+        <button type="button" class="btn" (click)="close()">Close</button>
+        <button type="button" class="btn btn--primary" (click)="retry()">Try again</button>
+      }
+      @case ('won') {
+        <button type="button" class="btn btn--primary" (click)="close()">Back to the field</button>
+      }
+    }
+  </div>
+</app-modal>

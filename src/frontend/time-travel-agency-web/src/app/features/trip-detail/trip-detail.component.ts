@@ -8,7 +8,7 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
 import { ParadoxListComponent } from '../../shared/components/paradox-list/paradox-list.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { AssignAgentModalComponent } from '../modals/assign-agent-modal/assign-agent-modal.component';
-import { epochLabel, isOpenParadox, tripDisplayName, tripTypeLabel } from '../../shared/utils/status.utils';
+import { CRITICAL_PARADOX_THRESHOLD, epochLabel, isOpenParadox, tripDisplayName, tripTypeLabel } from '../../shared/utils/status.utils';
 import { TripReviewsComponent } from './trip-reviews/trip-reviews.component';
 import { TripStaffComponent } from './trip-staff/trip-staff.component';
 import { TripActionsComponent } from './trip-actions/trip-actions.component';
@@ -60,8 +60,11 @@ export class TripDetailComponent {
     return this.state.isManager() && !!manager && this.trip()?.managerGuid === manager.guid;
   });
 
-  /** Field reports are internal — hidden from customers. */
+  /** Field reports and paradoxes are internal — hidden from customers. */
   protected readonly showReports = computed(() => !this.state.isCustomer());
+  protected readonly showParadoxes = computed(() => !this.state.isCustomer());
+  protected readonly criticalThreshold = CRITICAL_PARADOX_THRESHOLD;
+  protected readonly agentName = (id: number) => this.agency.agentName(id);
 
   protected onAssigned(): void {
     this.assignOpen.set(false);

@@ -5,10 +5,18 @@ using TimeTravelAgency.Application.Model;
 
 namespace TimeTravelAgency.Application.Service;
 
+/// <summary>
+/// Paradoxes only emerge on trips that are currently under way (<see cref="TripStatus.Active"/>).
+/// A running trip with <see cref="CriticalParadoxThreshold"/> unresolved paradoxes is reclassified as <see cref="CriticalTrip"/>.
+/// Agents on the trip stabilise paradoxes in the field (engage → resolve / fail).
+/// </summary>
 public class ParadoxService
 {
-    /// <summary>A trip with this many paradoxes is automatically reclassified as <see cref="CriticalTrip"/>.</summary>
+    /// <summary>A running trip with this many unresolved paradoxes is automatically reclassified as <see cref="CriticalTrip"/>.</summary>
     public const int CriticalParadoxThreshold = 3;
+
+    /// <summary>The simulation leaves a trip alone once it already has this many unresolved paradoxes.</summary>
+    public const int MaxOpenParadoxesPerTrip = 4;
 
     private readonly TimeTravelAgencyContext _context;
 
@@ -29,6 +37,8 @@ public class ParadoxService
             .ToList();
     }
 
+    /// <exception cref="ArgumentException">Trip not found.</exception>
+    /// <exception cref="InvalidOperationException">Trip is not under way.</exception>
     public SpawnParadoxResultDto AddParadoxToTrip(Guid tripGuid, ParadoxType? type = null)
     {
         var trip = _context.Trips
@@ -37,14 +47,26 @@ public class ParadoxService
             .FirstOrDefault(t => t.Guid == tripGuid)
             ?? throw new ArgumentException($"Trip {tripGuid} not found.");
 
+        if (trip.StatusAt(DateTime.UtcNow) != TripStatus.Active)
+            throw new InvalidOperationException("Paradoxes only emerge while a trip is under way.");
+
         return AddParadox(trip, type);
     }
 
-    /// <summary>Adds a paradox of random type to a random active trip. Returns null if no trip is eligible.</summary>
+    /// <summary>
+    /// Adds a paradox of random type to a random running trip that is not already saturated with open paradoxes.
+    /// Returns null if no trip is eligible.
+    /// </summary>
     public SpawnParadoxResultDto? SpawnRandomParadox(Random? random = null)
     {
+        var now = DateTime.UtcNow;
         var candidates = _context.Trips
-            .Where(t => t.TripStatus == TripStatus.Active)
+            .Include(t => t.Paradoxes)
+            .Where(t => t.TripStatus != TripStatus.Cancelled && t.TripStatus != TripStatus.Completed && t.DateInRealLife <= now)
+            .AsNoTracking()
+            .ToList()
+            .Where(t => t.StatusAt(now) == TripStatus.Active)
+            .Where(t => t.Paradoxes.Count(p => p.IsOpen) < MaxOpenParadoxesPerTrip)
             .Select(t => t.Guid)
             .ToList();
 
@@ -59,18 +81,74 @@ public class ParadoxService
         if (!Enum.TryParse<ParadoxStatus>(status, ignoreCase: true, out var parsed))
             throw new ArgumentException($"Unknown status '{status}'. Valid values: InQueue, InProcess, Solved, Escalated.");
 
-        var paradox = _context.Paradoxes
-            .Include(p => p.Trip)
-            .ThenInclude(t => t.Manager)
-            .FirstOrDefault(p => p.Guid == paradoxGuid)
-            ?? throw new ArgumentException($"Paradox {paradoxGuid} not found.");
+        var paradox = LoadParadox(paradoxGuid);
 
         if (managerGuid.HasValue && paradox.Trip.Manager.Guid != managerGuid.Value)
             throw new UnauthorizedAccessException("Manager does not own this paradox's trip.");
 
-        paradox.ParadoxStatus = parsed;
+        paradox.SetStatus(parsed);
         _context.SaveChanges();
     }
+
+    /// <summary>An agent on the trip starts stabilising the paradox (status → InProcess).</summary>
+    public ParadoxFeedDto Engage(Guid paradoxGuid, Guid agentGuid)
+    {
+        var (paradox, _) = LoadForAgent(paradoxGuid, agentGuid);
+        if (paradox.ParadoxStatus != ParadoxStatus.InProcess)
+        {
+            paradox.SetStatus(ParadoxStatus.InProcess);
+            _context.SaveChanges();
+        }
+        return ToFeedDto(paradox);
+    }
+
+    /// <summary>The agent stabilised the timeline — the paradox is solved.</summary>
+    public ParadoxFeedDto Resolve(Guid paradoxGuid, Guid agentGuid)
+    {
+        var (paradox, agent) = LoadForAgent(paradoxGuid, agentGuid);
+        paradox.SetStatus(ParadoxStatus.Solved, agent);
+        _context.SaveChanges();
+        return ToFeedDto(paradox);
+    }
+
+    /// <summary>The stabilisation attempt failed — the paradox is escalated to the trip's manager. It can be retried.</summary>
+    public ParadoxFeedDto Fail(Guid paradoxGuid, Guid agentGuid)
+    {
+        var (paradox, _) = LoadForAgent(paradoxGuid, agentGuid);
+        paradox.SetStatus(ParadoxStatus.Escalated);
+        _context.SaveChanges();
+        return ToFeedDto(paradox);
+    }
+
+    private Paradox LoadParadox(Guid paradoxGuid) =>
+        _context.Paradoxes
+            .Include(p => p.Trip)
+            .ThenInclude(t => t.Manager)
+            .FirstOrDefault(p => p.Guid == paradoxGuid)
+        ?? throw new ArgumentException($"Paradox {paradoxGuid} not found.");
+
+    /// <exception cref="ArgumentException">Paradox or agent not found.</exception>
+    /// <exception cref="UnauthorizedAccessException">Agent is not on the paradox's trip.</exception>
+    /// <exception cref="InvalidOperationException">Paradox is already solved.</exception>
+    private (Paradox paradox, Agent agent) LoadForAgent(Guid paradoxGuid, Guid agentGuid)
+    {
+        var paradox = LoadParadox(paradoxGuid);
+        var agent = _context.Agents.FirstOrDefault(a => a.Guid == agentGuid)
+                    ?? throw new ArgumentException($"Agent {agentGuid} not found.");
+
+        if (!IsOnTrip(paradox.Trip, agent))
+            throw new UnauthorizedAccessException("Only agents assigned to this trip can stabilise its paradoxes.");
+
+        if (!paradox.IsOpen)
+            throw new InvalidOperationException("This paradox has already been stabilised.");
+
+        return (paradox, agent);
+    }
+
+    private static bool IsOnTrip(Trip trip, Agent agent) =>
+        trip.LicensedAgentId == agent.Id
+        || trip.AgentId == agent.Id
+        || (trip is CriticalTrip critical && critical.LicensedSupportAgentId == agent.Id);
 
     private SpawnParadoxResultDto AddParadox(Trip trip, ParadoxType? type)
     {
@@ -88,8 +166,11 @@ public class ParadoxService
     {
         if (trip is CriticalTrip || trip.TripType == nameof(CriticalTrip)) return false;
 
-        var paradoxCount = _context.Paradoxes.Count(p => p.TripId == trip.Id);
-        if (paradoxCount < CriticalParadoxThreshold) return false;
+        // Only a trip that is under way can become critical.
+        if (trip.StatusAt(DateTime.UtcNow) != TripStatus.Active) return false;
+
+        var openParadoxes = _context.Paradoxes.Count(p => p.TripId == trip.Id && p.ParadoxStatus != ParadoxStatus.Solved);
+        if (openParadoxes < CriticalParadoxThreshold) return false;
 
         // TPH discriminator change: EF cannot change an entity's CLR type, so update the row directly.
         // The trip's own licensed agent becomes the support agent (non-null FK requirement).
@@ -113,6 +194,9 @@ public class ParadoxService
         p.Trip.TripType,
         p.Trip.Manager.Guid,
         p.Trip.LicensedAgentId,
-        p.Trip.AgentId
+        p.Trip.AgentId,
+        p.Trip.StatusAt(DateTime.UtcNow).ToString(),
+        p.ResolvedAt.HasValue ? DateTime.SpecifyKind(p.ResolvedAt.Value, DateTimeKind.Utc) : null,
+        p.ResolvedByAgentId
     );
 }

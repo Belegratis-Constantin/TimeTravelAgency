@@ -15,5 +15,8 @@ public record ParadoxFeedDto(
     string TripType,
     Guid ManagerGuid,
     int LicensedAgentId,
-    int? AgentId
+    int? AgentId,
+    string TripStatus = "Active",
+    DateTime? ResolvedAt = null,
+    int? ResolvedByAgentId = null
 );

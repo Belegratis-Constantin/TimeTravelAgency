@@ -48,10 +48,21 @@ public class Customer : Participant
     
     public virtual IReadOnlyCollection<Review> Reviews => _reviews;
 
+    /// <summary>Bookings can be cancelled free of charge until this long before departure.</summary>
+    public static readonly TimeSpan CancellationCutoff = TimeSpan.FromHours(1);
+
     // Public Methods
     public List<Trip> GetOwnUpcomingTrips()
     {
-        return Trips.Where(t => t.DateInRealLife > DateTime.Now && t.TripStatus == TripStatus.Active).ToList();
+        var now = DateTime.UtcNow;
+        return Trips.Where(t => t.DateInRealLife > now && t.TripStatus == TripStatus.Scheduled).ToList();
+    }
+
+    /// <summary>The trip this customer is travelling on right now, if any (there can be at most one).</summary>
+    public Trip? GetCurrentTrip(DateTime? utcNow = null)
+    {
+        var now = utcNow ?? DateTime.UtcNow;
+        return Trips.FirstOrDefault(t => t.StatusAt(now) == TripStatus.Active);
     }
     
     public Review? WriteReview(string header, int stars, Trip trip, string? content = null)
@@ -72,29 +83,49 @@ public class Customer : Participant
         return review;
     }
 
-    public void AssignToTrip(Trip trip)
+    /// <summary>
+    /// Books this customer on a trip. Only scheduled trips that have not departed yet can be booked, and a
+    /// traveller can never be on two trips at once: the real-life time span must not overlap another open booking.
+    /// </summary>
+    public void AssignToTrip(Trip trip, DateTime? utcNow = null)
     {
-        if (trip.DateInRealLife < DateTime.Now || trip.TripStatus != TripStatus.Active)
+        var now = utcNow ?? DateTime.UtcNow;
+
+        if (Trips.Contains(trip) || trip.Customers.Contains(this))
+            throw new InvalidOperationException("You are already booked on this trip.");
+
+        switch (trip.StatusAt(now))
         {
-            throw new InvalidOperationException("Cannot assign to inactive or past trips.");
+            case TripStatus.Cancelled:
+                throw new InvalidOperationException("This trip has been cancelled and cannot be booked.");
+            case TripStatus.Active:
+                throw new InvalidOperationException("This trip has already departed and is under way.");
+            case TripStatus.Completed:
+                throw new InvalidOperationException("This trip is already over.");
         }
 
-        if (Trips.Any(existingTrip => existingTrip.TripStatus == TripStatus.Active &&
-                                      existingTrip.DateInRealLife >= trip.DateInRealLife.AddHours(-1) &&
-                                      existingTrip.DateInRealLife <= trip.DateInRealLife.AddHours(1)))
+        var conflict = Trips.FirstOrDefault(t => t.StatusAt(now) is TripStatus.Scheduled or TripStatus.Active && t.OverlapsWith(trip));
+        if (conflict != null)
         {
-            throw new InvalidOperationException("Cannot assign to overlapping trips.");
+            throw new InvalidOperationException(
+                $"You are already travelling on \"{conflict.TripName ?? "another trip"}\" during this time.");
         }
 
-        trip.AddCustomer(this);
         AddTrip(trip);
+        trip.AddCustomer(this);
     }
     
-    public void CheckOutOfTrip(Trip trip)
+    /// <summary>Cancels a booking. Allowed until <see cref="CancellationCutoff"/> before departure.</summary>
+    public void CheckOutOfTrip(Trip trip, DateTime? utcNow = null)
     {
-        if (trip.DateInRealLife < DateTime.Now.AddHours(1) || trip.TripStatus != TripStatus.Active)
+        var now = utcNow ?? DateTime.UtcNow;
+
+        if (!Trips.Contains(trip) && !trip.Customers.Contains(this))
+            throw new InvalidOperationException("You are not booked on this trip.");
+
+        if (trip.StatusAt(now) != TripStatus.Scheduled || trip.DateInRealLife - now < CancellationCutoff)
         {
-            throw new InvalidOperationException("Cannot check out of inactive or past trips.");
+            throw new InvalidOperationException("Bookings can only be cancelled until one hour before departure.");
         }
 
         trip.RemoveCustomer(this);

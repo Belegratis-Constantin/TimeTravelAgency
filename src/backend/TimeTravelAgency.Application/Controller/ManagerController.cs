@@ -134,7 +134,7 @@ public class ManagerController : ControllerBase
                 )).ToList(),
                 t.Reports.Select(r => new ReportForTripDto(r.Guid, r.Header, r.Date, r.Content)).ToList(),
                 t.Reviews.Select(r => new ReviewDto(r.Guid, r.Stars, r.Header, r.Content)).ToList(),
-                t.AgentId, t.Manager.Guid
+                t.AgentId, t.Manager.Guid, t.DurationMinutes
             )).ToList();
 
         return Ok(trips);
@@ -230,7 +230,7 @@ public class ManagerController : ControllerBase
                         r.Content
                     )).ToList().ToList(),
                     t.AgentId,
-                    t.Manager.Guid
+                    t.Manager.Guid, t.DurationMinutes
                 )).ToList()
         ));
 

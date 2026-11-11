@@ -266,6 +266,11 @@ public class TimeTravelAgencyContext : DbContext
         
         modelBuilder.Entity<Trip>()
             .HasDiscriminator(t => t.TripType);
+
+        // Trip times are UTC; SQLite drops the kind, so restore it on read (serialised with a trailing "Z").
+        modelBuilder.Entity<Trip>()
+            .Property(t => t.DateInRealLife)
+            .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
         
         // CriticalTrip
         modelBuilder.Entity<CriticalTrip>()
@@ -357,7 +362,10 @@ public class TimeTravelAgencyContext : DbContext
         return await base.SaveChangesAsync(cancellationToken);
     }
 
-    public async void Seed()
+    /// <summary>Synchronous wrapper so seeding errors surface instead of being lost in an async void.</summary>
+    public void Seed() => SeedAsync().GetAwaiter().GetResult();
+
+    public async Task SeedAsync()
     {
         Randomizer.Seed = new Random(2145);
 
@@ -404,85 +412,79 @@ public class TimeTravelAgencyContext : DbContext
         this.Customers.AddRange(customers);
         await this.SaveChangesAsync();
 
-        var eraNames = new[] {
-            "Belle Époque Paris", "Renaissance Florence", "Ancient Rome", "Victorian London",
-            "Roaring Twenties New York", "Ming Dynasty China", "Ancient Egypt", "Medieval Kyoto",
-            "Golden Age Baghdad", "Age of Exploration Lisbon", "Edo Period Tokyo", "Enlightenment Vienna"
-        };
-        var trips = new Faker<Trip>("de").CustomInstantiator(f => new Trip(
-            dateInRealLife: f.Date.Future(),
-            licensedAgent: f.Random.ListItem(licensedAgents),
-            manager: this.Managers.First(),
-            tripName: f.PickRandom(eraNames)
-        )).Generate(5);
-        this.Trips.AddRange(trips);
+        // Trips across the whole lifecycle: completed (returned), active (under way right now) and scheduled.
+        // Licensed agents and travellers are never on two overlapping trips.
+        var now = DateTime.UtcNow;
+        var la = licensedAgents;
+        var mg = managers;
+
+        Trip NewTrip(string name, int agent, int manager, TimeSpan fromNow, int durationMinutes) =>
+            new(now + fromNow, la[agent], mg[manager], name, durationMinutes: durationMinutes);
+
+        // Completed
+        var londonPast   = NewTrip("Victorian London", 0, 1, TimeSpan.FromDays(-40), 6 * 60);
+        var egyptPast    = NewTrip("Ancient Egypt", 1, 1, TimeSpan.FromDays(-21), 2 * 24 * 60);
+        var florencePast = NewTrip("Renaissance Florence", 2, 2, TimeSpan.FromDays(-9), 8 * 60);
+        var tokyoPast    = NewTrip("Edo Period Tokyo", 3, 2, TimeSpan.FromDays(-3), 5 * 60);
+        // Active — under way right now
+        var paris        = NewTrip("Belle Époque Paris", 0, 0, TimeSpan.FromMinutes(-40), 5 * 60);
+        var newYork      = new CriticalTrip(la[4], now - TimeSpan.FromMinutes(90), la[1], mg[0], "Roaring Twenties New York", 6 * 60);
+        var ming         = NewTrip("Ming Dynasty China", 2, 3, TimeSpan.FromMinutes(-15), 3 * 60);
+        // Scheduled — the first one departs a few minutes after startup, so the transition can be watched live
+        var baghdad      = NewTrip("Golden Age Baghdad", 3, 0, TimeSpan.FromMinutes(4), 2 * 60);
+        var rome         = NewTrip("Ancient Rome", 4, 0, TimeSpan.FromHours(6), 4 * 60);
+        var kyoto        = NewTrip("Medieval Kyoto", 0, 1, TimeSpan.FromDays(1), 6 * 60);
+        var vienna       = NewTrip("Enlightenment Vienna", 1, 3, TimeSpan.FromDays(2), 8 * 60);
+        var parisLater   = NewTrip("Belle Époque Paris", 0, 2, TimeSpan.FromDays(3), 7 * 60);
+        var lisbon       = NewTrip("Age of Exploration Lisbon", 2, 4, TimeSpan.FromDays(5), 3 * 24 * 60);
+        var london       = NewTrip("Victorian London", 3, 4, TimeSpan.FromDays(12), 6 * 60);
+        var florence     = NewTrip("Renaissance Florence", 4, 3, TimeSpan.FromDays(30), 10 * 60);
+
+        var allTrips = new List<Trip> { londonPast, egyptPast, florencePast, tokyoPast, paris, newYork, ming,
+            baghdad, rome, kyoto, vienna, parisLater, lisbon, london, florence };
+        this.Trips.AddRange(allTrips);
         await this.SaveChangesAsync();
 
-        var tripsPast = new Faker<Trip>("de").CustomInstantiator(f => new Trip(
-            dateInRealLife: f.Date.Past(),
-            licensedAgent: f.Random.ListItem(licensedAgents),
-            manager: this.Managers.Skip(1).First(),
-            tripName: f.PickRandom(eraNames)
-        )).Generate(5);
-        this.Trips.AddRange(tripsPast);
+        // Bookings: past journeys are recorded directly, future ones go through the regular booking rules.
+        var c = customers;
+        void Travelled(Customer customer, Trip trip) { customer.AddTrip(trip); trip.AddCustomer(customer); }
+
+        Travelled(c[0], londonPast); Travelled(c[0], florencePast); Travelled(c[0], paris);
+        c[0].AssignToTrip(kyoto); c[0].AssignToTrip(lisbon);
+        Travelled(c[1], egyptPast); Travelled(c[1], newYork);
+        c[1].AssignToTrip(rome);
+        Travelled(c[2], paris);
+        c[2].AssignToTrip(vienna);
+        Travelled(c[3], tokyoPast);
+        c[3].AssignToTrip(baghdad); c[3].AssignToTrip(london);
         await this.SaveChangesAsync();
 
-        var criticalTrips = new Faker<CriticalTrip>("de").CustomInstantiator(f => new CriticalTrip(
-            licensedSupportAgent: f.Random.ListItem(licensedAgents),
-            dateInRealLife: f.Date.Future(),
-            licensedAgent: f.Random.ListItem(licensedAgents),
-            manager: this.Managers.First(),
-            tripName: f.PickRandom(eraNames)
-        )).Generate(5);
-        this.CriticalTrips.AddRange(criticalTrips);
-        await this.SaveChangesAsync();
-        
-        foreach (var customer in Customers)
+        // Paradoxes only emerge on trips that are under way. New York has crossed the critical threshold.
+        var parisParadox = new Paradox(paris, ParadoxType.BootstrapParadox);
+        var nyParadoxes = new[]
         {
-            customer.AssignToTrip(Trips.First());
-        }
+            new Paradox(newYork, ParadoxType.GrandFatherParadox),
+            new Paradox(newYork, ParadoxType.InformationParadox),
+            new Paradox(newYork, ParadoxType.PredestinationParadox),
+        };
+        nyParadoxes[2].SetStatus(ParadoxStatus.InProcess);
+        this.Paradoxes.Add(parisParadox);
+        this.Paradoxes.AddRange(nyParadoxes);
         await this.SaveChangesAsync();
 
-        var paradoxes = new Faker<Paradox>("de").CustomInstantiator(f => new Paradox(
-            trip: this.Trips.First()
-        )).Generate(3);
-        this.Paradoxes.AddRange(paradoxes);
+        // Field reports by the leading agents
+        this.Reports.AddRange(
+            new Report("Departure log", la[0], londonPast, "Smooth transfer, all travellers accounted for on return."),
+            new Report("Debrief: Nile excursion", la[1], egyptPast, "Minor sandstorm on day two, no temporal deviation."),
+            new Report("Arrival confirmed", la[0], paris, "Group arrived at the Exposition Universelle on schedule."),
+            new Report("Causality warning", la[1], newYork, "Multiple anomalies around the stock exchange. Requesting support."));
         await this.SaveChangesAsync();
 
-        var report = new Faker<Report>("de").CustomInstantiator(f => new Report(
-            header: f.Random.String2(10),
-            agent: this.Agents.First(),
-            trip: this.Trips.First()
-        )).Generate(2);
-        this.Reports.AddRange(report);
-        await this.SaveChangesAsync();
-
-        var reportWithContent = new Faker<Report>("de").CustomInstantiator(f => new Report(
-            header: f.Random.String2(10),
-            agent: this.Agents.First(),
-            trip: this.Trips.First(),
-            content: f.Random.String2(100)
-        )).Generate(2);
-        this.Reports.AddRange(reportWithContent);
-        await this.SaveChangesAsync();
-
-        var review = new Faker<Review>("de").CustomInstantiator(f => new Review(
-            header: f.Random.String2(10),
-            stars: f.Random.Int(1, 5),
-            customer: this.Customers.First(),
-            trip: this.Trips.First()
-        )).Generate(2);
-        this.Reviews.AddRange(review);
-        await this.SaveChangesAsync();
-
-        var reviewWithContent = new Faker<Review>("de").CustomInstantiator(f => new Review(
-            header: f.Random.String2(10),
-            stars: f.Random.Int(1, 5),
-            customer: this.Customers.First(),
-            trip: this.Trips.First(),
-            content: f.Random.String2(100)
-        )).Generate(2);
-        this.Reviews.AddRange(reviewWithContent);
+        // Reviews from travellers who are back
+        this.Reviews.AddRange(
+            new Review("Fog, gaslight and tea", 5, c[0], londonPast) { Content = "Our agent knew every alley in Whitechapel. Unforgettable." },
+            new Review("Breathtaking", 4, c[0], florencePast) { Content = "Watched Michelangelo at work. A bit crowded at the Duomo." },
+            new Review("Hot but worth it", 4, c[1], egyptPast) { Content = "The pyramids still had their white casing!" });
         await this.SaveChangesAsync();
         
         // Distribute agents across managers
@@ -505,7 +507,8 @@ public class TimeTravelAgencyContext : DbContext
 
         // Assign support agents to some standard trips (agent must belong to the trip's manager)
         var tripsForManager0 = this.Trips.OfType<Trip>()
-            .Where(t => !(t is CriticalTrip) && t.ManagerId == allManagers[0].Id).ToList();
+            .Where(t => !(t is CriticalTrip) && t.ManagerId == allManagers[0].Id
+                        && (t.TripStatus == TripStatus.Scheduled || t.TripStatus == TripStatus.Active)).ToList();
         var agentsForManager0 = allAgents.Where(a => a.ManagerId == allManagers[0].Id).ToList();
         for (int i = 0; i < Math.Min(3, Math.Min(tripsForManager0.Count, agentsForManager0.Count)); i++)
             allManagers[0].AddAgentToTrip(agentsForManager0[i], tripsForManager0[i]);

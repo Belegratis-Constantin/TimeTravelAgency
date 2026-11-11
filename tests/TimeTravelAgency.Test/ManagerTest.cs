@@ -197,6 +197,6 @@ public class ManagerTest
         
         manager.CompleteTrip(trip);
         
-        Assert.Equal(TripStatus.Active, trip.TripStatus);
+        Assert.Equal(TripStatus.Scheduled, trip.TripStatus);
     } 
 }

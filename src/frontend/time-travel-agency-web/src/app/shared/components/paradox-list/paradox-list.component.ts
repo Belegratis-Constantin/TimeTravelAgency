@@ -29,8 +29,13 @@ export class ParadoxListComponent {
   readonly fresh = input<ReadonlySet<string>>(new Set());
   readonly pending = input<string | null>(null);
   readonly emptyText = input('No paradox incidents recorded.');
+  /** When set, open paradoxes get an action button with this label (e.g. agents: "Stabilise"). */
+  readonly actionLabel = input<string | null>(null);
+  /** Optional lookup for "solved by …" lines. */
+  readonly agentName = input<((id: number) => string | null) | null>(null);
 
   readonly statusChange = output<ParadoxStatusChange>();
+  readonly act = output<ParadoxFeedDto>();
 
   protected readonly statuses = PARADOX_STATUSES;
   protected readonly typeLabel = paradoxTypeLabel;

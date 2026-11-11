@@ -3,17 +3,17 @@ import { findArrivals, isParadoxRelevant, RelevanceContext } from './paradox-rel
 
 const paradox = (overrides: Partial<ParadoxFeedDto> = {}): ParadoxFeedDto => ({
   guid: 'p1', paradoxStatus: 'InQueue', paradoxType: 'BootstrapParadox', description: '', createdAt: '2026-01-01T00:00:00Z',
-  tripGuid: 't1', tripName: 'Rome', tripType: 'Trip', managerGuid: 'm1', licensedAgentId: 7, agentId: 3, ...overrides,
+  tripGuid: 't1', tripName: 'Rome', tripType: 'Trip', managerGuid: 'm1', licensedAgentId: 7, agentId: 3,
+  tripStatus: 'Active', resolvedAt: null, resolvedByAgentId: null, ...overrides,
 });
 
 const ctx = (overrides: Partial<RelevanceContext>): RelevanceContext => ({
-  role: 'customer', bookedTripGuids: new Set(), agentId: null, managerGuid: null, ...overrides,
+  role: 'customer', agentId: null, managerGuid: null, ...overrides,
 });
 
 describe('isParadoxRelevant', () => {
-  it('customers only care about trips they booked', () => {
-    expect(isParadoxRelevant(paradox(), ctx({ bookedTripGuids: new Set(['t1']) }))).toBe(true);
-    expect(isParadoxRelevant(paradox(), ctx({ bookedTripGuids: new Set(['t2']) }))).toBe(false);
+  it('customers are never told about paradoxes', () => {
+    expect(isParadoxRelevant(paradox(), ctx({ role: 'customer' }))).toBe(false);
   });
 
   it('agents see paradoxes on trips they lead or support', () => {

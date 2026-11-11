@@ -6,7 +6,10 @@
   } @else if (trip(); as t) {
     <header class="head">
       <div>
-        <div class="eyebrow">{{ typeLabel() }} trip · departs {{ t.dateInRealLife | date: 'medium' }}</div>
+        <div class="eyebrow">
+          @if (!state.isCustomer()) { {{ typeLabel() }} trip · }
+          departs {{ t.dateInRealLife | date: 'medium' }} · returns {{ t.returnInRealLife | date: 'medium' }}
+        </div>
         <h1 class="display title">{{ name() }}</h1>
         <p class="summary">
           @if (destinationEra()) { Destination era: <span class="text-gold">{{ destinationEra() }}</span> · }
@@ -15,12 +18,16 @@
       </div>
       <div class="row">
         <app-status-badge [status]="t.tripStatus" />
-        <app-status-badge [status]="t.tripType" kind="tripType" />
+        @if (!state.isCustomer()) {
+          <app-status-badge [status]="t.tripType" kind="tripType" />
+        }
       </div>
     </header>
 
     <div class="split">
       <div>
+        <!-- Paradoxes are internal agency business — customers never see them. -->
+        @if (showParadoxes()) {
         <section class="section">
           <div class="row row--between section-head">
             <h2 class="section-title">Paradox log</h2>
@@ -30,11 +37,15 @@
           </div>
           <app-paradox-list [paradoxes]="paradoxes()" [editable]="canManage()" [fresh]="feed.fresh()"
                             [pending]="feed.pendingStatus()" (statusChange)="feed.changeStatus($event.paradox, $event.status)"
+                            [agentName]="agentName"
                             emptyText="No paradox incidents recorded for this trip." />
           @if (t.tripType === 'Trip') {
-            <p class="hint">A trip is reclassified as <strong>Critical</strong> once three paradoxes have been recorded.</p>
+            <p class="hint">A trip that is under way is reclassified as <strong>Critical</strong> once
+              {{ criticalThreshold }} paradoxes are unresolved at the same time. Agents on the trip can stabilise them.</p>
           }
         </section>
+
+        }
 
         <app-trip-reviews [reviews]="t.reviews" />
 

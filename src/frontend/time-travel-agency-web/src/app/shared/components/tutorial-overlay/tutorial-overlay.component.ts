@@ -45,13 +45,13 @@ export class TutorialOverlayComponent {
       icon: '✒',
       name: 'Agent',
       mono: 'FIELD OPS',
-      desc: 'Licensed and support agents see their missions, get alerted when a paradox hits one of them, and file field reports — the Agency\'s eyes and ears across the timeline.',
+      desc: 'Licensed and support agents see their missions and get alerted when a paradox hits a trip that is under way. Stabilise it in the Phase Lock mini-game — tune your counter-wave until it resonates — and file field reports.',
     },
     {
       icon: '⬡',
       name: 'Manager',
       mono: 'OVERSIGHT',
-      desc: 'Create trips, recruit agents, grant licences and assign support agents. Paradoxes appear on your trips at runtime — work them in the Paradox Log before a trip turns critical.',
+      desc: 'Create trips, recruit agents, grant licences and assign support agents. Paradoxes appear on trips while they are under way — a running trip with three unresolved paradoxes turns critical. Your agents stabilise them in the field; escalations land in the Paradox Log.',
     },
     {
       icon: '✦',
@@ -63,7 +63,7 @@ export class TutorialOverlayComponent {
       icon: '⧗',
       name: 'Time Itself',
       mono: 'OMNISCIENT',
-      desc: 'Enter The Loom — a living map of every timeline. Time tears paradoxes into trips on its own; here you pause or speed up that process and trigger fractures manually for testing.',
+      desc: 'Enter The Loom — a living map of every timeline. Time tears paradoxes into trips that are under way; here you pause or speed up that process and trigger fractures manually for testing.',
     },
   ];
 

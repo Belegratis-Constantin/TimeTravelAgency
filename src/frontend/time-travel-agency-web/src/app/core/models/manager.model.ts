@@ -24,5 +24,7 @@ export interface CreateManagerCmd {
 export interface CreateTripByManagerCmd {
   dateInRealLife: string;
   tripName: string | null;
+  /** Real-life length in minutes (15 min – 30 days). */
+  durationMinutes: number;
   licensedAgentGuid: string;
 }

@@ -14,5 +14,6 @@
 .until--soon { color: var(--amber); }
 .until--later { color: var(--text-muted); }
 .until--past { color: var(--text-faint); }
+.until--live { color: var(--gold); }
 .paradoxes { color: var(--red); font-weight: 600; }
 .note { margin-top: 12px; font-size: 12px; color: var(--gold); }

@@ -23,11 +23,12 @@
         @for (d of destinations(); track d) { <option [value]="d">{{ d }}</option> }
       </select>
 
-      <label class="sr-only" for="f-type">Trip type</label>
-      <select id="f-type" class="select select--compact" [value]="tripType()" (change)="tripType.set($any($event.target).value)">
-        <option value="all">All types</option>
-        <option value="Trip">Standard</option>
-        <option value="CriticalTrip">Critical</option>
+      <label class="sr-only" for="f-timeframe">When</label>
+      <select id="f-timeframe" class="select select--compact" [value]="timeframe()" (change)="timeframe.set($any($event.target).value)">
+        <option value="upcoming">Upcoming</option>
+        <option value="underway">Under way now</option>
+        <option value="past">Past</option>
+        <option value="all">All departures</option>
       </select>
 
       <label class="sr-only" for="f-sort">Sort</label>
@@ -53,8 +54,7 @@
   } @else {
     <div class="grid-cards">
       @for (trip of trips(); track trip.guid) {
-        <app-trip-card [trip]="trip" [agentName]="agency.agentName(trip.licensedAgentId)"
-                       [openParadoxes]="feed.openCountForTrip(trip.guid)"
+        <app-trip-card [trip]="trip" [agentName]="agency.agentName(trip.licensedAgentId)" [customerView]="true"
                        [note]="isBooked(trip) ? '✓ You are booked on this trip' : null" />
       } @empty {
         <app-empty-state class="span-all" title="No trips match these filters">

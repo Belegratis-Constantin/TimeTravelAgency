@@ -2,12 +2,11 @@ import {
   AfterViewInit, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, OnDestroy, signal, untracked, viewChild,
 } from '@angular/core';
 import { AgencyStore } from '../../state/agency.store';
-import { ParadoxFeedStore } from '../../state/paradox-feed.store';
 import { BoardingCardComponent } from './boarding-card/boarding-card.component';
 import { TimelinePinComponent } from './timeline-pin/timeline-pin.component';
 import { TimelineScrubberComponent } from './timeline-scrubber/timeline-scrubber.component';
 import {
-  ERA_ZONES, EraZone, formatYear, riskLevel, SPINE_PCT, TOTAL_W, TripPin, tripDestYear, yearToPx, ZONE_W, zoneForPx,
+  ERA_ZONES, EraZone, formatYear, tripPhase, SPINE_PCT, TOTAL_W, TripPin, tripDestYear, yearToPx, ZONE_W, zoneForPx,
 } from './era-timeline.config';
 
 const MIN_PIN_GAP = 34;
@@ -33,7 +32,6 @@ const YEAR_TICKS = [
 })
 export class EraTimelineComponent implements AfterViewInit, OnDestroy {
   private readonly agency = inject(AgencyStore);
-  private readonly feed = inject(ParadoxFeedStore);
 
   private readonly scrollEl = viewChild<ElementRef<HTMLElement>>('scrollEl');
   private readonly starCanvas = viewChild<ElementRef<HTMLCanvasElement>>('starCanvas');
@@ -59,8 +57,7 @@ export class EraTimelineComponent implements AfterViewInit, OnDestroy {
       return {
         trip, year, x, stemHeight,
         zone: zoneForPx(x),
-        isCritical: trip.tripType === 'CriticalTrip',
-        risk: riskLevel(this.feed.openCountForTrip(trip.guid)),
+        phase: tripPhase(trip),
         signalBars: stemHeight <= 46 ? 1 : stemHeight <= 64 ? 2 : 3,
       };
     });

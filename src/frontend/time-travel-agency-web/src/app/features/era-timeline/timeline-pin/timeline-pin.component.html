@@ -10,16 +10,11 @@
       <div class="readout-name">{{ tripName(pin().trip) }}</div>
       <div class="readout-date">Departs {{ formatDate(pin().trip.dateInRealLife) }}</div>
       <div class="readout-foot">
-        <span class="risk" [style.color]="riskColors[pin().risk]">⬡ {{ riskLabels[pin().risk] }}</span>
+        <span class="risk" [style.color]="phaseColors[pin().phase]">⬡ {{ phaseLabels[pin().phase] }}</span>
         <span class="aboard">{{ pin().trip.customers.length }} ABOARD</span>
       </div>
     </div>
   </div>
-}
-
-@if (pin().isCritical) {
-  <div class="critical-halo"></div>
-  <div class="critical-ring"></div>
 }
 
 <div class="beacon"></div>

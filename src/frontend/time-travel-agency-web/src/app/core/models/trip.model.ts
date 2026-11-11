@@ -35,7 +35,8 @@ export interface CustomerDto {
 
 /** TPH discriminator values sent by the backend. */
 export type TripType = 'Trip' | 'CriticalTrip';
-export type TripStatus = 'Active' | 'Completed' | 'Cancelled';
+/** Scheduled → Active (under way right now) → Completed (returned). Cancelled is final. */
+export type TripStatus = 'Scheduled' | 'Active' | 'Completed' | 'Cancelled';
 
 export interface TripDto {
   guid: string;
@@ -51,6 +52,10 @@ export interface TripDto {
   reviews: ReviewDto[];
   agentId: number | null;
   managerGuid: string | null;
+  /** Real-life length of the trip in minutes. */
+  durationMinutes: number;
+  /** Return in real life = departure + duration. */
+  returnInRealLife: string;
 }
 
 export interface CreateCustomerCmd {

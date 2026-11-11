@@ -114,7 +114,7 @@ public class AgentController : ControllerBase
                     r.Content
                 )).ToList(),
                 t.AgentId,
-                t.Manager.Guid
+                t.Manager.Guid, t.DurationMinutes
             )).ToListAsync();
 
         return Ok(new AgentDto(
@@ -195,7 +195,7 @@ public class AgentController : ControllerBase
                         r.Content
                     )).ToList(),
                     t.AgentId,
-                    t.Manager.Guid
+                    t.Manager.Guid, t.DurationMinutes
                 )).ToList()
         ));
 

@@ -2,7 +2,8 @@ import { epochLabel, formatYear, initials, isOpenParadox, paradoxMeta, paradoxTy
 
 describe('status utils', () => {
   it('maps backend status strings to labels and tones', () => {
-    expect(tripStatusMeta('Active')).toEqual({ label: 'Active', tone: 'blue' });
+    expect(tripStatusMeta('Active')).toEqual({ label: 'Under way', tone: 'gold' });
+    expect(tripStatusMeta('Scheduled')).toEqual({ label: 'Scheduled', tone: 'blue' });
     expect(paradoxMeta('InQueue')).toEqual({ label: 'In Queue', tone: 'amber' });
     expect(paradoxMeta('Unknown').tone).toBe('neutral');
   });

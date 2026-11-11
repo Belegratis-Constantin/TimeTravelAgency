@@ -6,5 +6,5 @@ public class ParadoxSimulationOptions
     public const string SectionName = "ParadoxSimulation";
 
     public bool Enabled { get; set; } = true;
-    public int IntervalSeconds { get; set; } = 45;
+    public int IntervalSeconds { get; set; } = 120;
 }

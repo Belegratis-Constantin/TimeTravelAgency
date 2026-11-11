@@ -90,11 +90,12 @@ export class DashboardComponent {
     const open = this.feed.scoped().filter(isOpenParadox).length;
     return [
       { label: 'Trips', value: trips.length },
-      { label: 'Active', value: trips.filter(t => t.tripStatus === 'Active').length, tone: 'blue' },
+      { label: 'Scheduled', value: trips.filter(t => t.tripStatus === 'Scheduled').length, tone: 'blue' },
+      { label: 'Under way', value: trips.filter(t => t.tripStatus === 'Active').length, tone: 'gold' },
       { label: 'Critical', value: trips.filter(t => t.tripType === 'CriticalTrip').length, tone: 'red' },
       { label: 'Travellers', value: trips.reduce((sum, t) => sum + t.customers.length, 0) },
       { label: 'Open paradoxes', value: open, tone: open ? 'amber' : 'green' },
-      { label: 'Agents', value: this.team().length, tone: 'gold' },
+      { label: 'Agents', value: this.team().length },
     ];
   });
 

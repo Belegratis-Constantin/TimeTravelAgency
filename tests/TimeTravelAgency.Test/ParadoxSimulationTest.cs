@@ -43,7 +43,8 @@ public class ParadoxSimulationTest : IDisposable
         _context.LicensedAgents.Add(agent);
         await _context.SaveChangesAsync();
 
-        var trip = manager.CreateTrip(DateTime.UtcNow.AddDays(10), agent, name);
+        // Paradoxes only emerge on trips that are under way, so the trip departed a few minutes ago.
+        var trip = manager.CreateTrip(DateTime.UtcNow.AddMinutes(-10), agent, name);
         await _context.SaveChangesAsync();
         return trip;
     }

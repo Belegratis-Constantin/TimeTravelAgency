@@ -26,10 +26,18 @@
               }
             </select>
           } @else {
-            <app-status-badge [status]="p.paradoxStatus" kind="paradox" />
+            <div class="side">
+              <app-status-badge [status]="p.paradoxStatus" kind="paradox" />
+              @if (actionLabel() && p.paradoxStatus !== 'Solved') {
+                <button type="button" class="btn btn--primary btn--sm" (click)="act.emit(p)">{{ actionLabel() }}</button>
+              }
+            </div>
           }
         </div>
         <p class="description">{{ p.description }}</p>
+        @if (p.paradoxStatus === 'Solved' && p.resolvedByAgentId !== null && agentName(); as name) {
+          <p class="solved-by">Stabilised in the field by {{ name(p.resolvedByAgentId) }}</p>
+        }
       </li>
     }
   </ul>

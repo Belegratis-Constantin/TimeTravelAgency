@@ -39,6 +39,25 @@ public class TripController : ControllerBase
         }
     }
     
+    /// <summary>Cancels a booking (allowed until one hour before departure).</summary>
+    [HttpDelete("{tripGuid}/book/{customerGuid}")]
+    public IActionResult CancelBooking(Guid tripGuid, Guid customerGuid)
+    {
+        try
+        {
+            _tripService.TryCancelBooking(customerGuid, tripGuid);
+            return Ok("Booking cancelled.");
+        }
+        catch (ArgumentException ex)
+        {
+            return Problem(ex.Message, statusCode: 400);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(ex.Message, statusCode: 409);
+        }
+    }
+
     [HttpGet]
     public async Task<ActionResult<List<TripDto>>> GetAllTrips()
     {
@@ -92,7 +111,7 @@ public class TripController : ControllerBase
                 r.Guid,
                 r.Stars,
                 r.Header,
-                r.Content)).ToList(), trip.AgentId, trip.Manager.Guid)).ToList();
+                r.Content)).ToList(), trip.AgentId, trip.Manager.Guid, trip.DurationMinutes)).ToList();
 
         return Ok(tripsDto);
     }
@@ -155,7 +174,7 @@ public class TripController : ControllerBase
                 r.Guid,
                 r.Stars,
                 r.Header,
-                r.Content)).ToList(), trip.AgentId, trip.Manager.Guid);
+                r.Content)).ToList(), trip.AgentId, trip.Manager.Guid, trip.DurationMinutes);
 
         return Ok(tripDto);
     }

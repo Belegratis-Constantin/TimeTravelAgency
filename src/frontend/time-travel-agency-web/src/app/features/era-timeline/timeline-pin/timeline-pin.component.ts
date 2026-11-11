@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { formatDateOnly } from '../../../shared/utils/date.utils';
 import { tripDisplayName } from '../../../shared/utils/status.utils';
-import { formatYear, RISK_COLORS, RISK_LABELS, SPINE_PCT, TripPin } from '../era-timeline.config';
+import { formatYear, PHASE_COLORS, PHASE_LABELS, SPINE_PCT, TripPin } from '../era-timeline.config';
 
 /** One trip beacon on the Continuum spine, with its hover readout. */
 @Component({
@@ -16,7 +16,6 @@ import { formatYear, RISK_COLORS, RISK_LABELS, SPINE_PCT, TripPin } from '../era
     '[style.--accent]': 'pin().zone.accent',
     '[class.dimmed]': 'dimmed()',
     '[class.selected]': 'selected()',
-    '[class.critical]': 'pin().isCritical',
     '(click)': 'onClick($event)',
     '(mouseenter)': 'hovered.set(true)',
     '(mouseleave)': 'hovered.set(false)',
@@ -30,8 +29,8 @@ export class TimelinePinComponent {
 
   protected readonly hovered = signal(false);
   protected readonly spinePct = SPINE_PCT;
-  protected readonly riskColors = RISK_COLORS;
-  protected readonly riskLabels = RISK_LABELS;
+  protected readonly phaseColors = PHASE_COLORS;
+  protected readonly phaseLabels = PHASE_LABELS;
   protected readonly bars = [1, 2, 3];
   protected readonly formatYear = formatYear;
   protected readonly formatDate = formatDateOnly;

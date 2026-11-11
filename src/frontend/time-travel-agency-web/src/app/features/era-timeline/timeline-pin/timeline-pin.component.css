@@ -31,14 +31,6 @@
 .aboard { font-family: var(--font-mono); font-size: 9px; color: #3E5068; }
 
 /* Critical trips */
-.critical-halo {
-  position: absolute; top: -11px; left: -11px; width: 44px; height: 44px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, rgba(224, 90, 78, 0.2) 0%, transparent 70%); box-shadow: 0 0 16px 4px rgba(224, 90, 78, 0.35);
-}
-.critical-ring {
-  position: absolute; top: -9px; left: -9px; width: 40px; height: 40px; border-radius: 50%; pointer-events: none;
-  border: 1px dashed rgba(224, 90, 78, 0.5); animation: spin-reverse 4s linear infinite;
-}
 
 /* Beacon */
 .beacon {
@@ -46,7 +38,6 @@
   box-shadow: 0 0 12px 3px var(--a60), inset 0 0 6px var(--accent);
   transition: transform 0.15s cubic-bezier(.34, 1.56, .64, 1), filter 0.15s;
 }
-:host(.critical) .beacon { box-shadow: 0 0 12px 3px var(--a60), inset 0 0 6px var(--accent), 0 0 20px 5px rgba(224, 90, 78, 0.45); }
 :host(.selected) .beacon { width: 22px; height: 22px; background: var(--text); box-shadow: 0 0 28px 10px var(--accent), inset 0 0 8px rgba(255, 255, 255, 0.4); }
 .beacon:hover { transform: scale(1.2); filter: brightness(1.3); }
 
@@ -68,7 +59,6 @@
   position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border-radius: 50%; pointer-events: none;
   border: 1.5px solid var(--accent); animation: pulse-ring 2.2s ease-out infinite;
 }
-:host(.critical) .sonar { border-color: var(--red); animation-duration: 1.2s; }
 
 .stem {
   flex-shrink: 0; width: 1.5px; box-shadow: 0 0 4px color-mix(in srgb, var(--accent) 40%, transparent);

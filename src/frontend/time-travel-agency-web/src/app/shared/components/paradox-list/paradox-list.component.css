@@ -10,3 +10,5 @@
 .new { font-size: 10px; padding: 1px 7px; }
 .meta { font-size: 12px; color: var(--text-faint); margin-top: 3px; }
 .description { margin: 10px 0 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+.side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.solved-by { margin: 8px 0 0; font-size: 12px; color: var(--green); }
