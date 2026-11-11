@@ -1,0 +1,77 @@
+@switch (state.role()) {
+  @case ('customer') {
+    <div class="card panel">
+      @if (justBooked()) {
+        <div class="confirm" aria-live="polite">
+          <div class="confirm-ring"><span class="confirm-check">✓</span></div>
+          <div class="display confirm-title">Journey Booked</div>
+          <div class="mono confirm-sub">TEMPORAL SEAT CONFIRMED</div>
+        </div>
+      }
+
+      @switch (booking()) {
+        @case ('booked') {
+          <button type="button" class="btn btn--block" disabled><span class="ok">✓</span> Already booked</button>
+          <p class="note">See all your trips under <a routerLink="/profile">My Journeys</a>.</p>
+        }
+        @case ('boarding') {
+          <button type="button" class="btn btn--block warn" disabled>Boarding closed</button>
+          <p class="note warn-text">Departing within the hour — bookings are locked.</p>
+        }
+        @case ('departed') {
+          <button type="button" class="btn btn--block" disabled>Trip departed</button>
+          <p class="note">This excursion has already left.</p>
+        }
+        @case ('unavailable') {
+          <button type="button" class="btn btn--block" disabled>Unavailable</button>
+          <p class="note">This trip is {{ trip().tripStatus.toLowerCase() }} and cannot be booked.</p>
+        }
+        @case ('bookable') {
+          <button type="button" class="btn btn--primary btn--block" [disabled]="busy()" (click)="book()">
+            {{ busy() ? 'Booking…' : state.currentCustomer() ? 'Book this trip' : 'Sign in to book' }}
+          </button>
+          <p class="note">Bookings close 1 hour before departure.</p>
+        }
+      }
+    </div>
+  }
+
+  @case ('agent') {
+    <div class="card panel">
+      <div class="panel-label">Field console</div>
+      @if (agentRole(); as role) {
+        <p class="note left">You are the <strong>{{ role.toLowerCase() }}</strong> on this trip.</p>
+        <a class="btn btn--primary btn--block" routerLink="/missions" [queryParams]="{ trip: trip().guid }">File a field report</a>
+      } @else {
+        <p class="note left">You are not assigned to this trip.</p>
+      }
+    </div>
+  }
+
+  @case ('manager') {
+    @if (canManage()) {
+      <div class="card panel">
+        <div class="panel-label">Manager actions</div>
+        @if (trip().agentId) {
+          <p class="note left">A support agent is assigned. Paradox statuses can be changed in the log on the left.</p>
+        } @else {
+          <button type="button" class="btn btn--outline-gold btn--block" (click)="assignAgent.emit()">Assign support agent</button>
+        }
+      </div>
+    }
+  }
+
+  @case ('time') {
+    <div class="card panel time">
+      <div class="panel-label">Simulation</div>
+      <button type="button" class="btn btn--danger btn--block" [disabled]="busy()" (click)="introduceParadox()">
+        {{ busy() ? 'Fracturing…' : '⚡ Introduce paradox here' }}
+      </button>
+      <p class="note">Interval and auto-generation are controlled in <a routerLink="/loom">The Loom</a>.</p>
+    </div>
+  }
+}
+
+@if (error()) {
+  <p class="form-error">{{ error() }}</p>
+}

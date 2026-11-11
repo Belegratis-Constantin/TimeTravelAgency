@@ -1,4 +1,6 @@
-import { TripDto } from './trip.model';
+import { AddressDto, TripDto } from './trip.model';
+
+export type AgentType = 'Agent' | 'LicensedAgent';
 
 export interface EpochDto {
   id: number;
@@ -14,8 +16,22 @@ export interface AgentDto {
   lastname: string;
   dateOfBirth: string;
   specialisationTime: number;
-  agentType: string;
+  agentType: AgentType;
   managerId: number | null;
   specialisationEpochId: EpochDto | null;
   trips: TripDto[];
+}
+
+export interface CreateAgentCmd {
+  firstname: string;
+  lastname: string;
+  dateOfBirth: string;
+  specialisationTime: number;
+  managerId: number | null;
+  address: AddressDto;
+}
+
+export interface UpgradeAgentCmd {
+  licenseNumber: number;
+  licenseExpirationDate: string;
 }

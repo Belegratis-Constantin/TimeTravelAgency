@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TimeTravelAgency.Application.Cmd;
 using TimeTravelAgency.Application.Dto;
-using TimeTravelAgency.Application.Infrastructure;
 using TimeTravelAgency.Application.Service;
 
 namespace TimeTravelAgency.Application.Controller;
@@ -10,28 +9,27 @@ namespace TimeTravelAgency.Application.Controller;
 [Route("api/[controller]")]
 public class ParadoxController : ControllerBase
 {
-    private readonly TimeTravelAgencyContext _context;
     private readonly ParadoxService _paradoxService;
+    private readonly ParadoxSimulationState _simulation;
 
-    public ParadoxController(TimeTravelAgencyContext context)
+    public ParadoxController(ParadoxService paradoxService, ParadoxSimulationState simulation)
     {
-        _context = context;
-        _paradoxService = new ParadoxService(context);
+        _paradoxService = paradoxService;
+        _simulation = simulation;
     }
 
+    /// <summary>All paradoxes, newest first, with the context of the trip they belong to.</summary>
+    [HttpGet]
+    public ActionResult<List<ParadoxFeedDto>> GetAll() => Ok(_paradoxService.GetFeed());
+
     [HttpPost("trip/{tripGuid}")]
-    public IActionResult AddParadox(Guid tripGuid)
+    public ActionResult<SpawnParadoxResultDto> AddParadox(Guid tripGuid)
     {
         try
         {
-            var paradox = _paradoxService.AddParadoxToTrip(tripGuid);
-
-            var tripAfter = _context.Trips.FirstOrDefault(t => t.Guid == tripGuid);
-            return Ok(new
-            {
-                paradox = new ParadoxDto(paradox.Guid, paradox.ParadoxStatus.ToString(), paradox.ParadoxType.ToString()),
-                tripBecameCritical = tripAfter?.TripType == "CriticalTrip"
-            });
+            var result = _paradoxService.AddParadoxToTrip(tripGuid);
+            _simulation.RecordSpawn();
+            return Ok(result);
         }
         catch (ArgumentException ex)
         {

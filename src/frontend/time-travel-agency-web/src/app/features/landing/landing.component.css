@@ -1,0 +1,13 @@
+.hero {
+  padding: 80px var(--page-gutter) 60px; text-align: center; border-bottom: 1px solid var(--surface);
+  background: radial-gradient(ellipse at 50% -10%, rgba(201, 168, 76, 0.1), transparent 60%);
+}
+.kicker { color: var(--gold); font-size: 11px; letter-spacing: 0.3em; margin-bottom: 22px; }
+.headline { font-weight: 400; font-style: italic; font-size: clamp(38px, 6vw, 58px); line-height: 1.12; margin-bottom: 20px; }
+.lede { color: var(--text-muted); font-size: 16px; max-width: 460px; margin: 0 auto 32px; }
+.hero-actions { justify-content: center; gap: 14px; }
+.toolbar { margin-bottom: 28px; gap: 16px; }
+.section-heading { font-size: 22px; }
+.filters { gap: 12px; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); cursor: pointer; }
+.span-all { grid-column: 1 / -1; }

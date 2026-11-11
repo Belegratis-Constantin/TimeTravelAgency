@@ -1,107 +1,83 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal, HostListener } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { AgentService } from '../../../core/services/agent.service';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ManagerService } from '../../../core/services/manager.service';
-import { AgentDto } from '../../../core/models/agent.model';
+import { toErrorMessage } from '../../../core/http/error-message';
+import { TripDto } from '../../../core/models/trip.model';
 import { AppStateService } from '../../../state/app-state.service';
-import { agentFullName } from '../../../shared/utils/status.utils';
+import { AgencyStore } from '../../../state/agency.store';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
+import { agentTypeLabel, fullName, tripDisplayName } from '../../../shared/utils/status.utils';
 
+/** Assigns a support agent (one of the manager's own agents) to a trip. */
 @Component({
   selector: 'app-assign-agent-modal',
-  standalone: true,
-  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule, ModalComponent, FormFieldComponent],
   template: `
-    <div (click)="onBackdropClick($event)"
-         style="position:fixed;inset:0;background:rgba(5,7,12,0.75);display:flex;
-                align-items:center;justify-content:center;z-index:50;">
-      <div (click)="$event.stopPropagation()" style="background:#1E2A3A;border-radius:6px;padding:36px 40px;width:400px;
-                  box-shadow:0 30px 80px rgba(0,0,0,0.5);">
-        <div style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:6px;">
-          Reassign Licensed Agent
-        </div>
-        <div style="font-size:13px;color:#C9A84C;margin-bottom:24px;">{{ tripName }}</div>
+    <app-modal title="Assign Support Agent" [subtitle]="tripName()" [width]="420" (closed)="closed.emit()">
+      @if (candidates().length === 0) {
+        <p class="empty-hint">None of your agents is available. Recruit an agent first.</p>
+      } @else {
+        <form id="assign-form" (ngSubmit)="submit()">
+          <app-form-field label="Agent" [control]="agent" for="assign-agent"
+                          hint="Only agents managed by you can be assigned. The licensed agent of the trip is excluded.">
+            <select class="select" id="assign-agent" [formControl]="agent">
+              <option value="">Select an agent…</option>
+              @for (a of candidates(); track a.guid) {
+                <option [value]="a.guid">{{ a.name }} ({{ a.type }})</option>
+              }
+            </select>
+          </app-form-field>
+        </form>
+      }
 
-        <select [(ngModel)]="selectedAgentGuid"
-                style="width:100%;background:#0B1120;border:1px solid #2E3E54;color:#F0EDE6;
-                       padding:11px 14px;border-radius:3px;font-size:13.5px;margin-bottom:28px;">
-          <option value="">Select an agent…</option>
-          @for (agent of agents(); track agent.guid) {
-            <option [value]="agent.guid">{{ fullName(agent) }}</option>
-          }
-        </select>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
 
-        @if (errorMsg()) {
-          <div style="color:#E05A4E;font-size:12px;margin-bottom:16px;">{{ errorMsg() }}</div>
-        }
-
-        <div style="display:flex;justify-content:flex-end;gap:12px;">
-          <button (click)="cancelled.emit()"
-                  style="background:transparent;border:1px solid #2E3E54;color:#B7BFCC;
-                         font-size:13.5px;padding:10px 20px;border-radius:3px;cursor:pointer;">
-            Cancel
-          </button>
-          <button (click)="submit()" [disabled]="submitting()"
-                  style="background:#C9A84C;border:none;color:#0B1120;font-weight:600;
-                         font-size:13.5px;padding:10px 22px;border-radius:3px;cursor:pointer;">
-            {{ submitting() ? 'Saving…' : 'Save' }}
-          </button>
-        </div>
+      <div modal-actions>
+        <button type="button" class="btn" (click)="closed.emit()">Cancel</button>
+        <button type="submit" form="assign-form" class="btn btn--primary" [disabled]="submitting() || candidates().length === 0">
+          {{ submitting() ? 'Assigning…' : 'Assign' }}
+        </button>
       </div>
-    </div>
+    </app-modal>
   `,
 })
-export class AssignAgentModalComponent implements OnInit {
-  @Input({ required: true }) tripGuid!: string;
-  @Input() tripName = '';
-  @Output() assigned = new EventEmitter<void>();
-  @Output() cancelled = new EventEmitter<void>();
+export class AssignAgentModalComponent {
+  readonly trip = input.required<TripDto>();
+  readonly assigned = output<void>();
+  readonly closed = output<void>();
 
-  private readonly agentService = inject(AgentService);
-  private readonly managerService = inject(ManagerService);
+  private readonly api = inject(ManagerService);
   private readonly state = inject(AppStateService);
+  private readonly agency = inject(AgencyStore);
 
-  readonly agents = signal<AgentDto[]>([]);
-  readonly submitting = signal(false);
-  readonly errorMsg = signal('');
+  protected readonly submitting = signal(false);
+  protected readonly error = signal<string | null>(null);
+  protected readonly agent = new FormControl('', { nonNullable: true, validators: [Validators.required] });
 
-  selectedAgentGuid = '';
+  protected readonly tripName = computed(() => tripDisplayName(this.trip()));
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void { this.cancelled.emit(); }
+  protected readonly candidates = computed(() => {
+    const managerId = this.state.currentManager()?.id;
+    return this.agency.agents()
+      .filter(a => a.managerId === managerId && a.id !== this.trip().licensedAgentId)
+      .map(a => ({ guid: a.guid, name: fullName(a), type: agentTypeLabel(a.agentType) }));
+  });
 
-  onBackdropClick(e: MouseEvent): void {
-    if (e.target === e.currentTarget) this.cancelled.emit();
-  }
-
-  ngOnInit(): void {
-    this.agentService.getAll().subscribe(a => this.agents.set(a));
-  }
-
-  fullName(agent: AgentDto): string {
-    return agentFullName(agent);
-  }
-
-  submit(): void {
-    if (!this.selectedAgentGuid) {
-      this.errorMsg.set('Please select an agent.');
+  protected submit(): void {
+    const manager = this.state.currentManager();
+    if (this.agent.invalid || !manager) {
+      this.agent.markAsTouched();
       return;
     }
-    const managerGuid = this.state.currentManager()?.guid;
-    if (!managerGuid) {
-      this.errorMsg.set('No manager selected.');
-      return;
-    }
-
     this.submitting.set(true);
-    this.errorMsg.set('');
-    this.managerService.assignAgent(managerGuid, this.selectedAgentGuid, this.tripGuid).subscribe({
-      next: () => {
+    this.error.set(null);
+    this.api.assignAgent(manager.guid, this.agent.value, this.trip().guid).subscribe({
+      next: () => this.assigned.emit(),
+      error: err => {
         this.submitting.set(false);
-        this.assigned.emit();
-      },
-      error: (err) => {
-        this.submitting.set(false);
-        this.errorMsg.set(err?.error ?? 'Assignment failed.');
+        this.error.set(toErrorMessage(err, 'Assignment failed.'));
       },
     });
   }

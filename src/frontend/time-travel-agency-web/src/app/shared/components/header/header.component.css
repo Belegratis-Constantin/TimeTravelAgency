@@ -1,0 +1,39 @@
+.bar {
+  position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+  padding: 18px var(--page-gutter); background: var(--bg); border-bottom: 1px solid var(--surface);
+}
+.brand { font-size: 19px; font-weight: 500; letter-spacing: 0.02em; color: var(--text); }
+.brand em { color: var(--gold); }
+.brand:hover { color: var(--text); }
+.nav { display: flex; gap: 28px; flex-wrap: wrap; flex: 1; }
+.nav-link { font-size: 13.5px; color: var(--text-2); padding-bottom: 4px; border-bottom: 2px solid transparent; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--gold); border-bottom-color: var(--gold); }
+.tools { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+
+.paradox-counter { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.paradox-counter .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.paradox-counter.alert { color: var(--red); }
+.paradox-counter.alert .dot { background: var(--red); animation: pulseGlow 2s infinite; }
+
+.role { position: relative; }
+.role-trigger {
+  display: flex; align-items: center; gap: 8px; font-size: 13px; background: var(--surface);
+  border: 1px solid var(--border); padding: 8px 14px; border-radius: 3px; cursor: pointer;
+}
+.role-trigger.time { border-color: rgba(176, 110, 232, 0.5); }
+.role-label { color: var(--text-faint); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.caret { color: var(--gold); font-size: 10px; }
+.role-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); width: 200px; margin: 0; padding: 0; list-style: none;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 3px; box-shadow: var(--shadow-overlay);
+  overflow: hidden; z-index: 40;
+}
+.role-item {
+  display: flex; justify-content: space-between; width: 100%; padding: 12px 16px; font-size: 13px; text-align: left;
+  background: none; border: none; border-bottom: 1px solid var(--border-subtle); cursor: pointer;
+}
+.role-item:hover { background: var(--border-subtle); }
+.role-item.time { color: var(--violet); border-bottom: none; }
+.role-item.current { color: var(--gold); }
+.check { color: var(--gold); }

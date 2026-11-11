@@ -1,121 +1,58 @@
-import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
-import { TripService } from '../../core/services/trip.service';
-import { AgentService } from '../../core/services/agent.service';
-import { CustomerService } from '../../core/services/customer.service';
-import { AppStateService } from '../../state/app-state.service';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TripDto } from '../../core/models/trip.model';
-import { AgentDto } from '../../core/models/agent.model';
-import { agentFullName, tripStatusMeta } from '../../shared/utils/status.utils';
-import { TripCardComponent } from './trip-card/trip-card.component';
-import { JoinTravellerModalComponent } from '../modals/join-traveller-modal/join-traveller-modal.component';
+import { AppStateService } from '../../state/app-state.service';
+import { AgencyStore } from '../../state/agency.store';
+import { ParadoxFeedStore } from '../../state/paradox-feed.store';
+import { TripCardComponent } from '../../shared/components/trip-card/trip-card.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { bookingState } from '../../shared/utils/booking.utils';
+import { tripDisplayName } from '../../shared/utils/status.utils';
+
+type SortOrder = 'soonest' | 'latest';
 
 @Component({
   selector: 'app-landing',
-  standalone: true,
-  imports: [TripCardComponent, RouterLink, JoinTravellerModalComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, TripCardComponent, EmptyStateComponent],
   templateUrl: './landing.component.html',
+  styleUrl: './landing.component.css',
 })
-export class LandingComponent implements OnInit {
-  private readonly tripService = inject(TripService);
-  private readonly agentService = inject(AgentService);
-  private readonly customerService = inject(CustomerService);
-  private readonly router = inject(Router);
+export class LandingComponent {
   protected readonly state = inject(AppStateService);
+  protected readonly agency = inject(AgencyStore);
+  protected readonly feed = inject(ParadoxFeedStore);
 
-  private readonly allTrips = signal<TripDto[]>([]);
-  private readonly agents = signal<AgentDto[]>([]);
-  readonly bookedTrips = signal<TripDto[]>([]);
+  protected readonly destination = signal('all');
+  protected readonly tripType = signal('all');
+  protected readonly sortOrder = signal<SortOrder>('soonest');
+  protected readonly bookableOnly = signal(false);
 
-  readonly filterEra = signal('all');
-  readonly filterType = signal('all');
-  readonly sortOrder = signal<'soonest' | 'latest'>('soonest');
-  readonly loading = signal(true);
-  readonly loadError = signal('');
+  protected readonly destinations = computed(() =>
+    [...new Set(this.agency.trips().map(tripDisplayName))].sort((a, b) => a.localeCompare(b)),
+  );
 
-  readonly agentMap = computed((): Map<number, string> => {
-    const map = new Map<number, string>();
-    this.agents().forEach(agent => map.set(agent.id, agentFullName(agent)));
-    return map;
+  protected readonly trips = computed((): TripDto[] => {
+    const destination = this.destination();
+    const type = this.tripType();
+    const customerGuid = this.state.currentCustomer()?.guid ?? null;
+    const direction = this.sortOrder() === 'soonest' ? 1 : -1;
+
+    return this.agency.trips()
+      .filter(t => destination === 'all' || tripDisplayName(t) === destination)
+      .filter(t => type === 'all' || t.tripType === type)
+      .filter(t => !this.bookableOnly() || bookingState(t, customerGuid) === 'bookable')
+      .sort((a, b) => direction * (Date.parse(a.dateInRealLife) - Date.parse(b.dateInRealLife)));
   });
 
-  readonly eraOptions = computed(() => {
-    return [...new Set(this.allTrips().map(t => t.tripName ?? 'Uncatalogued'))];
-  });
-
-  readonly filteredTrips = computed((): TripDto[] => {
-    let trips = this.allTrips();
-
-    if (this.filterEra() !== 'all') {
-      trips = trips.filter(t => (t.tripName ?? 'Uncatalogued') === this.filterEra());
-    }
-    if (this.filterType() !== 'all') {
-      trips = trips.filter(t => t.tripType === this.filterType());
-    }
-
-    if (this.state.isAgent()) {
-      const agent = this.state.currentAgent();
-      if (agent) {
-        trips = trips.filter(t => t.licensedAgentId === agent.id || t.agentId === agent.id);
-      }
-    }
-
-    return [...trips].sort((a, b) => {
-      const tA = new Date(a.dateInRealLife).getTime();
-      const tB = new Date(b.dateInRealLife).getTime();
-      return this.sortOrder() === 'soonest' ? tA - tB : tB - tA;
-    });
-  });
-
-  readonly landingTitle = computed(() => {
-    if (this.state.isAgent()) return 'Your Assigned Trips';
-    if (this.state.isManager()) return 'All Trips — Overview';
-    return 'Upcoming Departures';
-  });
-
-  ngOnInit(): void {
-    forkJoin({
-      trips: this.tripService.getAll(),
-      agents: this.agentService.getAll(),
-    }).subscribe({
-      next: ({ trips, agents }) => {
-        this.allTrips.set(trips);
-        this.agents.set(agents);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loadError.set('Could not load trips — is the backend running?');
-        this.loading.set(false);
-      },
-    });
-
-    const customerGuid = this.state.currentCustomer()?.guid;
-    if (customerGuid) {
-      this.customerService.getTrips(customerGuid).subscribe({
-        next: trips => this.bookedTrips.set(trips),
-        error: () => {},
-      });
-    }
+  protected isBooked(trip: TripDto): boolean {
+    const guid = this.state.currentCustomer()?.guid;
+    return !!guid && trip.customers.some(c => c.guid === guid);
   }
 
-  statusMeta(status: string) { return tripStatusMeta(status); }
-
-  agentNameForTrip(trip: TripDto): string {
-    return this.agentMap().get(trip.licensedAgentId) ?? `Agent #${trip.licensedAgentId}`;
-  }
-
-  navigateToTrip(guid: string): void {
-    this.router.navigate(['/trip', guid]);
-  }
-
-  readonly showJoinModal = signal(false);
-
-  scrollToGrid(): void {
-    document.querySelector('[data-trip-grid]')?.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  onJoined(): void {
-    this.showJoinModal.set(false);
+  protected resetFilters(): void {
+    this.destination.set('all');
+    this.tripType.set('all');
+    this.bookableOnly.set(false);
   }
 }

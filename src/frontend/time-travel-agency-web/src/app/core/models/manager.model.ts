@@ -13,6 +13,14 @@ export interface ManagerWithIdDto extends ManagerDto {
   id: number;
 }
 
+export interface CreateManagerCmd {
+  firstname: string;
+  lastname: string;
+  email: string;
+  phoneNumber: string;
+  address: AddressDto;
+}
+
 export interface CreateTripByManagerCmd {
   dateInRealLife: string;
   tripName: string | null;

@@ -1,0 +1,168 @@
+<div class="backdrop" (click)="onBackdropClick($event)">
+  <section class="card" role="dialog" aria-modal="true" aria-label="Agency briefing">
+    <div class="strip"></div>
+    <button type="button" class="skip" (click)="dismiss()">Skip tutorial ×</button>
+    <div class="step-label">BRIEFING {{ ('0' + step()).slice(-2) }}/0{{ totalSteps }}</div>
+
+    <div class="step">
+      @switch (step()) {
+        @case (1) {
+          <div class="stage">
+            <div class="hexgrid"></div>
+            <div class="glow"></div>
+            <svg class="clock" width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="#C9A84C" stroke-opacity="0.15" stroke-width="1" />
+              <circle class="spin spin--40" cx="60" cy="60" r="46" fill="none" stroke="#C9A84C" stroke-opacity="0.25" stroke-width="1" />
+              <circle cx="60" cy="60" r="38" fill="none" stroke="#C9A84C" stroke-opacity="0.4" stroke-width="1.5" />
+              @for (tick of clockTicks; track tick) {
+                <line [attr.x1]="60 + 33 * Math.cos(tick)" [attr.y1]="60 + 33 * Math.sin(tick)"
+                      [attr.x2]="60 + 38 * Math.cos(tick)" [attr.y2]="60 + 38 * Math.sin(tick)"
+                      stroke="#C9A84C" stroke-opacity="0.5" stroke-width="1.5" />
+              }
+              <line class="spin spin--12" x1="60" y1="60" x2="60" y2="36" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" />
+              <line class="spin spin--2" x1="60" y1="60" x2="60" y2="26" stroke="#F0EDE6" stroke-width="1.5" stroke-linecap="round" />
+              <circle cx="60" cy="60" r="4" fill="#C9A84C" />
+              <circle cx="60" cy="60" r="2" fill="#F0EDE6" />
+              <circle class="svg-pulse" cx="60" cy="60" r="8" fill="none" stroke="#C9A84C" stroke-opacity="0.6" stroke-width="1" />
+              <circle class="svg-pulse delay-1" cx="60" cy="60" r="8" fill="none" stroke="#C9A84C" stroke-opacity="0.4" stroke-width="1" />
+            </svg>
+          </div>
+          <h2 class="title">Welcome to the Agency</h2>
+          <p class="text">
+            You have arrived at the only travel bureau licensed to sell passage across time itself —
+            from the <strong>Deep Past</strong> to the <strong>Far Future</strong>. Every destination is real history;
+            every journey risks a paradox.
+          </p>
+          <p class="text text--follow">
+            This is a role-play demonstration. You will explore a fully working booking system —
+            trips, agents, managers, and the cosmic entity that watches over all of them.
+          </p>
+        }
+
+        @case (2) {
+          <div class="stage stage--chips">
+            <div class="chips">
+              @for (chip of roleChips; track chip.name; let ci = $index) {
+                <button type="button" class="chip" [class.active]="activeRoleChip() === ci" (click)="selectRoleChip(ci)">
+                  @if (activeRoleChip() === ci) { <span class="chip-strip"></span> }
+                  <span class="chip-icon">{{ chip.icon }}</span>
+                  <span class="chip-name">{{ chip.name }}</span>
+                  <span class="chip-mono">{{ chip.mono }}</span>
+                </button>
+              }
+            </div>
+          </div>
+          <div class="pointer" aria-hidden="true">Role menu ↑ <span class="arrow"></span></div>
+
+          <h2 class="title">Choose a Perspective</h2>
+          <p class="text">
+            This is a role-play. Use the <strong>Role</strong> dropdown in the header to become any of five personas —
+            each unlocks its own pages and powers. Tap a card above to see what each can do.
+          </p>
+          <div class="role-desc">
+            <div class="role-desc-head">{{ roleChips[activeRoleChip()].mono }} — {{ roleChips[activeRoleChip()].name.toUpperCase() }}</div>
+            <div class="role-desc-text">{{ roleChips[activeRoleChip()].desc }}</div>
+          </div>
+          <div class="tip">
+            TIP — Customer, Agent, Manager &amp; Director need a real identity selected from the roster.
+            Time Itself needs none — it enters directly.
+          </div>
+        }
+
+        @case (3) {
+          <div class="stage">
+            <div class="mock">
+              <div class="mock-band">
+                <span class="mock-icon">🏛</span>
+                <span class="mock-era">ANCIENT ROME · 79 AD</span>
+                <span class="mock-line"></span>
+              </div>
+              <div class="mock-body">
+                <div class="mock-name">The Vesuvius Vantage</div>
+                <div class="mock-date">Departs 15 Aug 2027</div>
+                <div class="mock-foot">
+                  <span class="mock-cta">BOOK PASSAGE</span>
+                  <span class="mock-status"><span class="dot-green"></span>Active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h2 class="title">Every Era, Bookable</h2>
+          <p class="text">
+            The landing grid lists trips spanning all of recorded — and unrecorded — history.
+            Filter by destination, open any trip for its full itinerary, then <strong>book your seat</strong> before departure closes.
+          </p>
+          <p class="text text--follow">
+            Time does not stand still: paradoxes appear on trips while the agency is running.
+            Trips with 3 or more paradoxes are classified as <strong class="red">Critical</strong>.
+          </p>
+        }
+
+        @case (4) {
+          <div class="stage">
+            <div class="glow glow--soft"></div>
+            <svg class="river" viewBox="0 0 500 160" aria-hidden="true">
+              <path d="M30,120 C140,40 360,150 470,60" fill="none" stroke="#C9A84C" stroke-opacity="0.12" stroke-width="10" />
+              <path d="M30,120 C140,40 360,150 470,60" fill="none" stroke="#C9A84C" stroke-opacity="0.3" stroke-width="3" />
+              <path class="dash" d="M30,120 C140,40 360,150 470,60" fill="none" stroke="#F0EDE6" stroke-opacity="0.6"
+                    stroke-width="1.5" stroke-dasharray="20 480" />
+              <text x="18" y="138" class="svg-label">DEEP PAST</text>
+              <text x="390" y="50" class="svg-label">FAR FUTURE</text>
+              @for (b of beacons; track b.label) {
+                <g>
+                  <circle class="beacon-ring" [attr.cx]="b.x" [attr.cy]="b.y" r="14" fill="none" [attr.stroke]="b.color"
+                          stroke-opacity="0.2" [style.transform-origin]="b.x + 'px ' + b.y + 'px'" [style.animation-delay.s]="b.delay" />
+                  <circle class="beacon-core" [attr.cx]="b.x" [attr.cy]="b.y" r="7" [attr.fill]="b.color" opacity="0.9"
+                          [style.animation-delay.s]="b.delay * 1.25" />
+                  <text [attr.x]="b.x" [attr.y]="b.y - 17" text-anchor="middle" class="svg-label svg-label--beacon" [attr.fill]="b.color">{{ b.label }}</text>
+                </g>
+              }
+            </svg>
+          </div>
+          <h2 class="title">Walk the Continuum</h2>
+          <p class="text">
+            The <strong>Continuum</strong> is our timeline observatory — a horizontal river of history where every trip
+            glows as a holographic beacon. Drift from the Deep Past to the Far Future and open any beacon's boarding card.
+          </p>
+          <p class="text text--follow">
+            Available as a <strong>Customer</strong> from the top navigation.
+            Era-colored plasma conduits carry you through 7 distinct historical zones.
+          </p>
+        }
+
+        @case (5) {
+          <div class="stage">
+            <div class="glow glow--strong"></div>
+            <div class="ring"></div>
+            <div class="ring delay-1"></div>
+            <div class="glyph">⧗</div>
+          </div>
+          <h2 class="title">Set Your Departure</h2>
+          <p class="text">
+            History is waiting. Choose a role from the header dropdown to step fully into the Agency —
+            or browse as a guest right now. No identity required to explore the destination catalogue.
+          </p>
+          <div class="ctas">
+            <button type="button" class="btn-primary" (click)="dismiss()">Start Exploring →</button>
+            <button type="button" class="btn-ghost" (click)="dismiss()">Choose a role first</button>
+          </div>
+        }
+      }
+    </div>
+
+    <footer class="footer" [class.footer--last]="step() === totalSteps">
+      @if (step() < totalSteps) {
+        <button type="button" class="btn-ghost" [class.hidden]="step() === 1" (click)="back()">← Back</button>
+      }
+      <div class="dots" role="tablist" aria-label="Briefing steps">
+        @for (n of steps; track n) {
+          <button type="button" class="dot" role="tab" [class.current]="step() === n" [class.done]="step() > n"
+                  [attr.aria-selected]="step() === n" [attr.aria-label]="'Step ' + n" (click)="goTo(n)"></button>
+        }
+      </div>
+      @if (step() < totalSteps) {
+        <button type="button" class="btn-primary" (click)="next()">Next →</button>
+      }
+    </footer>
+  </section>
+</div>

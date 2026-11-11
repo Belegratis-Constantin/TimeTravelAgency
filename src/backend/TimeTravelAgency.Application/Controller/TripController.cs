@@ -43,6 +43,7 @@ public class TripController : ControllerBase
     public async Task<ActionResult<List<TripDto>>> GetAllTrips()
     {
         var trips = await _context.Trips
+            .Include(t => t.Manager)
             .Include(t => t.Paradoxes)
             .Include(t => t.Reports)
             .Include(t => t.Reviews)
@@ -91,7 +92,7 @@ public class TripController : ControllerBase
                 r.Guid,
                 r.Stars,
                 r.Header,
-                r.Content)).ToList(), trip.AgentId)).ToList();
+                r.Content)).ToList(), trip.AgentId, trip.Manager.Guid)).ToList();
 
         return Ok(tripsDto);
     }
@@ -154,7 +155,7 @@ public class TripController : ControllerBase
                 r.Guid,
                 r.Stars,
                 r.Header,
-                r.Content)).ToList(), trip.AgentId);
+                r.Content)).ToList(), trip.AgentId, trip.Manager.Guid);
 
         return Ok(tripDto);
     }

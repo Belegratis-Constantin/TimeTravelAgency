@@ -1,21 +1,22 @@
-import { Component, Input } from '@angular/core';
-import { tripStatusMeta, paradoxMeta, StatusMeta } from '../../utils/status.utils';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { paradoxMeta, StatusMeta, tripStatusMeta, tripTypeMeta } from '../../utils/status.utils';
+
+export type BadgeKind = 'trip' | 'tripType' | 'paradox';
 
 @Component({
   selector: 'app-status-badge',
-  standalone: true,
-  template: `
-    <span [style.background]="meta.bg" [style.color]="meta.color"
-          style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;display:inline-block;">
-      {{ meta.label }}
-    </span>
-  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<span class="badge" [class]="'badge--' + meta().tone">{{ meta().label }}</span>`,
 })
 export class StatusBadgeComponent {
-  @Input() status = '';
-  @Input() type: 'trip' | 'paradox' = 'trip';
+  readonly status = input.required<string>();
+  readonly kind = input<BadgeKind>('trip');
 
-  get meta(): StatusMeta {
-    return this.type === 'paradox' ? paradoxMeta(this.status) : tripStatusMeta(this.status);
-  }
+  protected readonly meta = computed((): StatusMeta => {
+    switch (this.kind()) {
+      case 'paradox': return paradoxMeta(this.status());
+      case 'tripType': return tripTypeMeta(this.status());
+      default: return tripStatusMeta(this.status());
+    }
+  });
 }

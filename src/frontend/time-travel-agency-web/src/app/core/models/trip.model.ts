@@ -1,3 +1,7 @@
+import { ParadoxDto } from './paradox.model';
+
+export type { ParadoxDto } from './paradox.model';
+
 export interface AddressDto {
   street: string;
   city: string;
@@ -9,12 +13,6 @@ export interface ReviewDto {
   stars: number;
   header: string;
   content: string | null;
-}
-
-export interface ParadoxDto {
-  guid: string;
-  paradoxStatus: string;
-  paradoxType: string;
 }
 
 export interface ReportDto {
@@ -35,12 +33,16 @@ export interface CustomerDto {
   reviews: ReviewDto[];
 }
 
+/** TPH discriminator values sent by the backend. */
+export type TripType = 'Trip' | 'CriticalTrip';
+export type TripStatus = 'Active' | 'Completed' | 'Cancelled';
+
 export interface TripDto {
   guid: string;
   dateInRealLife: string;
   tripName: string | null;
-  tripType: string;
-  tripStatus: string;
+  tripType: TripType;
+  tripStatus: TripStatus;
   licensedAgentId: number;
   managerId: number;
   paradoxes: ParadoxDto[];
@@ -49,4 +51,18 @@ export interface TripDto {
   reviews: ReviewDto[];
   agentId: number | null;
   managerGuid: string | null;
+}
+
+export interface CreateCustomerCmd {
+  firstname: string;
+  lastname: string;
+  email: string;
+  phoneNumber: string;
+  dateOfBirth: string;
+  address: AddressDto;
+}
+
+export interface CreateReportCmd {
+  header: string;
+  content: string | null;
 }

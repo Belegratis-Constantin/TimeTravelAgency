@@ -1,92 +1,77 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { TripService } from '../../core/services/trip.service';
-import { TripDto, ParadoxDto } from '../../core/models/trip.model';
-import { paradoxMeta, paradoxTypeLabel } from '../../shared/utils/status.utils';
-import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { PARADOX_STATUSES, ParadoxStatus } from '../../core/models/paradox.model';
+import { AppStateService } from '../../state/app-state.service';
+import { ParadoxFeedStore } from '../../state/paradox-feed.store';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { ParadoxListComponent } from '../../shared/components/paradox-list/paradox-list.component';
+import { isOpenParadox, paradoxMeta, paradoxTypeLabel, PARADOX_TYPES } from '../../shared/utils/status.utils';
 
-interface ParadoxRow {
-  tripName: string;
-  paradoxType: string;
-  paradoxStatus: string;
-}
+type StatusFilter = 'open' | 'all' | ParadoxStatus;
 
+/** Live, cross-trip paradox log. Managers work their own trips' paradoxes; the director observes all. */
 @Component({
   selector: 'app-paradox-log',
-  standalone: true,
-  imports: [StatusBadgeComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [PageHeaderComponent, ParadoxListComponent],
   template: `
-    <div style="max-width:1200px;margin:0 auto;padding:40px 56px 100px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;
-                  margin-bottom:8px;flex-wrap:wrap;gap:12px;">
-        <div style="font-family:'Fraunces',serif;font-size:28px;">Paradox Log</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8A93A6;
-                    background:#1E2A3A;border:1px solid #2A3A50;padding:8px 14px;border-radius:20px;">
-          🔒 Records are immutable — none may be deleted or altered once filed
-        </div>
+    <div class="page page--narrow">
+      <app-page-header title="Paradox Log" [eyebrow]="state.isManager() ? 'Your trips' : 'All trips'"
+                       subtitle="Records are append-only: a paradox can be resolved, but never deleted. New incidents appear live.">
+        <span class="badge badge--neutral">🔒 Immutable records</span>
+      </app-page-header>
+
+      <div class="row filters" role="group" aria-label="Filter by status">
+        @for (f of statusFilters(); track f.value) {
+          <button type="button" class="chip" [class.active]="status() === f.value" (click)="status.set(f.value)">
+            {{ f.label }} <span class="count">{{ f.count }}</span>
+          </button>
+        }
+        <label class="sr-only" for="type-filter">Paradox type</label>
+        <select id="type-filter" class="select select--compact" [value]="type()" (change)="type.set($any($event.target).value)">
+          <option value="all">All types</option>
+          @for (t of types; track t) { <option [value]="t">{{ typeLabel(t) }}</option> }
+        </select>
       </div>
-      <div style="color:#6B7488;font-size:13.5px;margin-bottom:32px;">
-        Every recorded incident across all trips, permanently retained for institutional review.
-      </div>
 
-      @if (loading()) {
-        <div style="color:#6B7488;padding:40px 0;">Loading paradox records…</div>
-      }
-      @if (loadError()) {
-        <div style="color:#E05A4E;padding:40px 0;font-size:13.5px;">{{ loadError() }}</div>
-      }
-
-      @if (!loading()) {
-        <div style="background:#1E2A3A;border-radius:4px;overflow:hidden;">
-          <div style="display:grid;grid-template-columns:1.8fr 1.6fr 1fr 0.4fr;
-                      padding:14px 22px;font-size:11px;color:#6B7488;letter-spacing:0.08em;
-                      text-transform:uppercase;border-bottom:1px solid #2A3A50;">
-            <span>Trip</span><span>Paradox Type</span><span>Status</span><span></span>
-          </div>
-
-          @for (row of rows(); track row.tripName + row.paradoxType) {
-            <div style="display:grid;grid-template-columns:1.8fr 1.6fr 1fr 0.4fr;
-                        padding:16px 22px;align-items:center;border-bottom:1px solid #2A3A50;font-size:13.5px;">
-              <span style="font-weight:600;">{{ row.tripName }}</span>
-              <span style="color:#B7BFCC;">{{ row.paradoxType }}</span>
-              <app-status-badge [status]="row.paradoxStatus" type="paradox" />
-              <span style="color:#3E4E64;font-size:15px;" title="Immutable — cannot be deleted">🔒</span>
-            </div>
-          }
-
-          @if (rows().length === 0) {
-            <div style="padding:40px 22px;color:#6B7488;font-size:13.5px;font-style:italic;">
-              No paradox incidents on record.
-            </div>
-          }
-        </div>
-      }
+      <app-paradox-list [paradoxes]="filtered()" [showTrip]="true" [editable]="state.isManager()"
+                        [fresh]="feed.fresh()" [pending]="feed.pendingStatus()"
+                        (statusChange)="feed.changeStatus($event.paradox, $event.status)"
+                        emptyText="No paradoxes match this filter." />
     </div>
   `,
+  styles: `
+    .filters { margin-bottom: 24px; }
+    .chip { display: inline-flex; gap: 6px; align-items: center; padding: 6px 12px; border-radius: var(--radius-pill);
+            border: 1px solid var(--border); background: transparent; color: var(--text-2); font-size: 12.5px; cursor: pointer; }
+    .chip.active { border-color: var(--gold); color: var(--gold); }
+    .count { color: var(--text-faint); }
+  `,
 })
-export class ParadoxLogComponent implements OnInit {
-  private readonly tripService = inject(TripService);
+export class ParadoxLogComponent {
+  protected readonly state = inject(AppStateService);
+  protected readonly feed = inject(ParadoxFeedStore);
 
-  readonly loading = signal(true);
-  readonly loadError = signal('');
-  readonly rows = signal<ParadoxRow[]>([]);
+  protected readonly types = PARADOX_TYPES;
+  protected readonly typeLabel = paradoxTypeLabel;
+  protected readonly status = signal<StatusFilter>('open');
+  protected readonly type = signal('all');
 
-  ngOnInit(): void {
-    this.tripService.getAll().subscribe({
-      next: trips => {
-        const rows: ParadoxRow[] = trips.flatMap(t =>
-          t.paradoxes.map(p => ({
-            tripName: t.tripName ?? 'Uncatalogued',
-            paradoxType: paradoxTypeLabel(p.paradoxType),
-            paradoxStatus: p.paradoxStatus,
-          }))
-        );
-        this.rows.set(rows);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loadError.set('Could not load paradox records.');
-        this.loading.set(false);
-      },
-    });
-  }
+  protected readonly statusFilters = computed(() => {
+    const all = this.feed.scoped();
+    return [
+      { value: 'open' as StatusFilter, label: 'Open', count: all.filter(isOpenParadox).length },
+      { value: 'all' as StatusFilter, label: 'All', count: all.length },
+      ...PARADOX_STATUSES.map(s => ({
+        value: s as StatusFilter, label: paradoxMeta(s).label, count: all.filter(p => p.paradoxStatus === s).length,
+      })),
+    ];
+  });
+
+  protected readonly filtered = computed(() => {
+    const status = this.status();
+    const type = this.type();
+    return this.feed.scoped()
+      .filter(p => status === 'all' || (status === 'open' ? isOpenParadox(p) : p.paradoxStatus === status))
+      .filter(p => type === 'all' || p.paradoxType === type);
+  });
 }

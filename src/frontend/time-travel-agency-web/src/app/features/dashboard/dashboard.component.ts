@@ -1,25 +1,27 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { TripService } from '../../core/services/trip.service';
-import { AgentService } from '../../core/services/agent.service';
-import { ManagerService } from '../../core/services/manager.service';
-import { AppStateService } from '../../state/app-state.service';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { TripDto } from '../../core/models/trip.model';
-import { AgentDto } from '../../core/models/agent.model';
-import { StatsPanelComponent } from './stats-panel/stats-panel.component';
+import { AppStateService } from '../../state/app-state.service';
+import { AgencyStore } from '../../state/agency.store';
+import { ParadoxFeedStore } from '../../state/paradox-feed.store';
+import { NotificationService } from '../../state/notification.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { StatTile, StatTilesComponent } from '../../shared/components/stat-tile/stat-tile.component';
+import { isOpenParadox } from '../../shared/utils/status.utils';
 import { TripsTableComponent } from './trips-table/trips-table.component';
 import { AgentsPanelComponent } from './agents-panel/agents-panel.component';
 import { CreateTripModalComponent } from '../modals/create-trip-modal/create-trip-modal.component';
 import { AssignAgentModalComponent } from '../modals/assign-agent-modal/assign-agent-modal.component';
 import { CreateAgentModalComponent } from '../modals/create-agent-modal/create-agent-modal.component';
 import { PromoteAgentModalComponent } from '../modals/promote-agent-modal/promote-agent-modal.component';
-import { forkJoin, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+
+type DashboardModal = 'createTrip' | 'createAgent' | 'promoteAgent' | null;
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    StatsPanelComponent,
+    PageHeaderComponent,
+    StatTilesComponent,
     TripsTableComponent,
     AgentsPanelComponent,
     CreateTripModalComponent,
@@ -27,75 +29,79 @@ import { switchMap } from 'rxjs/operators';
     CreateAgentModalComponent,
     PromoteAgentModalComponent,
   ],
-  templateUrl: './dashboard.component.html',
+  template: `
+    <div class="page">
+      <app-page-header eyebrow="Manager dashboard" [title]="state.displayName()"
+                       subtitle="Your trips, your team and the paradoxes threatening them.">
+        <button type="button" class="btn" (click)="modal.set('createAgent')">+ Recruit agent</button>
+        <button type="button" class="btn" (click)="modal.set('promoteAgent')">↑ Grant licence</button>
+        <button type="button" class="btn btn--primary" (click)="modal.set('createTrip')">+ Create trip</button>
+      </app-page-header>
+
+      @if (agency.initialLoading()) {
+        <p class="state-msg">Loading dashboard…</p>
+      } @else {
+        <app-stat-tiles [tiles]="stats()" />
+
+        <section class="section">
+          <h2 class="section-title">Your trips</h2>
+          <app-trips-table [trips]="agency.scopedTrips()" (assign)="assignTrip.set($event)" />
+        </section>
+
+        <section class="section">
+          <h2 class="section-title">Your team</h2>
+          <app-agents-panel [agents]="team()" [trips]="agency.trips()" />
+        </section>
+      }
+    </div>
+
+    @switch (modal()) {
+      @case ('createTrip') {
+        <app-create-trip-modal (created)="done('Trip created')" (closed)="modal.set(null)" />
+      }
+      @case ('createAgent') {
+        <app-create-agent-modal (created)="done('Agent recruited')" (closed)="modal.set(null)" />
+      }
+      @case ('promoteAgent') {
+        <app-promote-agent-modal (promoted)="done('Licence granted')" (closed)="modal.set(null)" />
+      }
+    }
+    @if (assignTrip(); as trip) {
+      <app-assign-agent-modal [trip]="trip" (assigned)="done('Support agent assigned')" (closed)="assignTrip.set(null)" />
+    }
+  `,
 })
-export class DashboardComponent implements OnInit {
-  private readonly tripService = inject(TripService);
-  private readonly agentService = inject(AgentService);
-  private readonly managerService = inject(ManagerService);
-  private readonly state = inject(AppStateService);
+export class DashboardComponent {
+  protected readonly state = inject(AppStateService);
+  protected readonly agency = inject(AgencyStore);
+  private readonly feed = inject(ParadoxFeedStore);
+  private readonly notifications = inject(NotificationService);
 
-  readonly trips = signal<TripDto[]>([]);
-  readonly agents = signal<AgentDto[]>([]);
-  readonly loading = signal(true);
-  readonly loadError = signal('');
-  readonly showCreateAgent = signal(false);
-  readonly showPromoteAgent = signal(false);
-  readonly createModalOpen = signal(false);
-  readonly assignTripGuid = signal<string | null>(null);
+  protected readonly modal = signal<DashboardModal>(null);
+  protected readonly assignTrip = signal<TripDto | null>(null);
 
-  get assignTripName(): string {
-    const guid = this.assignTripGuid();
-    return this.trips().find(t => t.guid === guid)?.tripName ?? '';
-  }
+  protected readonly team = computed(() => {
+    const managerId = this.state.currentManager()?.id;
+    return this.agency.agents().filter(a => a.managerId === managerId);
+  });
 
-  ngOnInit(): void {
-    this.loadData();
-  }
+  protected readonly stats = computed((): StatTile[] => {
+    const trips = this.agency.scopedTrips();
+    const open = this.feed.scoped().filter(isOpenParadox).length;
+    return [
+      { label: 'Trips', value: trips.length },
+      { label: 'Active', value: trips.filter(t => t.tripStatus === 'Active').length, tone: 'blue' },
+      { label: 'Critical', value: trips.filter(t => t.tripType === 'CriticalTrip').length, tone: 'red' },
+      { label: 'Travellers', value: trips.reduce((sum, t) => sum + t.customers.length, 0) },
+      { label: 'Open paradoxes', value: open, tone: open ? 'amber' : 'green' },
+      { label: 'Agents', value: this.team().length, tone: 'gold' },
+    ];
+  });
 
-  loadData(): void {
-    const managerGuid = this.state.currentManager()?.guid;
-    const agents$ = managerGuid
-      ? this.managerService.getAgentsForManager(managerGuid)
-      : this.agentService.getAll();
-
-    const trips$ = managerGuid
-      ? this.managerService.getTripsForManager(managerGuid)
-      : this.tripService.getAll();
-
-    forkJoin({
-      trips: trips$,
-      agents: agents$,
-    }).subscribe({
-      next: ({ trips, agents }) => {
-        this.trips.set(trips);
-        this.agents.set(agents);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loadError.set('Could not load dashboard — is the backend running?');
-        this.loading.set(false);
-      },
-    });
-  }
-
-  onTripCreated(): void {
-    this.createModalOpen.set(false);
-    this.loadData();
-  }
-
-  onAgentCreated(): void {
-    this.showCreateAgent.set(false);
-    this.ngOnInit();
-  }
-
-  onAgentPromoted(): void {
-    this.showPromoteAgent.set(false);
-    this.ngOnInit();
-  }
-
-  onAgentAssigned(): void {
-    this.assignTripGuid.set(null);
-    this.loadData();
+  protected done(message: string): void {
+    this.modal.set(null);
+    this.assignTrip.set(null);
+    this.notifications.success(message);
+    this.agency.refresh();
   }
 }

@@ -1,23 +1,76 @@
 import { Routes } from '@angular/router';
-import { LandingComponent } from './features/landing/landing.component';
-import { TripDetailComponent } from './features/trip-detail/trip-detail.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { ParadoxLogComponent } from './features/paradox-log/paradox-log.component';
-import { ReportsComponent } from './features/reports/reports.component';
-import { EraTimelineComponent } from './features/era-timeline/era-timeline.component';
-import { DirectorDashboardComponent } from './features/director-dashboard/director-dashboard.component';
-import { CustomerProfileComponent } from './features/customer-profile/customer-profile.component';
-import { LoomComponent } from './features/loom/loom.component';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
-  { path: '', component: LandingComponent },
-  { path: 'timeline', component: EraTimelineComponent },
-  { path: 'trip/:guid', component: TripDetailComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'paradox-log', component: ParadoxLogComponent },
-  { path: 'reports', component: ReportsComponent },
-  { path: 'director', component: DirectorDashboardComponent },
-  { path: 'profile', component: CustomerProfileComponent },
-  { path: 'loom', component: LoomComponent },
+  // Customer
+  {
+    path: '',
+    title: 'Destinations',
+    canActivate: [roleGuard('customer')],
+    loadComponent: () => import('./features/landing/landing.component').then(m => m.LandingComponent),
+  },
+  {
+    path: 'timeline',
+    title: 'The Continuum',
+    canActivate: [roleGuard('customer')],
+    loadComponent: () => import('./features/era-timeline/era-timeline.component').then(m => m.EraTimelineComponent),
+  },
+  {
+    path: 'profile',
+    title: 'My Journeys',
+    canActivate: [roleGuard('customer')],
+    loadComponent: () => import('./features/customer-profile/customer-profile.component').then(m => m.CustomerProfileComponent),
+  },
+
+  // Every role
+  {
+    path: 'trip/:guid',
+    title: 'Trip',
+    loadComponent: () => import('./features/trip-detail/trip-detail.component').then(m => m.TripDetailComponent),
+  },
+
+  // Agent
+  {
+    path: 'missions',
+    title: 'My Missions',
+    canActivate: [roleGuard('agent')],
+    loadComponent: () => import('./features/agent-missions/agent-missions.component').then(m => m.AgentMissionsComponent),
+  },
+
+  // Manager & Director
+  {
+    path: 'dashboard',
+    title: 'Dashboard',
+    canActivate: [roleGuard('manager')],
+    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+  },
+  {
+    path: 'paradoxes',
+    title: 'Paradox Log',
+    canActivate: [roleGuard('manager', 'director')],
+    loadComponent: () => import('./features/paradox-log/paradox-log.component').then(m => m.ParadoxLogComponent),
+  },
+  {
+    path: 'reports',
+    title: 'Field Reports',
+    canActivate: [roleGuard('manager', 'director')],
+    loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent),
+  },
+  {
+    path: 'director',
+    title: 'Command Centre',
+    canActivate: [roleGuard('director')],
+    loadComponent: () => import('./features/director-dashboard/director-dashboard.component').then(m => m.DirectorDashboardComponent),
+  },
+
+  // Time itself
+  {
+    path: 'loom',
+    title: 'The Loom',
+    canActivate: [roleGuard('time')],
+    loadComponent: () => import('./features/loom/loom.component').then(m => m.LoomComponent),
+  },
+
+  { path: 'paradox-log', redirectTo: 'paradoxes' },
   { path: '**', redirectTo: '' },
 ];

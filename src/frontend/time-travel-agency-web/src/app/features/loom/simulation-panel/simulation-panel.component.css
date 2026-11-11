@@ -1,0 +1,28 @@
+:host { display: block; font-family: 'Courier New', monospace; }
+.block { padding: 18px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.label { font-size: 10px; letter-spacing: 0.1em; color: var(--text-faint); margin-bottom: 10px; display: block; }
+.label.sub { margin: 12px 0 6px; font-size: 9px; }
+.status-row { display: flex; justify-content: space-between; align-items: center; }
+.state { font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; }
+.state.on { color: #4EB87A; }
+.toggle, .preset {
+  background: #060C14; border: 1px solid var(--surface); color: var(--text-2); font-family: inherit;
+  font-size: 10px; padding: 5px 10px; border-radius: 2px; cursor: pointer;
+}
+.toggle:hover, .preset:hover { border-color: var(--violet); }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset.active { border-color: var(--violet); color: var(--violet); }
+.facts { margin: 12px 0 0; display: grid; gap: 4px; font-size: 10px; color: var(--text-faint); }
+.facts div { display: flex; justify-content: space-between; }
+.facts dd { margin: 0; color: var(--text-2); }
+.offline { font-size: 10px; color: var(--red); }
+.target {
+  width: 100%; background: #060C14; border: 1px solid var(--surface); color: var(--text-2);
+  padding: 8px 10px; font-size: 11px; font-family: inherit; border-radius: 2px; margin-bottom: 10px;
+}
+.fire {
+  width: 100%; border: none; background: var(--red); color: #fff; font-family: inherit; font-weight: 700;
+  font-size: 11px; letter-spacing: 0.12em; padding: 12px; border-radius: 2px; cursor: pointer;
+}
+.fire:disabled { background: rgba(224, 90, 78, 0.3); cursor: wait; }
+.error { color: var(--red); font-size: 10px; margin-top: 6px; }

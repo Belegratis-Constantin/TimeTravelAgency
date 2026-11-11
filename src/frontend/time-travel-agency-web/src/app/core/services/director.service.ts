@@ -1,9 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DirectorDto, SystemStatsDto } from '../models/director.model';
-import { ManagerWithIdDto } from '../models/manager.model';
-import { AgentDto } from '../models/agent.model';
+import { DirectorDto } from '../models/director.model';
 
 @Injectable({ providedIn: 'root' })
 export class DirectorService {
@@ -14,19 +12,8 @@ export class DirectorService {
     return this.http.get<DirectorDto>(this.base);
   }
 
-  getManagers(guid: string): Observable<ManagerWithIdDto[]> {
-    return this.http.get<ManagerWithIdDto[]>(`${this.base}/${guid}/managers`);
-  }
-
-  getAgents(guid: string): Observable<AgentDto[]> {
-    return this.http.get<AgentDto[]>(`${this.base}/${guid}/agents`);
-  }
-
-  getStats(guid: string): Observable<SystemStatsDto> {
-    return this.http.get<SystemStatsDto>(`${this.base}/${guid}/stats`);
-  }
-
-  reassignManager(directorGuid: string, managerGuid: string): Observable<string> {
+  /** Places a manager under this director's command. */
+  assignManager(directorGuid: string, managerGuid: string): Observable<string> {
     return this.http.patch(`${this.base}/${directorGuid}/managers/${managerGuid}`, null, { responseType: 'text' });
   }
 }

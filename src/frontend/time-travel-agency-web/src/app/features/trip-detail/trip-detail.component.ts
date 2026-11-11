@@ -1,117 +1,70 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
-import { TripService } from '../../core/services/trip.service';
-import { AgentService } from '../../core/services/agent.service';
-import { TripDto } from '../../core/models/trip.model';
-import { AgentDto } from '../../core/models/agent.model';
-import { tripStatusMeta, agentFullName, tripTypeLabel } from '../../shared/utils/status.utils';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { TripTimelineComponent } from './trip-timeline/trip-timeline.component';
-import { TripReviewsComponent } from './trip-reviews/trip-reviews.component';
-import { TripParadoxesComponent } from './trip-paradoxes/trip-paradoxes.component';
-import { TripStaffComponent } from './trip-staff/trip-staff.component';
-import { BookingBoxComponent } from './booking-box/booking-box.component';
-import { AssignAgentModalComponent } from '../modals/assign-agent-modal/assign-agent-modal.component';
+import { RouterLink } from '@angular/router';
+import { AppStateService } from '../../state/app-state.service';
+import { AgencyStore } from '../../state/agency.store';
+import { ParadoxFeedStore } from '../../state/paradox-feed.store';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { ParadoxListComponent } from '../../shared/components/paradox-list/paradox-list.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { AssignAgentModalComponent } from '../modals/assign-agent-modal/assign-agent-modal.component';
+import { epochLabel, isOpenParadox, tripDisplayName, tripTypeLabel } from '../../shared/utils/status.utils';
+import { TripReviewsComponent } from './trip-reviews/trip-reviews.component';
+import { TripStaffComponent } from './trip-staff/trip-staff.component';
+import { TripActionsComponent } from './trip-actions/trip-actions.component';
 
 @Component({
   selector: 'app-trip-detail',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe,
-    TripTimelineComponent,
-    TripReviewsComponent,
-    TripParadoxesComponent,
-    TripStaffComponent,
-    BookingBoxComponent,
-    AssignAgentModalComponent,
+    RouterLink,
     StatusBadgeComponent,
+    ParadoxListComponent,
+    EmptyStateComponent,
+    AssignAgentModalComponent,
+    TripReviewsComponent,
+    TripStaffComponent,
+    TripActionsComponent,
   ],
   templateUrl: './trip-detail.component.html',
+  styleUrl: './trip-detail.component.css',
 })
-export class TripDetailComponent implements OnInit {
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly tripService = inject(TripService);
-  private readonly agentService = inject(AgentService);
+export class TripDetailComponent {
+  /** Route parameter, bound via withComponentInputBinding(). */
+  readonly guid = input.required<string>();
 
-  readonly trip = signal<TripDto | null>(null);
-  readonly agents = signal<AgentDto[]>([]);
-  readonly loading = signal(true);
-  readonly loadError = signal('');
-  readonly bookedTripGuids = signal<string[]>([]);
-  readonly assignModalOpen = signal(false);
+  protected readonly state = inject(AppStateService);
+  protected readonly agency = inject(AgencyStore);
+  protected readonly feed = inject(ParadoxFeedStore);
 
-  ngOnInit(): void {
-    const guid = this.route.snapshot.paramMap.get('guid') ?? '';
-    forkJoin({
-      trip: this.tripService.getById(guid),
-      agents: this.agentService.getAll(),
-    }).subscribe({
-      next: ({ trip, agents }) => {
-        this.trip.set(trip);
-        this.agents.set(agents);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loadError.set('Could not load trip — is the backend running?');
-        this.loading.set(false);
-      },
-    });
-  }
+  protected readonly assignOpen = signal(false);
 
-  get statusMeta() {
+  protected readonly trip = computed(() => this.agency.tripsByGuid().get(this.guid()) ?? null);
+  protected readonly name = computed(() => {
     const t = this.trip();
-    return t ? tripStatusMeta(t.tripStatus) : { label: '', color: '', bg: '' };
-  }
-
-  readonly tripTypeLabel = tripTypeLabel;
-
-  get licensedAgentName(): string {
+    return t ? tripDisplayName(t) : '';
+  });
+  protected readonly typeLabel = computed(() => tripTypeLabel(this.trip()?.tripType ?? 'Trip'));
+  protected readonly destinationEra = computed(() => {
     const t = this.trip();
-    if (!t) return '';
-    const agent = this.agents().find(a => a.id === t.licensedAgentId);
-    return agent ? agentFullName(agent) : `Agent #${t.licensedAgentId}`;
-  }
+    return t ? epochLabel(this.agency.agentsById().get(t.licensedAgentId)?.specialisationEpochId) : null;
+  });
 
-  get supportAgentName(): string | null {
-    const t = this.trip();
-    if (!t || !t.agentId) return null;
-    const agent = this.agents().find(a => a.id === t.agentId);
-    return agent ? agentFullName(agent) : null;
-  }
+  protected readonly paradoxes = computed(() => this.feed.forTrip(this.guid()));
+  protected readonly openParadoxes = computed(() => this.paradoxes().filter(isOpenParadox).length);
 
-  get displayName(): string {
-    return this.trip()?.tripName ?? 'Uncatalogued Destination';
-  }
+  /** Only the manager responsible for the trip may change paradox statuses (enforced by the backend too). */
+  protected readonly canManage = computed(() => {
+    const manager = this.state.currentManager();
+    return this.state.isManager() && !!manager && this.trip()?.managerGuid === manager.guid;
+  });
 
-  goBack(): void {
-    this.router.navigate(['/']);
-  }
+  /** Field reports are internal — hidden from customers. */
+  protected readonly showReports = computed(() => !this.state.isCustomer());
 
-  onBooked(guid: string): void {
-    this.bookedTripGuids.update(list => [...list, guid]);
-  }
-
-  onAssignRequested(): void {
-    this.assignModalOpen.set(true);
-  }
-
-  onAssigned(): void {
-    this.assignModalOpen.set(false);
-    this.refreshTrip();
-  }
-
-  onParadoxChanged(): void {
-    this.refreshTrip();
-  }
-
-  private refreshTrip(): void {
-    const guid = this.route.snapshot.paramMap.get('guid') ?? '';
-    this.tripService.getById(guid).subscribe({
-      next: trip => this.trip.set(trip),
-      error: () => {},
-    });
+  protected onAssigned(): void {
+    this.assignOpen.set(false);
+    this.agency.refresh();
   }
 }

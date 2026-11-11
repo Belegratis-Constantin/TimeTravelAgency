@@ -1,112 +1,48 @@
-<header style="display:flex;justify-content:space-between;align-items:center;padding:22px 56px;
-              border-bottom:1px solid #1E2A3A;position:sticky;top:0;background:#0B1120;z-index:30;">
-  <a routerLink="/"
-     style="font-family:'Fraunces',serif;font-weight:500;font-size:19px;letter-spacing:0.02em;
-            cursor:pointer;color:#F0EDE6;text-decoration:none;">
-    Time·Travel <span style="color:#C9A84C;font-style:italic;">Agency</span>
-  </a>
+<header class="bar">
+  <a routerLink="/" class="brand display">Time·Travel <em>Agency</em></a>
 
-  <nav style="display:flex;align-items:center;gap:36px;">
-    <a routerLink="/"
-       [style.color]="navColor('/')"
-       [style.borderBottom]="navBorder('/')"
-       style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
-      Destinations
-    </a>
+  <nav class="nav" aria-label="Main">
+    @for (item of navItems(); track item.path) {
+      <a class="nav-link" [routerLink]="item.path" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: item.exact ?? false }">{{ item.label }}</a>
+    }
+  </nav>
 
-    @if (state.isCustomer()) {
-      <a routerLink="/timeline"
-         [style.color]="navColor('/timeline')"
-         [style.borderBottom]="navBorder('/timeline')"
-         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
-        The Continuum
-      </a>
-      <a routerLink="/profile"
-         [style.color]="navColor('/profile')"
-         [style.borderBottom]="navBorder('/profile')"
-         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
-        My Journeys
+  <div class="tools">
+    @if (!feed.online()) {
+      <span class="badge badge--rust" title="The paradox feed cannot reach the backend">Offline</span>
+    } @else if (showParadoxCounter()) {
+      <a class="paradox-counter" [routerLink]="paradoxTarget()" [class.alert]="feed.scopedOpenCount() > 0"
+         [attr.aria-label]="feed.scopedOpenCount() + ' open paradoxes'">
+        <span class="dot"></span>{{ feed.scopedOpenCount() }} open paradox{{ feed.scopedOpenCount() === 1 ? '' : 'es' }}
       </a>
     }
 
-    @if (state.isManager()) {
-      <a routerLink="/dashboard"
-         [style.color]="navColor('/dashboard')"
-         [style.borderBottom]="navBorder('/dashboard')"
-         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
-        Dashboard
-      </a>
-      <a routerLink="/paradox-log"
-         [style.color]="navColor('/paradox-log')"
-         [style.borderBottom]="navBorder('/paradox-log')"
-         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
-        Paradox Log
-      </a>
+    @if (state.isCustomer() && !state.currentCustomer()) {
+      <button type="button" class="btn btn--sm btn--outline-gold" (click)="state.requestRole('customer')">Sign in</button>
     }
 
-    @if (state.isAgent() || state.isManager()) {
-      <a routerLink="/reports"
-         [style.color]="navColor('/reports')"
-         [style.borderBottom]="navBorder('/reports')"
-         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
-        Agent Reports
-      </a>
-    }
+    <div class="role">
+      <button type="button" class="role-trigger" [class.time]="state.isTime()" (click)="menuOpen.set(!menuOpen())"
+              aria-haspopup="menu" [attr.aria-expanded]="menuOpen()">
+        <span class="role-label">{{ state.roleDefinition().label }}</span>
+        <span class="role-name">{{ state.displayName() }}</span>
+        <span class="caret" aria-hidden="true">▾</span>
+      </button>
 
-    @if (state.isTime()) {
-      <a routerLink="/loom"
-         [style.color]="navColor('/loom')"
-         [style.borderBottom]="navBorder('/loom')"
-         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;color:#B06EE8;">
-        ⧗ The Loom
-      </a>
-    }
-
-    @if (state.isDirector()) {
-      <a routerLink="/director"
-         [style.color]="navColor('/director')"
-         [style.borderBottom]="navBorder('/director')"
-         style="font-size:13.5px;cursor:pointer;padding-bottom:4px;text-decoration:none;">
-        Command Centre
-      </a>
-    }
-
-    <!-- Role selector -->
-    <div style="position:relative;">
-      <div (click)="state.toggleRoleMenu()"
-           style="display:flex;align-items:center;gap:8px;font-size:13px;color:#F0EDE6;
-                  background:#1E2A3A;border:1px solid #2E3E54;padding:8px 14px;
-                  border-radius:3px;cursor:pointer;user-select:none;">
-        <span style="color:#6B7488;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;">Role</span>
-        <span>{{ state.roleLabel() }}</span>
-        <span style="color:#C9A84C;font-size:10px;">▾</span>
-      </div>
-
-      @if (state.roleMenuOpen()) {
-        <div style="position:absolute;right:0;top:calc(100% + 6px);width:190px;background:#1E2A3A;
-                    border:1px solid #2E3E54;border-radius:3px;box-shadow:0 16px 40px rgba(0,0,0,0.5);
-                    overflow:hidden;z-index:40;">
-          <div (click)="requestRole('customer')"
-               style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #2A3A50;"
-               class="role-menu-item">Customer</div>
-          <div (click)="requestRole('agent')"
-               style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #2A3A50;"
-               class="role-menu-item">Licensed Agent</div>
-          <div (click)="requestRole('manager')"
-               style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #2A3A50;"
-               class="role-menu-item">Manager</div>
-          <div (click)="requestRole('director')"
-               style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #2A3A50;"
-               class="role-menu-item">Director</div>
-          <div (click)="enterTime()"
-               style="padding:12px 16px;font-size:13px;cursor:pointer;color:#B06EE8;"
-               class="role-menu-item">⧗ Time Itself</div>
-        </div>
+      @if (menuOpen()) {
+        <ul class="role-menu" role="menu">
+          @for (r of roles; track r.role) {
+            <li role="none">
+              <button type="button" role="menuitem" class="role-item" [class.time]="r.role === 'time'"
+                      [class.current]="r.role === state.role()" (click)="selectRole(r.role)">
+                {{ r.role === 'time' ? '⧗ ' : '' }}{{ r.label }}
+                @if (r.role === state.role()) { <span class="check">✓</span> }
+              </button>
+            </li>
+          }
+        </ul>
       }
     </div>
-  </nav>
+  </div>
 </header>
-
-@if (state.pendingRole()) {
-  <app-identity-picker-modal />
-}

@@ -1,0 +1,34 @@
+/* Scrubber */
+:host {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 46px; z-index: 20; display: flex; align-items: center; gap: 12px;
+  padding: 0 18px; background: rgba(5, 7, 14, 0.94); border-top: 1px solid rgba(255, 255, 255, 0.06); backdrop-filter: blur(6px);
+}
+.scrubber-label { font-family: var(--font-mono); font-size: 8px; color: var(--border-subtle); letter-spacing: 0.16em; white-space: nowrap; }
+.scrubber-track {
+  position: relative; flex: 1; height: 10px; border-radius: 2px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.segment { position: absolute; top: 0; height: 100%; background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.segment.divided { border-left: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.segment span {
+  position: absolute; bottom: 0; left: 0; right: 0; padding-bottom: 1px; text-align: center; line-height: 1; pointer-events: none;
+  font-family: var(--font-mono); font-size: 6px; letter-spacing: 0.08em; opacity: 0.55; color: var(--accent);
+}
+.marker { position: absolute; top: 1px; bottom: 1px; width: 2px; border-radius: 1px; background: var(--risk); box-shadow: 0 0 4px var(--risk); pointer-events: none; }
+.marker.blink { animation: led-blink 1.4s ease-in-out infinite; }
+.viewport {
+  position: absolute; top: 0; bottom: 0; pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 5%, transparent); box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 27%, transparent);
+}
+.corner { position: absolute; width: 5px; height: 5px; border: 0 solid var(--accent); }
+.corner.tl { top: 0; left: 0; border-top-width: 1.5px; border-left-width: 1.5px; }
+.corner.tr { top: 0; right: 0; border-top-width: 1.5px; border-right-width: 1.5px; }
+.corner.bl { bottom: 0; left: 0; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.corner.br { bottom: 0; right: 0; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+.coords { min-width: 100px; text-align: right; line-height: 1.4; font-family: var(--font-mono); }
+.coords-year { font-size: 9px; font-weight: 600; color: var(--accent); }
+.led { display: inline-block; border-radius: 50%; }
+.coords-year .led { width: 5px; height: 5px; margin-right: 4px; vertical-align: middle; background: var(--accent); animation: led-blink 2s ease-in-out infinite; }
+.coords-sector { font-size: 7.5px; color: #3E5068; letter-spacing: 0.08em; }
+
+

@@ -1,183 +1,66 @@
-<!-- Customer hero -->
-@if (state.isCustomer()) {
-  <div style="padding:88px 56px 64px;text-align:center;
-              background:radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.10), transparent 60%);
-              border-bottom:1px solid #1E2A3A;">
-    <div style="font-family:'IBM Plex Mono',monospace;color:#C9A84C;font-size:11px;
-                letter-spacing:0.3em;margin-bottom:22px;">EST. 2150 · BY INVITATION ONLY</div>
-    <div style="font-family:'Fraunces',serif;font-weight:400;font-style:italic;font-size:58px;
-                line-height:1.12;margin-bottom:22px;">Every era,<br>held open for you.</div>
-    <div style="color:#8A93A6;font-size:16px;max-width:460px;margin:0 auto 34px;">
-      A private passage across history, escorted by our licensed agents. Reserve your century.
-    </div>
-    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-      <button (click)="scrollToGrid()"
-              style="background:#C9A84C;border:none;color:#0B1120;font-weight:600;
-                     font-size:14px;padding:15px 34px;cursor:pointer;border-radius:2px;">
-        Browse Destinations
-      </button>
-      <a routerLink="/timeline"
-         style="background:transparent;border:1px solid rgba(201,168,76,0.4);color:#C9A84C;
-                font-weight:600;font-size:14px;padding:15px 34px;cursor:pointer;
-                border-radius:2px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
-        <span style="font-size:16px;">⟳</span> Explore The Continuum
-      </a>
-      @if (!state.currentCustomer()) {
-        <button (click)="showJoinModal.set(true)"
-                style="background:transparent;border:1px solid rgba(201,168,76,0.3);color:#C9A84C;
-                       font-size:14px;padding:15px 34px;cursor:pointer;border-radius:2px;">
-          Join as Traveller
-        </button>
-      }
-    </div>
-  </div>
-}
-
-<!-- Agent banner -->
-@if (state.isAgent()) {
-  <div style="padding:32px 56px;border-bottom:1px solid #1E2A3A;background:#0E1522;">
-    <div style="font-size:11px;color:#8A93A6;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">
-      Field Console
-    </div>
-    <div style="display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;">
-      <div style="font-family:'Fraunces',serif;font-size:24px;">
-        {{ state.currentAgent()?.firstname }} {{ state.currentAgent()?.lastname }}
-      </div>
-      @if (state.currentAgent()?.specialisationEpochId) {
-        <div style="font-size:13px;color:#C9A84C;">
-          Epoch: {{ state.currentAgent()!.specialisationEpochId!.name }}
-        </div>
-      }
-      <div style="font-size:12px;color:#6B7488;">
-        {{ state.currentAgent()?.agentType === 'LicensedAgent' ? 'Licensed Agent' : 'Support Agent' }}
-      </div>
-    </div>
-  </div>
-}
-
-<!-- Manager banner -->
-@if (state.isManager()) {
-  <div style="padding:32px 56px;border-bottom:1px solid #1E2A3A;background:#0E1522;">
-    <div style="font-size:11px;color:#8A93A6;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">
-      Operations Overview
-    </div>
-    <div style="font-family:'Fraunces',serif;font-size:24px;">All scheduled excursions</div>
-  </div>
-}
-
-<!-- Customer booked trips strip -->
-@if (state.isCustomer() && bookedTrips().length > 0) {
-  <div style="background:#0E1522;border-bottom:1px solid #1E2A3A;padding:32px 56px;">
-    <div style="max-width:1360px;margin:0 auto;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div style="font-family:'Fraunces',serif;font-size:18px;">Your Booked Journeys</div>
-        <a routerLink="/profile"
-           style="font-size:12px;color:#C9A84C;text-decoration:none;letter-spacing:0.06em;">
-          View All →
-        </a>
-      </div>
-      <div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:4px;">
-        @for (trip of bookedTrips(); track trip.guid) {
-          <a [routerLink]="['/trip', trip.guid]"
-             style="min-width:220px;background:#1E2A3A;border-radius:4px;padding:18px 20px;
-                    border:1px solid #2E3E54;text-decoration:none;color:inherit;flex-shrink:0;">
-            <div style="font-size:13px;font-weight:600;margin-bottom:6px;">
-              {{ trip.tripName ?? 'Unnamed Expedition' }}
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-size:11px;color:#8A93A6;">{{ trip.tripType === 'CriticalTrip' ? 'Critical' : 'Standard' }}</span>
-              <span [style.background]="statusMeta(trip.tripStatus).bg"
-                    [style.color]="statusMeta(trip.tripStatus).color"
-                    style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">
-                {{ statusMeta(trip.tripStatus).label }}
-              </span>
-            </div>
-            @if (trip.paradoxes.length > 0) {
-              <div style="margin-top:10px;font-size:11px;color:#D9A24E;">
-                {{ trip.paradoxes.length }} paradox{{ trip.paradoxes.length !== 1 ? 'es' : '' }}
-              </div>
-            }
-          </a>
-        }
-      </div>
-    </div>
-  </div>
-}
-
-<div style="max-width:1360px;margin:0 auto;padding:40px 56px 0;">
-  <!-- Header + filters -->
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
-              gap:16px;margin-bottom:32px;">
-    <div style="font-family:'Fraunces',serif;font-size:22px;">{{ landingTitle() }}</div>
-
-    @if (!state.isAgent()) {
-      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-        <select (change)="filterEra.set($any($event.target).value)"
-                style="background:#1E2A3A;color:#F0EDE6;border:1px solid #2E3E54;
-                       padding:9px 12px;border-radius:3px;font-size:13px;">
-          <option value="all">All Destinations</option>
-          @for (era of eraOptions(); track era) {
-            <option [value]="era">{{ era }}</option>
-          }
-        </select>
-
-        <select (change)="filterType.set($any($event.target).value)"
-                style="background:#1E2A3A;color:#F0EDE6;border:1px solid #2E3E54;
-                       padding:9px 12px;border-radius:3px;font-size:13px;">
-          <option value="all">All Types</option>
-          <option value="Trip">Standard</option>
-          <option value="CriticalTrip">Critical</option>
-        </select>
-
-        <select (change)="sortOrder.set($any($event.target).value)"
-                style="background:#1E2A3A;color:#F0EDE6;border:1px solid #2E3E54;
-                       padding:9px 12px;border-radius:3px;font-size:13px;">
-          <option value="soonest">Soonest First</option>
-          <option value="latest">Latest First</option>
-        </select>
-      </div>
+<section class="hero">
+  <div class="mono kicker">EST. 2150 · BY INVITATION ONLY</div>
+  <h1 class="display headline">Every era,<br />held open for you.</h1>
+  <p class="lede">A private passage across history, escorted by our licensed agents. Reserve your century.</p>
+  <div class="row hero-actions">
+    <button type="button" class="btn btn--primary" (click)="departures.scrollIntoView({ behavior: 'smooth' })">Browse departures</button>
+    <a class="btn btn--outline-gold" routerLink="/timeline">⟳ Explore The Continuum</a>
+    @if (!state.currentCustomer()) {
+      <button type="button" class="btn btn--outline-gold" (click)="state.joinModalOpen.set(true)">Join as traveller</button>
     }
   </div>
+</section>
 
-  @if (loading()) {
-    <div style="text-align:center;color:#6B7488;padding:80px 0;font-size:14px;">
-      Loading destinations…
+<div class="page" #departures>
+  <div class="row row--between toolbar">
+    <h2 class="display section-heading">Upcoming departures</h2>
+
+    <div class="row filters">
+      <label class="sr-only" for="f-destination">Destination</label>
+      <select id="f-destination" class="select select--compact" [value]="destination()"
+              (change)="destination.set($any($event.target).value)">
+        <option value="all">All destinations</option>
+        @for (d of destinations(); track d) { <option [value]="d">{{ d }}</option> }
+      </select>
+
+      <label class="sr-only" for="f-type">Trip type</label>
+      <select id="f-type" class="select select--compact" [value]="tripType()" (change)="tripType.set($any($event.target).value)">
+        <option value="all">All types</option>
+        <option value="Trip">Standard</option>
+        <option value="CriticalTrip">Critical</option>
+      </select>
+
+      <label class="sr-only" for="f-sort">Sort</label>
+      <select id="f-sort" class="select select--compact" [value]="sortOrder()" (change)="sortOrder.set($any($event.target).value)">
+        <option value="soonest">Soonest first</option>
+        <option value="latest">Latest first</option>
+      </select>
+
+      <label class="check">
+        <input type="checkbox" [checked]="bookableOnly()" (change)="bookableOnly.set($any($event.target).checked)" />
+        Bookable only
+      </label>
     </div>
-  }
+  </div>
 
-  @if (loadError()) {
-    <div style="text-align:center;padding:80px 0;">
-      <div style="color:#E05A4E;font-size:14px;margin-bottom:16px;">{{ loadError() }}</div>
-      <button (click)="ngOnInit()"
-              style="background:transparent;border:1px solid #2E3E54;color:#B7BFCC;
-                     padding:10px 20px;border-radius:3px;font-size:13px;cursor:pointer;">
-        Retry
-      </button>
+  @if (agency.initialLoading()) {
+    <p class="state-msg">Loading destinations…</p>
+  } @else if (agency.error() && agency.trips().length === 0) {
+    <div class="state-msg state-msg--error">
+      <p>{{ agency.error() }}</p>
+      <button type="button" class="btn" (click)="agency.refresh()">Retry</button>
     </div>
-  }
-
-  <!-- Trip grid -->
-  @if (!loading()) {
-    <div data-trip-grid style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-                gap:28px;padding-bottom:72px;">
-      @for (trip of filteredTrips(); track trip.guid) {
-        <app-trip-card
-          [trip]="trip"
-          [agentName]="agentNameForTrip(trip)"
-          (selected)="navigateToTrip($event)" />
+  } @else {
+    <div class="grid-cards">
+      @for (trip of trips(); track trip.guid) {
+        <app-trip-card [trip]="trip" [agentName]="agency.agentName(trip.licensedAgentId)"
+                       [openParadoxes]="feed.openCountForTrip(trip.guid)"
+                       [note]="isBooked(trip) ? '✓ You are booked on this trip' : null" />
+      } @empty {
+        <app-empty-state class="span-all" title="No trips match these filters">
+          <button type="button" class="btn" (click)="resetFilters()">Reset filters</button>
+        </app-empty-state>
       }
     </div>
-
-    @if (filteredTrips().length === 0) {
-      <div style="text-align:center;color:#6B7488;padding:60px 0 100px;font-size:14px;">
-        No trips match these filters.
-      </div>
-    }
   }
 </div>
-
-@if (showJoinModal()) {
-  <app-join-traveller-modal
-    (created)="onJoined()"
-    (cancelled)="showJoinModal.set(false)" />
-}

@@ -66,6 +66,10 @@ public class ManagerController : ControllerBase
         {
             return Problem(ex.Message, statusCode: 400);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(ex.Message, statusCode: 409);
+        }
     }
     
     [HttpPatch("make-agent-licensed/{managerGuid}/{agentGuid}")]
@@ -296,6 +300,10 @@ public class ManagerController : ControllerBase
         catch (ArgumentException ex)
         {
             return Problem(ex.Message, statusCode: 400);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(ex.Message, statusCode: 409);
         }
     }
 

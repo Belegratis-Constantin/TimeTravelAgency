@@ -1,0 +1,95 @@
+<div class="continuum">
+  <canvas #starCanvas class="stars"></canvas>
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+
+  <!-- Era select HUD -->
+  <nav class="hud" aria-label="Jump to era">
+    <span class="hud-label">⧗ ERA SELECT</span>
+    <div class="chips">
+      @for (zone of eraZones; track zone.name; let zi = $index) {
+        <button type="button" class="chip" [class.active]="activeZone().name === zone.name"
+                [style.--accent]="zone.accent" (click)="jumpToZone(zone)">
+          <span class="led"></span>
+          <span class="chip-no">{{ ('0' + (zi + 1)).slice(-2) }}</span>
+          {{ zone.shortLabel }}
+        </button>
+      }
+    </div>
+  </nav>
+
+  <!-- Scrollable timeline -->
+  <div class="scroll" #scrollEl (scroll)="onScroll($event)">
+    <div class="track" [style.width.px]="totalWidth">
+
+      @for (zone of eraZones; track zone.name; let zi = $index; let last = $last) {
+        <section class="zone" [style.left.px]="zone.pxStart" [style.width.px]="zoneWidth"
+                 [style.--accent]="zone.accent" [style.--spine.%]="spinePct">
+          <div class="zone-halo"></div>
+          <div class="zone-grid"></div>
+          <span class="cross tl"></span><span class="cross tr"></span>
+          <div class="zone-title">
+            <div class="zone-title-text">
+              {{ zone.label.toUpperCase() }}
+              <div class="zone-scan"><div [style.animation-duration.s]="4 + zi * 0.7"></div></div>
+            </div>
+          </div>
+          <div class="zone-range">◈ SECTOR {{ formatYear(zone.startYear) }} — {{ formatYear(zone.endYear) }}</div>
+          @if (!last) {
+            <div class="gate" [style.--next]="eraZones[zi + 1].accent" [style.animation-delay.s]="zi * 0.6">
+              <div class="gate-bloom"></div>
+              <div class="gate-core"></div>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- Plasma conduit (spine) -->
+      <div class="spine" [style.top.%]="spinePct">
+        @for (zone of eraZones; track zone.name; let zi = $index) {
+          <div class="strand" [style.left.px]="zone.pxStart" [style.width.px]="zoneWidth" [style.--accent]="zone.accent">
+            <div class="strand-bloom"></div>
+            <div class="strand-glow"></div>
+            <div class="strand-core"></div>
+            <div class="strand-flow" [style.animation-duration.s]="2.6 + (zi % 2) * 0.8"></div>
+          </div>
+        }
+        @for (tick of yearTicks; track tick.px) {
+          <div class="tick" [style.left.px]="tick.px - 1" [style.--accent]="tick.accent">
+            <span>{{ tick.label }}</span>
+            <div class="tick-line"></div>
+          </div>
+        }
+      </div>
+
+      @for (pin of pins(); track pin.trip.guid) {
+        <app-timeline-pin [pin]="pin" [selected]="selectedTripGuid() === pin.trip.guid"
+                          [dimmed]="!!selectedTripGuid() && selectedTripGuid() !== pin.trip.guid"
+                          (picked)="selectPin(pin)" />
+      }
+
+      @if (!loading() && pins().length === 0) {
+        <div class="empty">
+          <div class="empty-title">No temporal coordinates found</div>
+          <div class="empty-text">Start the backend to load trip data.</div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Mission clock scrubber -->
+  <app-timeline-scrubber [pins]="pins()" [activeZone]="activeZone()" [currentYear]="currentYear()"
+                         [viewportLeft]="scrubberLeft()" [viewportWidth]="scrubberWidth" (seek)="seekTo($event)" />
+
+  @if (selectedPin(); as pin) {
+    <div class="overlay" (click)="closeCard()"></div>
+    <app-boarding-card [pin]="pin" (closed)="closeCard()" />
+  }
+
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">INITIALIZING CONTINUUM</div>
+    </div>
+  }
+</div>

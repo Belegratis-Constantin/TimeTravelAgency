@@ -1,0 +1,21 @@
+<div class="scrubber-label">⧗ CONTINUUM&nbsp;//&nbsp;MISSION CLOCK</div>
+<div class="scrubber-track" (click)="onClick($event)">
+  @for (zone of eraZones; track zone.name; let zi = $index) {
+    <div class="segment" [class.divided]="zi > 0" [style.--accent]="zone.accent"
+         [style.left.%]="(zone.pxStart / totalWidth) * 100" [style.width.%]="(zoneWidth / totalWidth) * 100">
+      <span>{{ zone.shortLabel.toUpperCase().slice(0, 3) }}</span>
+    </div>
+  }
+  @for (pin of pins(); track pin.trip.guid) {
+    <div class="marker" [class.blink]="pin.risk === 'critical'" [style.--risk]="riskColors[pin.risk]"
+         [style.left.%]="(pin.x / totalWidth) * 100"></div>
+  }
+  <div class="viewport" [style.left.%]="viewportLeft()" [style.width.%]="viewportWidth()">
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+  </div>
+</div>
+<div class="coords">
+  <div class="coords-year"><span class="led"></span>T-COORD {{ formatYear(currentYear()) }}</div>
+  <div class="coords-sector">SECTOR {{ activeZone().label.toUpperCase() }}</div>
+</div>

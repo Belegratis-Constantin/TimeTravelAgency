@@ -1,0 +1,27 @@
+<a class="card-link" [routerLink]="['/trip', trip().guid]" [class.critical]="critical()">
+  <div class="head">
+    <div>
+      <div class="eyebrow">{{ typeLabel() }} trip</div>
+      <h3 class="display name">{{ name() }}</h3>
+    </div>
+    <app-status-badge [status]="trip().tripStatus" />
+  </div>
+
+  <dl class="facts">
+    <div class="kv"><dt>Departs</dt><dd>{{ departure() }}</dd></div>
+    @if (agentName()) {
+      <div class="kv"><dt>Licensed agent</dt><dd>{{ agentName() }}</dd></div>
+    }
+    <div class="kv"><dt>Travellers</dt><dd>{{ trip().customers.length }} booked</dd></div>
+  </dl>
+
+  <div class="foot">
+    <span class="until" [class]="'until--' + until().urgency">{{ until().label }}</span>
+    @if (openParadoxes() > 0) {
+      <span class="paradoxes">⚠ {{ openParadoxes() }} open paradox{{ openParadoxes() === 1 ? '' : 'es' }}</span>
+    }
+  </div>
+  @if (note()) {
+    <div class="note">{{ note() }}</div>
+  }
+</a>

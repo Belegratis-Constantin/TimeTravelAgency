@@ -1,125 +1,85 @@
-import { Component, Output, EventEmitter, inject, signal, HostListener } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { switchMap } from 'rxjs';
 import { ManagerService } from '../../../core/services/manager.service';
+import { DirectorService } from '../../../core/services/director.service';
+import { toErrorMessage } from '../../../core/http/error-message';
+import { AppStateService } from '../../../state/app-state.service';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
+import { AddressFieldsComponent, createAddressForm, toAddressDto } from '../../../shared/forms/address-form';
 
+/** Creates a manager and places them directly under the signed-in director's command. */
 @Component({
   selector: 'app-create-manager-modal',
-  standalone: true,
-  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule, ModalComponent, FormFieldComponent, AddressFieldsComponent],
   template: `
-    <div (click)="onBackdropClick($event)"
-         style="position:fixed;inset:0;background:rgba(5,7,12,0.75);display:flex;
-                align-items:center;justify-content:center;z-index:50;">
-      <div (click)="$event.stopPropagation()"
-           style="background:#1E2A3A;border-radius:6px;padding:36px 40px;width:460px;
-                  box-shadow:0 30px 80px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto;">
-        <div style="font-family:'Fraunces',serif;font-size:22px;margin-bottom:24px;">Add Manager</div>
+    <app-modal title="Appoint Manager" [width]="520" (closed)="closed.emit()">
+      <form id="manager-form" class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
+        <app-form-field label="First name" [control]="form.controls.firstname" for="mgr-first">
+          <input class="input" id="mgr-first" formControlName="firstname" />
+        </app-form-field>
+        <app-form-field label="Last name" [control]="form.controls.lastname" for="mgr-last">
+          <input class="input" id="mgr-last" formControlName="lastname" />
+        </app-form-field>
+        <app-form-field label="Email" [control]="form.controls.email" for="mgr-email">
+          <input class="input" id="mgr-email" type="email" formControlName="email" />
+        </app-form-field>
+        <app-form-field label="Phone" [control]="form.controls.phoneNumber" for="mgr-phone">
+          <input class="input" id="mgr-phone" type="tel" formControlName="phoneNumber" />
+        </app-form-field>
+        <app-address-fields [group]="form.controls.address" idPrefix="mgr-" />
+      </form>
 
-        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
-          @for (field of fields; track field.key) {
-            <div>
-              <div style="font-size:11px;color:#8A93A6;margin-bottom:5px;letter-spacing:0.07em;text-transform:uppercase;">
-                {{ field.label }}{{ field.required ? ' *' : '' }}
-              </div>
-              <input [type]="field.type || 'text'" [(ngModel)]="values[field.key]"
-                     [placeholder]="field.placeholder"
-                     style="width:100%;background:#0B1120;border:1px solid #2E3E54;color:#F0EDE6;
-                            padding:10px 13px;border-radius:3px;font-size:13.5px;box-sizing:border-box;" />
-              @if (fieldErrors[field.key]) {
-                <div style="color:#E05A4E;font-size:11px;margin-top:4px;">{{ fieldErrors[field.key] }}</div>
-              }
-            </div>
-          }
-        </div>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
 
-        @if (errorMsg()) {
-          <div style="color:#E05A4E;font-size:12px;margin-bottom:14px;padding:10px;background:rgba(224,90,78,0.1);border-radius:3px;">
-            {{ errorMsg() }}
-          </div>
-        }
-
-        <div style="display:flex;justify-content:flex-end;gap:12px;">
-          <button (click)="cancelled.emit()"
-                  style="background:transparent;border:1px solid #2E3E54;color:#B7BFCC;
-                         font-size:13.5px;padding:10px 20px;border-radius:3px;cursor:pointer;">
-            Cancel
-          </button>
-          <button (click)="submit()" [disabled]="submitting()"
-                  style="background:#C9A84C;border:none;color:#0B1120;font-weight:600;
-                         font-size:13.5px;padding:10px 22px;border-radius:3px;cursor:pointer;">
-            {{ submitting() ? 'Creating…' : 'Create Manager' }}
-          </button>
-        </div>
+      <div modal-actions>
+        <button type="button" class="btn" (click)="closed.emit()">Cancel</button>
+        <button type="submit" form="manager-form" class="btn btn--primary" [disabled]="submitting()">
+          {{ submitting() ? 'Appointing…' : 'Appoint manager' }}
+        </button>
       </div>
-    </div>
+    </app-modal>
   `,
 })
 export class CreateManagerModalComponent {
-  @Output() created = new EventEmitter<void>();
-  @Output() cancelled = new EventEmitter<void>();
+  readonly created = output<void>();
+  readonly closed = output<void>();
 
-  private readonly managerService = inject(ManagerService);
-  readonly submitting = signal(false);
-  readonly errorMsg = signal('');
+  private readonly managers = inject(ManagerService);
+  private readonly directors = inject(DirectorService);
+  private readonly state = inject(AppStateService);
 
-  fields = [
-    { key: 'firstname', label: 'First Name', placeholder: 'e.g. Ada', required: true },
-    { key: 'lastname', label: 'Last Name', placeholder: 'e.g. Lovelace', required: true },
-    { key: 'email', label: 'Email', placeholder: 'ada@agency.com', required: true, type: 'email' },
-    { key: 'phoneNumber', label: 'Phone', placeholder: '+1234567890', required: true },
-    { key: 'street', label: 'Street', placeholder: '221B Baker Street', required: true },
-    { key: 'city', label: 'City', placeholder: 'London', required: true },
-    { key: 'zipCode', label: 'ZIP Code', placeholder: '10001', required: true, type: 'number' },
-  ];
+  protected readonly submitting = signal(false);
+  protected readonly error = signal<string | null>(null);
 
-  values: Record<string, string> = {};
-  fieldErrors: Record<string, string> = {};
+  protected readonly form = new FormGroup({
+    firstname: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    lastname: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    phoneNumber: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    address: createAddressForm(),
+  });
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void { this.cancelled.emit(); }
-
-  onBackdropClick(e: MouseEvent): void {
-    if (e.target === e.currentTarget) this.cancelled.emit();
-  }
-
-  private validate(): boolean {
-    this.fieldErrors = {};
-    let valid = true;
-    for (const f of this.fields) {
-      if (f.required && !this.values[f.key]?.trim()) {
-        this.fieldErrors[f.key] = `${f.label} is required.`;
-        valid = false;
-      }
+  protected submit(): void {
+    const director = this.state.currentDirector();
+    if (this.form.invalid || !director) {
+      this.form.markAllAsTouched();
+      return;
     }
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (this.values['email'] && !emailRe.test(this.values['email'])) {
-      this.fieldErrors['email'] = 'Invalid email format.';
-      valid = false;
-    }
-    return valid;
-  }
-
-  submit(): void {
-    if (!this.validate()) return;
+    const { address, ...person } = this.form.getRawValue();
     this.submitting.set(true);
-    this.errorMsg.set('');
+    this.error.set(null);
 
-    this.managerService.create({
-      firstname: this.values['firstname'],
-      lastname: this.values['lastname'],
-      email: this.values['email'],
-      phoneNumber: this.values['phoneNumber'],
-      address: {
-        street: this.values['street'],
-        city: this.values['city'],
-        zipCode: parseInt(this.values['zipCode'], 10),
-      },
-    }).subscribe({
-      next: () => { this.submitting.set(false); this.created.emit(); },
-      error: err => {
-        this.submitting.set(false);
-        this.errorMsg.set(err?.error ?? 'Failed to create manager.');
-      },
-    });
+    this.managers.create({ ...person, address: toAddressDto(this.form.controls.address) })
+      .pipe(switchMap(manager => this.directors.assignManager(director.guid, manager.guid)))
+      .subscribe({
+        next: () => this.created.emit(),
+        error: err => {
+          this.submitting.set(false);
+          this.error.set(toErrorMessage(err, 'Failed to appoint manager.'));
+        },
+      });
   }
 }

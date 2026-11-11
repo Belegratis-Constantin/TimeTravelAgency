@@ -1,14 +1,15 @@
 import {
-  Component, OnInit, OnDestroy, ElementRef, ViewChild, inject, signal, DestroyRef, computed, AfterViewInit
+  AfterViewInit, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, OnDestroy, signal, viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { DecimalPipe, SlicePipe } from '@angular/common';
-import { timer } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
-import { TripService } from '../../core/services/trip.service';
-import { ParadoxService } from '../../core/services/paradox.service';
-import { TripDto, ParadoxDto } from '../../core/models/trip.model';
+import { interval } from 'rxjs';
+import { TripDto } from '../../core/models/trip.model';
+import { ParadoxFeedDto, SpawnParadoxResultDto } from '../../core/models/paradox.model';
+import { AgencyStore } from '../../state/agency.store';
+import { ParadoxFeedStore } from '../../state/paradox-feed.store';
+import { PARADOX_TYPES, paradoxTypeColor, paradoxTypeLabel } from '../../shared/utils/status.utils';
+import { SimulationPanelComponent } from './simulation-panel/simulation-panel.component';
 
 interface TripNode {
   trip: TripDto;
@@ -18,7 +19,7 @@ interface TripNode {
 }
 
 interface Branch {
-  paradox: ParadoxDto;
+  paradox: ParadoxFeedDto;
   tripNode: TripNode;
   lane: number;
   dir: 1 | -1;
@@ -26,19 +27,6 @@ interface Branch {
   healed: boolean;
   healProgress: number; // 0-1
   id: string;
-}
-
-const PARADOX_COLORS: Record<string, string> = {
-  GrandFatherParadox: '#E05A4E',
-  BootstrapParadox: '#C9A84C',
-  PredestinationParadox: '#7B5EA7',
-  CausalLoop: '#3B9EBF',
-  TemporalFlux: '#4EB87A',
-  Unknown: '#6B7488',
-};
-
-function paradoxColor(type: string): string {
-  return PARADOX_COLORS[type] ?? PARADOX_COLORS['Unknown'];
 }
 
 function cubicBezier(p0: [number, number], p1: [number, number], p2: [number, number], p3: [number, number], t: number): [number, number] {
@@ -51,262 +39,41 @@ function cubicBezier(p0: [number, number], p1: [number, number], p2: [number, nu
 
 @Component({
   selector: 'app-loom',
-  standalone: true,
-  imports: [FormsModule, DecimalPipe, SlicePipe],
-  styles: [`
-    :host { display:block; }
-    @keyframes drift { from { transform:translateY(0) } to { transform:translateY(-4px) } }
-    @keyframes pulse-orb { 0%,100% { r:10; opacity:0.9 } 50% { r:14; opacity:1 } }
-    @keyframes halo-pulse { 0%,100% { r:22; opacity:0.3 } 50% { r:28; opacity:0.1 } }
-    @keyframes comet { 0% { stroke-dashoffset:1000 } 100% { stroke-dashoffset:0 } }
-    @keyframes integrity-flash { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
-  `],
-  template: `
-    <div style="position:relative;width:100vw;height:100vh;background:#020408;overflow:hidden;font-family:'Courier New',monospace;">
-
-      <!-- Starfield canvas -->
-      <canvas #starCanvas style="position:absolute;inset:0;pointer-events:none;"></canvas>
-
-      <!-- SVG Timeline -->
-      <svg #svgLoom style="position:absolute;inset:0;width:100%;height:100%;"
-           [attr.viewBox]="'0 0 ' + W + ' ' + H" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <!-- Plasma filter -->
-          <filter id="plasma" x="-50%" y="-50%" width="200%" height="200%">
-            <feTurbulence type="fractalNoise" [attr.baseFrequency]="plasmaFreq()"
-                         numOctaves="4" [attr.seed]="plasmaSeed()" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G"/>
-          </filter>
-          <!-- Glow filters -->
-          <filter id="glow-gold">
-            <feGaussianBlur stdDeviation="6" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="glow-red">
-            <feGaussianBlur stdDeviation="8" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="glow-heal">
-            <feGaussianBlur stdDeviation="10" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <!-- Radial gradient for orbs -->
-          <radialGradient id="orb-grad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#F0EDE6" stop-opacity="1"/>
-            <stop offset="60%" stop-color="#C9A84C" stop-opacity="0.8"/>
-            <stop offset="100%" stop-color="#C9A84C" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-
-        <!-- Prime strand outer glow layers -->
-        <path [attr.d]="primePath()" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="24" stroke-linecap="round"/>
-        <path [attr.d]="primePath()" fill="none" stroke="rgba(201,168,76,0.18)" stroke-width="10" stroke-linecap="round"/>
-        <!-- Prime strand core -->
-        <path [attr.d]="primePath()" fill="none" stroke="#C9A84C" stroke-width="2.5"
-              stroke-linecap="round" filter="url(#glow-gold)"/>
-
-        <!-- Paradox branches -->
-        @for (b of branches(); track b.id) {
-          <g [attr.filter]="b.healed ? 'url(#glow-heal)' : 'url(#plasma)'">
-            <path [attr.d]="branchPath(b)" fill="none"
-                  [attr.stroke]="b.healed ? '#4EB87A' : b.color"
-                  [attr.stroke-width]="b.healed ? 1.5 : 2.5"
-                  [attr.stroke-opacity]="b.healed ? 0.6 * (1 - b.healProgress) + 0.01 : 0.85"
-                  stroke-linecap="round" stroke-dasharray="4 3"/>
-          </g>
-        }
-
-        <!-- Healing convergence flash -->
-        @for (b of branches(); track b.id) {
-          @if (b.healed && b.healProgress < 1) {
-            <circle [attr.cx]="b.tripNode.x" [attr.cy]="b.tripNode.y" [attr.r]="b.healProgress * 40"
-                    fill="none" stroke="#4EB87A" stroke-width="2"
-                    [attr.stroke-opacity]="0.6 * (1 - b.healProgress)"/>
-          }
-        }
-
-        <!-- Trip nodes -->
-        @for (node of tripNodes(); track node.trip.guid) {
-          <g>
-            <!-- halo -->
-            <circle [attr.cx]="node.x" [attr.cy]="node.y" r="24"
-                    fill="none" stroke="#C9A84C" stroke-width="1"
-                    stroke-opacity="0.15" style="animation:halo-pulse 3s ease-in-out infinite"/>
-            <!-- danger ring for critical -->
-            @if (node.trip.tripType === 'CriticalTrip') {
-              <circle [attr.cx]="node.x" [attr.cy]="node.y" r="18"
-                      fill="none" stroke="#E05A4E" stroke-width="1.5"
-                      stroke-opacity="0.6" stroke-dasharray="4 3"/>
-            }
-            <!-- orb -->
-            <circle [attr.cx]="node.x" [attr.cy]="node.y" r="9"
-                    fill="url(#orb-grad)"
-                    style="cursor:pointer;animation:pulse-orb 4s ease-in-out infinite"
-                    (click)="selectTrip(node.trip)"/>
-            <!-- label -->
-            <text [attr.x]="node.x" [attr.y]="node.y - 30"
-                  text-anchor="middle" fill="#C9A84C" font-size="10"
-                  font-family="'Courier New',monospace" opacity="0.75">
-              {{ node.trip.tripName ?? 'UNNAMED' | slice:0:20 }}
-            </text>
-          </g>
-        }
-
-        <!-- Comet animation along prime strand -->
-        <path [attr.d]="primePath()" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"
-              stroke-dasharray="40 960" stroke-linecap="round"
-              style="animation:comet 8s linear infinite"/>
-        <path [attr.d]="primePath()" fill="none" stroke="rgba(201,168,76,0.4)" stroke-width="1"
-              stroke-dasharray="20 980" stroke-linecap="round"
-              style="animation:comet 12s linear infinite 4s"/>
-      </svg>
-
-      <!-- Integrity Meter HUD -->
-      <div style="position:absolute;top:32px;left:32px;width:220px;">
-        <div style="font-size:10px;letter-spacing:0.12em;color:#6B7488;margin-bottom:6px;">TEMPORAL INTEGRITY</div>
-        <div style="position:relative;height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;">
-          <div [style.width]="integrity() + '%'"
-               [style.background]="integrityColor()"
-               style="height:100%;transition:width 0.8s,background 0.8s;border-radius:3px;"></div>
-        </div>
-        <div [style.color]="integrityColor()"
-             style="font-size:22px;font-weight:700;margin-top:8px;letter-spacing:0.04em;">
-          {{ integrity() | number:'1.0-0' }}%
-        </div>
-        <div style="font-size:10px;color:#4B556A;margin-top:4px;">
-          {{ openParadoxes() }} ACTIVE FRACTURE{{ openParadoxes() === 1 ? '' : 'S' }}
-        </div>
-      </div>
-
-      <!-- Top-right title -->
-      <div style="position:absolute;top:32px;right:32px;text-align:right;">
-        <div style="font-size:9px;letter-spacing:0.25em;color:#4B556A;">⧗ THE LOOM</div>
-        <div style="font-size:11px;color:#6B7488;margin-top:4px;">Observer Mode — Time Itself</div>
-      </div>
-
-      <!-- Legend -->
-      <div style="position:absolute;bottom:32px;left:32px;">
-        <div style="font-size:9px;letter-spacing:0.1em;color:#4B556A;margin-bottom:8px;">PARADOX SPECTRUM</div>
-        @for (entry of paradoxLegend; track entry.type) {
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
-            <div [style.background]="entry.color"
-                 style="width:24px;height:3px;border-radius:2px;box-shadow:0 0 6px currentColor;"></div>
-            <span style="font-size:9px;color:#6B7488;letter-spacing:0.05em;">{{ entry.label }}</span>
-          </div>
-        }
-      </div>
-
-      <!-- Right panel -->
-      <div style="position:absolute;top:0;right:0;height:100%;width:300px;
-                  background:rgba(2,4,8,0.85);border-left:1px solid rgba(201,168,76,0.08);
-                  display:flex;flex-direction:column;">
-
-        <!-- Selected trip details -->
-        <div style="padding:24px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;">
-          @if (selectedTrip()) {
-            <div style="font-size:10px;color:#8A93A6;letter-spacing:0.1em;margin-bottom:6px;">SELECTED NODE</div>
-            <div style="font-size:14px;color:#F0EDE6;margin-bottom:4px;">{{ selectedTrip()!.tripName }}</div>
-            <div style="font-size:11px;color:#6B7488;">{{ selectedTrip()!.tripType }}</div>
-            <div style="margin-top:10px;font-size:11px;color:#8A93A6;">
-              {{ selectedTripParadoxes().length }} paradox{{ selectedTripParadoxes().length === 1 ? '' : 'es' }}
-            </div>
-          } @else {
-            <div style="font-size:11px;color:#4B556A;font-style:italic;">Click a node to inspect…</div>
-          }
-        </div>
-
-        <!-- Introduce paradox -->
-        <div style="padding:20px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;">
-          <div style="font-size:10px;color:#6B7488;letter-spacing:0.1em;margin-bottom:10px;">SIMULATION CONTROLS</div>
-          <div style="margin-bottom:10px;">
-            <div style="font-size:10px;color:#6B7488;margin-bottom:5px;">TARGET NODE</div>
-            <select [(ngModel)]="introduceTargetGuid"
-                    style="width:100%;background:#060C14;border:1px solid #1E2A3A;
-                           color:#B7BFCC;padding:8px 10px;font-size:11px;font-family:'Courier New',monospace;
-                           border-radius:2px;">
-              <option value="">— Select Trip —</option>
-              @for (n of tripNodes(); track n.trip.guid) {
-                <option [value]="n.trip.guid">{{ n.trip.tripName ?? n.trip.guid.slice(0,8) }}</option>
-              }
-            </select>
-          </div>
-          <button (click)="introduceParadox()" [disabled]="introducing() || !introduceTargetGuid"
-                  [style.background]="introducing() ? 'rgba(224,90,78,0.3)' : '#E05A4E'"
-                  style="width:100%;border:none;color:#fff;font-weight:700;font-size:11px;
-                         padding:12px;cursor:pointer;border-radius:2px;letter-spacing:0.12em;
-                         transition:all 0.2s;">
-            {{ introducing() ? 'FRACTURING…' : '⚡ INTRODUCE PARADOX' }}
-          </button>
-          @if (introduceError()) {
-            <div style="color:#E05A4E;font-size:10px;margin-top:6px;">{{ introduceError() }}</div>
-          }
-        </div>
-
-        <!-- Fracture log -->
-        <div style="flex:1;overflow-y:auto;padding:20px;">
-          <div style="font-size:10px;color:#6B7488;letter-spacing:0.1em;margin-bottom:12px;">FRACTURE LOG</div>
-          @for (b of branches(); track b.id) {
-            <div style="margin-bottom:14px;padding:10px;background:rgba(255,255,255,0.02);border-radius:3px;"
-                 [style.border-left]="'2px solid ' + b.color">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-                <div>
-                  <div style="font-size:10px;margin-bottom:3px;" [style.color]="b.color">
-                    {{ b.paradox.paradoxType }}
-                  </div>
-                  <div style="font-size:9px;color:#4B556A;">{{ b.tripNode.trip.tripName?.slice(0,22) }}</div>
-                </div>
-                <div [style.color]="b.healed ? '#4EB87A' : '#E05A4E'"
-                     style="font-size:9px;flex-shrink:0;margin-top:2px;">
-                  {{ b.healed ? '✓ HEALED' : '✗ ACTIVE' }}
-                </div>
-              </div>
-            </div>
-          }
-          @if (branches().length === 0) {
-            <div style="font-size:10px;color:#2E3E54;font-style:italic;">No fractures detected.</div>
-          }
-        </div>
-      </div>
-
-      <!-- Spark overlay -->
-      <canvas #sparkCanvas style="position:absolute;inset:0;pointer-events:none;z-index:10;"></canvas>
-    </div>
-  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DecimalPipe, SlicePipe, SimulationPanelComponent],
+  templateUrl: './loom.component.html',
+  styleUrl: './loom.component.css',
 })
-export class LoomComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('starCanvas') starCanvasRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('svgLoom') svgRef!: ElementRef<SVGSVGElement>;
-  @ViewChild('sparkCanvas') sparkCanvasRef!: ElementRef<HTMLCanvasElement>;
+export class LoomComponent implements AfterViewInit, OnDestroy {
+  private readonly starCanvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('starCanvas');
+  private readonly sparkCanvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('sparkCanvas');
 
-  private readonly tripService = inject(TripService);
-  private readonly paradoxService = inject(ParadoxService);
-  private readonly destroyRef = inject(DestroyRef);
+  protected readonly agency = inject(AgencyStore);
+  private readonly feed = inject(ParadoxFeedStore);
 
   readonly W = 1600;
   readonly H = 900;
 
-  private trips = signal<TripDto[]>([]);
   private previousStatuses = new Map<string, string>();
-  private healingBranches = new Set<string>();
-  private rafId: number | null = null;
   private starRafId: number | null = null;
+  private readonly onResize = () => this.resizeStarCanvas();
 
   readonly plasmaSeed = signal(1);
   readonly plasmaFreq = signal('0.018 0.025');
 
   // Prime bezier control points
-  private P0: [number,number] = [80, 450];
-  private P1: [number,number] = [480, 200];
-  private P2: [number,number] = [1120, 700];
-  private P3: [number,number] = [1280, 450];
+  private P0: [number, number] = [80, 450];
+  private P1: [number, number] = [480, 200];
+  private P2: [number, number] = [1120, 700];
+  private P3: [number, number] = [1280, 450];
 
   readonly primePath = computed(() => {
-    const [x0,y0] = this.P0, [x1,y1] = this.P1, [x2,y2] = this.P2, [x3,y3] = this.P3;
+    const [x0, y0] = this.P0, [x1, y1] = this.P1, [x2, y2] = this.P2, [x3, y3] = this.P3;
     return `M ${x0} ${y0} C ${x1} ${y1} ${x2} ${y2} ${x3} ${y3}`;
   });
 
   readonly tripNodes = computed((): TripNode[] => {
-    const ts = this.trips();
+    const ts = this.agency.trips();
     if (!ts.length) return [];
     return ts.map((trip, i) => {
       const t = 0.12 + (i / Math.max(ts.length - 1, 1)) * 0.76;
@@ -326,46 +93,34 @@ export class LoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly openParadoxes = computed(() => this.branches().filter(b => !b.healed).length);
 
-  integrityColor(): string {
+  readonly integrityColor = computed(() => {
     const v = this.integrity();
     if (v > 70) return '#4EB87A';
     if (v > 40) return '#C9A84C';
     return '#E05A4E';
-  }
-
-  readonly selectedTrip = signal<TripDto | null>(null);
-  readonly selectedTripParadoxes = computed(() => {
-    const t = this.selectedTrip();
-    if (!t) return [];
-    return this.branches().filter(b => b.tripNode.trip.guid === t.guid);
   });
 
-  readonly introducing = signal(false);
-  readonly introduceError = signal('');
-  introduceTargetGuid = '';
+  private readonly selectedGuid = signal<string | null>(null);
+  readonly selectedTrip = computed(() => {
+    const guid = this.selectedGuid();
+    return guid ? this.agency.tripsByGuid().get(guid) ?? null : null;
+  });
+  readonly selectedTripParadoxes = computed(() => {
+    const t = this.selectedTrip();
+    return t ? this.branches().filter(b => b.tripNode.trip.guid === t.guid) : [];
+  });
 
-  readonly paradoxLegend = Object.entries(PARADOX_COLORS).map(([type, color]) => ({
-    type,
-    label: type.replace(/([A-Z])/g, ' $1').trim(),
-    color,
-  }));
+  readonly paradoxLegend = PARADOX_TYPES.map(type => ({ type, label: paradoxTypeLabel(type), color: paradoxTypeColor(type) }));
+  protected readonly typeLabel = paradoxTypeLabel;
 
-  ngOnInit(): void {
-    timer(0, 5000).pipe(
-      switchMap(() => this.tripService.getAll()),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: trips => {
-        this.diffAndUpdateBranches(trips);
-        this.trips.set(trips);
-      },
-      error: () => {},
-    });
+  constructor() {
+    // Rebuild branches whenever the live feed or the trip layout changes.
+    effect(() => this.updateBranches(this.feed.paradoxes(), this.tripNodes()));
 
-    // Animate plasma seed
-    setInterval(() => {
-      this.plasmaSeed.set((this.plasmaSeed() % 9999) + 1);
-    }, 120);
+    // Animate the plasma turbulence seed.
+    interval(120)
+      .pipe(takeUntilDestroyed(inject(DestroyRef)))
+      .subscribe(() => this.plasmaSeed.update(seed => (seed % 9999) + 1));
   }
 
   ngAfterViewInit(): void {
@@ -373,47 +128,46 @@ export class LoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.starRafId) cancelAnimationFrame(this.starRafId);
+    window.removeEventListener('resize', this.onResize);
   }
 
-  private diffAndUpdateBranches(trips: TripDto[]): void {
-    const nodes = this.tripNodes();
+  selectTrip(trip: TripDto): void {
+    this.selectedGuid.set(trip.guid);
+  }
+
+  protected onSpawned(result: SpawnParadoxResultDto): void {
+    this.sparkAt(result.paradox.tripGuid);
+  }
+
+  private updateBranches(paradoxes: ParadoxFeedDto[], nodes: TripNode[]): void {
+    const nodeByTrip = new Map(nodes.map(n => [n.trip.guid, n]));
     const laneCounters = new Map<string, number>();
     const newBranches: Branch[] = [];
 
-    for (const trip of trips) {
-      const node = nodes.find(n => n.trip.guid === trip.guid);
+    // Oldest first so lanes stay stable as new paradoxes arrive.
+    for (const p of [...paradoxes].reverse()) {
+      const node = nodeByTrip.get(p.tripGuid);
       if (!node) continue;
-      for (const p of trip.paradoxes) {
-        const prevStatus = this.previousStatuses.get(p.guid);
-        const isHealed = p.paradoxStatus === 'Solved';
-        const wasHealed = prevStatus === 'Solved';
 
-        // Fire healing animation if newly healed
-        if (isHealed && !wasHealed && prevStatus !== undefined) {
-          this.healingBranches.add(p.guid);
-          this.animateHeal(p.guid);
-        }
-        this.previousStatuses.set(p.guid, p.paradoxStatus);
+      const prevStatus = this.previousStatuses.get(p.guid);
+      const isHealed = p.paradoxStatus === 'Solved';
+      if (isHealed && prevStatus !== undefined && prevStatus !== 'Solved') this.animateHeal(p.guid);
+      this.previousStatuses.set(p.guid, p.paradoxStatus);
 
-        const key = trip.guid;
-        const count = laneCounters.get(key) ?? 0;
-        laneCounters.set(key, count + 1);
-        const lane = Math.floor(count / 2) + 1;
-        const dir: 1 | -1 = count % 2 === 0 ? 1 : -1;
+      const count = laneCounters.get(p.tripGuid) ?? 0;
+      laneCounters.set(p.tripGuid, count + 1);
 
-        newBranches.push({
-          paradox: p,
-          tripNode: node,
-          lane,
-          dir,
-          color: paradoxColor(p.paradoxType),
-          healed: isHealed,
-          healProgress: isHealed ? 1 : 0,
-          id: p.guid,
-        });
-      }
+      newBranches.push({
+        paradox: p,
+        tripNode: node,
+        lane: Math.floor(count / 2) + 1,
+        dir: count % 2 === 0 ? 1 : -1,
+        color: paradoxTypeColor(p.paradoxType),
+        healed: isHealed,
+        healProgress: isHealed ? 1 : 0,
+        id: p.guid,
+      });
     }
 
     this.branches.set(newBranches);
@@ -425,11 +179,8 @@ export class LoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const step = (now: number) => {
       const p = Math.min((now - startTime) / duration, 1);
-      this.branches.update(bs => bs.map(b =>
-        b.id === paradoxGuid ? { ...b, healProgress: p, healed: true } : b
-      ));
+      this.branches.update(bs => bs.map(b => (b.id === paradoxGuid ? { ...b, healProgress: p, healed: true } : b)));
       if (p < 1) requestAnimationFrame(step);
-      else this.healingBranches.delete(paradoxGuid);
     };
     requestAnimationFrame(step);
   }
@@ -444,60 +195,37 @@ export class LoomComponent implements OnInit, AfterViewInit, OnDestroy {
       // Converge back
       const endX = x + spread * (1 - hp);
       const endY = y + len * b.dir * (1 - hp);
-      return `M ${x} ${y} Q ${x + spread * 0.5 * (1-hp)} ${y + len * b.dir * (1-hp) * 0.5} ${endX} ${endY}`;
+      return `M ${x} ${y} Q ${x + spread * 0.5 * (1 - hp)} ${y + len * b.dir * (1 - hp) * 0.5} ${endX} ${endY}`;
     }
 
     const cx1 = x + spread * 0.4;
     const cy1 = y + len * b.dir * 0.3;
     const cx2 = x + spread * 0.7;
     const cy2 = y + len * b.dir * 0.7;
-    const ex = x + spread;
-    const ey = y + len * b.dir;
-    return `M ${x} ${y} C ${cx1} ${cy1} ${cx2} ${cy2} ${ex} ${ey}`;
-  }
-
-  selectTrip(trip: TripDto): void {
-    this.selectedTrip.set(trip);
-  }
-
-  introduceParadox(): void {
-    if (!this.introduceTargetGuid) return;
-    this.introducing.set(true);
-    this.introduceError.set('');
-
-    this.paradoxService.addToTrip(this.introduceTargetGuid).subscribe({
-      next: () => {
-        this.introducing.set(false);
-        this.sparkAt(this.introduceTargetGuid);
-      },
-      error: err => {
-        this.introducing.set(false);
-        this.introduceError.set(err?.error ?? 'Failed to introduce paradox.');
-      },
-    });
+    return `M ${x} ${y} C ${cx1} ${cy1} ${cx2} ${cy2} ${x + spread} ${y + len * b.dir}`;
   }
 
   private sparkAt(tripGuid: string): void {
     const node = this.tripNodes().find(n => n.trip.guid === tripGuid);
-    if (!node || !this.sparkCanvasRef) return;
+    if (!node) return;
 
-    const canvas = this.sparkCanvasRef.nativeElement;
+    const canvas = this.sparkCanvasRef().nativeElement;
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const scaleX = rect.width / this.W;
-    const scaleY = rect.height / this.H;
-    const cx = node.x * scaleX;
-    const cy = node.y * scaleY;
+    // The SVG uses "xMidYMid meet": compute the same uniform scale and letterbox offset.
+    const scale = Math.min(rect.width / this.W, rect.height / this.H);
+    const cx = (rect.width - this.W * scale) / 2 + node.x * scale;
+    const cy = (rect.height - this.H * scale) / 2 + node.y * scale;
 
     interface Spark { x: number; y: number; vx: number; vy: number; life: number; color: string }
     const sparks: Spark[] = Array.from({ length: 40 }, () => {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * 5;
-      return { x: cx, y: cy, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-               life: 1, color: `hsl(${Math.random() * 40},100%,70%)` };
+      return { x: cx, y: cy, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, color: `hsl(${Math.random() * 40},100%,70%)` };
     });
 
     const animate = () => {
@@ -521,11 +249,18 @@ export class LoomComponent implements OnInit, AfterViewInit, OnDestroy {
     requestAnimationFrame(animate);
   }
 
+  private resizeStarCanvas(): void {
+    const canvas = this.starCanvasRef().nativeElement;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+
   private initStarfield(): void {
-    const canvas = this.starCanvasRef.nativeElement;
-    const ctx = canvas.getContext('2d')!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const canvas = this.starCanvasRef().nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    this.resizeStarCanvas();
+    window.addEventListener('resize', this.onResize);
 
     interface Star { x: number; y: number; r: number; a: number; da: number; layer: number }
     const stars: Star[] = Array.from({ length: 220 }, () => ({
@@ -537,13 +272,12 @@ export class LoomComponent implements OnInit, AfterViewInit, OnDestroy {
       layer: Math.floor(Math.random() * 3),
     }));
 
-    interface Comet { x: number; y: number; vx: number; vy: number; life: number; maxLife: number }
+    interface Comet { x: number; y: number; vx: number; vy: number; life: number }
     const comets: Comet[] = [];
 
     const drawFrame = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Stars
       for (const s of stars) {
         s.a = Math.max(0.05, Math.min(1, s.a + s.da));
         if (s.a <= 0.06 || s.a >= 0.99) s.da *= -1;
@@ -554,10 +288,9 @@ export class LoomComponent implements OnInit, AfterViewInit, OnDestroy {
         ctx.fill();
       }
 
-      // Shooting stars
       if (Math.random() < 0.004) {
         comets.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height * 0.5,
-                      vx: 4 + Math.random() * 6, vy: 1 + Math.random() * 2, life: 1, maxLife: 1 });
+                      vx: 4 + Math.random() * 6, vy: 1 + Math.random() * 2, life: 1 });
       }
       for (let i = comets.length - 1; i >= 0; i--) {
         const c = comets[i];

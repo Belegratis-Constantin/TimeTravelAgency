@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TimeTravelAgency.Application.Infrastructure;
+using TimeTravelAgency.Application.Service;
 
 public class Program
 {
@@ -18,6 +19,15 @@ public class Program
         builder.Services.AddDbContext<TimeTravelAgencyContext>(options =>
             options.UseSqlite("Data Source=TimeTravelAgencyTest.db"));
 
+        builder.Services.AddScoped<ParadoxService>();
+
+        // Runtime paradox simulation ("Time itself"): settings from appsettings.json, adjustable via /api/Simulation
+        var simulationOptions = builder.Configuration
+            .GetSection(ParadoxSimulationOptions.SectionName)
+            .Get<ParadoxSimulationOptions>() ?? new ParadoxSimulationOptions();
+        builder.Services.AddSingleton(simulationOptions);
+        builder.Services.AddSingleton<ParadoxSimulationState>();
+        builder.Services.AddHostedService<ParadoxSimulationService>();
         
         var app = builder.Build();
         

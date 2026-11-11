@@ -1,0 +1,44 @@
+@if (hovered() && !selected()) {
+  <div class="readout">
+    <span class="bracket tl"></span><span class="bracket tr"></span>
+    <span class="bracket bl"></span><span class="bracket br"></span>
+    <div class="readout-scan"><div></div></div>
+    <div class="readout-body">
+      <div class="readout-coords">
+        LAT {{ pin().zone.shortLabel.toUpperCase() }} · Δ{{ formatYear(pin().year) }} · SIG {{ pin().signalBars * 33 }}%
+      </div>
+      <div class="readout-name">{{ tripName(pin().trip) }}</div>
+      <div class="readout-date">Departs {{ formatDate(pin().trip.dateInRealLife) }}</div>
+      <div class="readout-foot">
+        <span class="risk" [style.color]="riskColors[pin().risk]">⬡ {{ riskLabels[pin().risk] }}</span>
+        <span class="aboard">{{ pin().trip.customers.length }} ABOARD</span>
+      </div>
+    </div>
+  </div>
+}
+
+@if (pin().isCritical) {
+  <div class="critical-halo"></div>
+  <div class="critical-ring"></div>
+}
+
+<div class="beacon"></div>
+
+<div class="orbit"><div class="satellite"></div></div>
+
+<div class="signal">
+  @for (bar of bars; track bar) {
+    <div class="bar" [class.on]="pin().signalBars >= bar" [style.height.px]="3 + bar * 3"></div>
+  }
+</div>
+
+@if (pin().trip.tripStatus === 'Active' && !selected()) {
+  <div class="sonar"></div>
+}
+
+<div class="stem" [style.height.px]="pin().stemHeight"></div>
+
+<div class="anchor">
+  <div class="anchor-glow"></div>
+  <div class="anchor-node"></div>
+</div>

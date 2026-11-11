@@ -1,190 +1,134 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { forkJoin } from 'rxjs';
-import { DirectorService } from '../../core/services/director.service';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AppStateService } from '../../state/app-state.service';
-import { SystemStatsDto } from '../../core/models/director.model';
-import { ManagerWithIdDto } from '../../core/models/manager.model';
-import { AgentDto } from '../../core/models/agent.model';
+import { AgencyStore } from '../../state/agency.store';
+import { ParadoxFeedStore } from '../../state/paradox-feed.store';
+import { NotificationService } from '../../state/notification.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { StatTile, StatTilesComponent } from '../../shared/components/stat-tile/stat-tile.component';
+import { agentTypeLabel, fullName, isOpenParadox } from '../../shared/utils/status.utils';
 import { CreateManagerModalComponent } from '../modals/create-manager-modal/create-manager-modal.component';
 
+/** System-wide oversight for the director. All numbers update live with the stores. */
 @Component({
   selector: 'app-director-dashboard',
-  standalone: true,
-  imports: [CreateManagerModalComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [PageHeaderComponent, StatTilesComponent, CreateManagerModalComponent],
   template: `
-    <div style="max-width:1360px;margin:0 auto;padding:56px;">
+    <div class="page">
+      <app-page-header eyebrow="Director · Command Centre" [title]="state.displayName()"
+                       subtitle="System-wide oversight — all operations, all eras.">
+        <button type="button" class="btn btn--primary" (click)="createOpen.set(true)">+ Appoint manager</button>
+      </app-page-header>
 
-      <!-- Header -->
-      <div style="margin-bottom:48px;">
-        <div style="font-size:11px;color:#8A93A6;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">
-          Director · Command Centre
-        </div>
-        <div style="font-family:'Fraunces',serif;font-size:38px;margin-bottom:8px;">
-          {{ state.currentDirector()?.name }}
-        </div>
-        <div style="color:#6B7488;font-size:14px;">
-          System-wide oversight — all operations, all eras.
-        </div>
-        <button (click)="showCreateManager.set(true)"
-                style="margin-top:16px;background:#C9A84C;border:none;color:#0B1120;font-weight:600;
-                       font-size:13px;padding:10px 20px;border-radius:2px;cursor:pointer;">
-          + Add Manager
-        </button>
-      </div>
+      @if (agency.initialLoading()) {
+        <p class="state-msg">Loading command data…</p>
+      } @else {
+        <app-stat-tiles [tiles]="stats()" />
 
-      @if (loading()) {
-        <div style="color:#6B7488;font-size:14px;padding:80px 0;text-align:center;">
-          Loading command data…
-        </div>
-      }
-
-      @if (!loading()) {
-        <!-- System stats -->
-        @if (stats()) {
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:16px;margin-bottom:48px;">
-            <div style="background:#1E2A3A;border-radius:4px;padding:20px;text-align:center;">
-              <div style="font-family:'Fraunces',serif;font-size:28px;">{{ stats()!.totalTrips }}</div>
-              <div style="font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;">Trips</div>
-            </div>
-            <div style="background:#1E2A3A;border-radius:4px;padding:20px;text-align:center;">
-              <div style="font-family:'Fraunces',serif;font-size:28px;color:#E05A4E;">{{ stats()!.criticalTripCount }}</div>
-              <div style="font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;">Critical</div>
-            </div>
-            <div style="background:#1E2A3A;border-radius:4px;padding:20px;text-align:center;">
-              <div style="font-family:'Fraunces',serif;font-size:28px;color:#D9A24E;">{{ stats()!.totalParadoxes }}</div>
-              <div style="font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;">Paradoxes</div>
-            </div>
-            <div style="background:#1E2A3A;border-radius:4px;padding:20px;text-align:center;">
-              <div style="font-family:'Fraunces',serif;font-size:28px;color:#E05A4E;">{{ stats()!.openParadoxes }}</div>
-              <div style="font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;">Open</div>
-            </div>
-            <div style="background:#1E2A3A;border-radius:4px;padding:20px;text-align:center;">
-              <div style="font-family:'Fraunces',serif;font-size:28px;">{{ stats()!.totalManagers }}</div>
-              <div style="font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;">Managers</div>
-            </div>
-            <div style="background:#1E2A3A;border-radius:4px;padding:20px;text-align:center;">
-              <div style="font-family:'Fraunces',serif;font-size:28px;">{{ stats()!.totalAgents }}</div>
-              <div style="font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;">Agents</div>
-            </div>
-            <div style="background:#1E2A3A;border-radius:4px;padding:20px;text-align:center;">
-              <div style="font-family:'Fraunces',serif;font-size:28px;">{{ stats()!.totalCustomers }}</div>
-              <div style="font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;">Customers</div>
-            </div>
-          </div>
-        }
-
-        <!-- Managers -->
-        <div style="margin-bottom:48px;">
-          <div style="font-family:'Fraunces',serif;font-size:22px;margin-bottom:20px;">Managers Under Command</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+        <section class="section">
+          <h2 class="section-title">Managers under command</h2>
+          <div class="grid-cards">
             @for (m of managers(); track m.guid) {
-              <div style="background:#1E2A3A;border-radius:4px;padding:20px;border:1px solid #2E3E54;">
-                <div style="font-weight:600;font-size:14px;margin-bottom:4px;">{{ m.firstname }} {{ m.lastname }}</div>
-                <div style="font-size:12px;color:#8A93A6;margin-bottom:12px;">{{ m.email }}</div>
-                <button (click)="reassign(m.guid)"
-                        [disabled]="reassignPending() === m.guid"
-                        style="background:transparent;border:1px solid #2E3E54;color:#B7BFCC;
-                               font-size:12px;padding:6px 14px;border-radius:3px;cursor:pointer;">
-                  {{ reassignSuccess() === m.guid ? '✓ Confirmed' : reassignPending() === m.guid ? 'Confirming…' : 'Confirm Under Command' }}
-                </button>
+              <div class="card card--outlined">
+                <strong>{{ m.name }}</strong>
+                <div class="muted email">{{ m.email }}</div>
+                <div class="row figures">
+                  <span><b>{{ m.trips }}</b> trips</span>
+                  <span><b>{{ m.agents }}</b> agents</span>
+                  <span [class.alert]="m.open > 0"><b>{{ m.open }}</b> open paradoxes</span>
+                </div>
               </div>
             }
           </div>
-        </div>
+        </section>
 
-        <!-- Agents overview -->
-        <div>
-          <div style="font-family:'Fraunces',serif;font-size:22px;margin-bottom:20px;">All Field Agents</div>
-          <div style="background:#1E2A3A;border-radius:4px;overflow:hidden;border:1px solid #2E3E54;">
-            <table style="width:100%;border-collapse:collapse;">
-              <thead>
-                <tr style="border-bottom:1px solid #2E3E54;">
-                  <th style="text-align:left;padding:14px 20px;font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Name</th>
-                  <th style="text-align:left;padding:14px 20px;font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Type</th>
-                  <th style="text-align:left;padding:14px 20px;font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Epoch</th>
-                  <th style="text-align:right;padding:14px 20px;font-size:11px;color:#8A93A6;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">Trips</th>
-                </tr>
-              </thead>
+        <section class="section">
+          <h2 class="section-title">All field agents</h2>
+          <div class="card card--flush table-wrap">
+            <table class="table">
+              <thead><tr><th>Name</th><th>Type</th><th>Epoch</th><th>Manager</th><th class="num">Trips</th></tr></thead>
               <tbody>
                 @for (a of agents(); track a.guid) {
-                  <tr style="border-bottom:1px solid #1A2436;">
-                    <td style="padding:14px 20px;font-size:13.5px;">{{ a.firstname }} {{ a.lastname }}</td>
-                    <td style="padding:14px 20px;">
-                      <span style="font-size:11px;padding:2px 8px;border-radius:20px;"
-                            [style.background]="a.agentType === 'LicensedAgent' ? 'rgba(201,168,76,0.12)' : 'rgba(91,141,201,0.12)'"
-                            [style.color]="a.agentType === 'LicensedAgent' ? '#C9A84C' : '#5B8DC9'">
-                        {{ a.agentType === 'LicensedAgent' ? 'Licensed' : 'Support' }}
-                      </span>
-                    </td>
-                    <td style="padding:14px 20px;font-size:12px;color:#8A93A6;">{{ a.specialisationEpochId?.name ?? '—' }}</td>
-                    <td style="padding:14px 20px;font-size:13.5px;text-align:right;">{{ a.trips.length }}</td>
+                  <tr>
+                    <td>{{ a.name }}</td>
+                    <td><span class="badge" [class]="a.licensed ? 'badge--gold' : 'badge--blue'">{{ a.type }}</span></td>
+                    <td class="muted">{{ a.epoch }}</td>
+                    <td class="muted">{{ a.manager }}</td>
+                    <td class="num">{{ a.trips }}</td>
                   </tr>
                 }
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       }
     </div>
 
-    @if (showCreateManager()) {
-      <app-create-manager-modal
-        (created)="onManagerCreated()"
-        (cancelled)="showCreateManager.set(false)" />
+    @if (createOpen()) {
+      <app-create-manager-modal (created)="onManagerCreated()" (closed)="createOpen.set(false)" />
     }
   `,
+  styles: `
+    .email { font-size: 12px; margin: 2px 0 14px; }
+    .figures { gap: 16px; font-size: 12.5px; color: var(--text-muted); }
+    .figures b { color: var(--text); }
+    .alert, .alert b { color: var(--red); }
+  `,
 })
-export class DirectorDashboardComponent implements OnInit {
-  private readonly directorService = inject(DirectorService);
+export class DirectorDashboardComponent {
   protected readonly state = inject(AppStateService);
+  protected readonly agency = inject(AgencyStore);
+  private readonly feed = inject(ParadoxFeedStore);
+  private readonly notifications = inject(NotificationService);
 
-  readonly loading = signal(true);
-  readonly loadError = signal('');
-  readonly showCreateManager = signal(false);
-  readonly reassignPending = signal<string | null>(null);
-  readonly reassignSuccess = signal<string | null>(null);
-  readonly stats = signal<SystemStatsDto | null>(null);
-  readonly managers = signal<ManagerWithIdDto[]>([]);
-  readonly agents = signal<AgentDto[]>([]);
+  protected readonly createOpen = signal(false);
 
-  ngOnInit(): void {
-    const guid = this.state.currentDirector()?.guid;
-    if (!guid) { this.loading.set(false); return; }
+  protected readonly stats = computed((): StatTile[] => {
+    const trips = this.agency.trips();
+    const paradoxes = this.feed.paradoxes();
+    const open = paradoxes.filter(isOpenParadox).length;
+    return [
+      { label: 'Trips', value: trips.length },
+      { label: 'Critical', value: trips.filter(t => t.tripType === 'CriticalTrip').length, tone: 'red' },
+      { label: 'Paradoxes', value: paradoxes.length, tone: 'amber' },
+      { label: 'Open', value: open, tone: open ? 'red' : 'green' },
+      { label: 'Managers', value: this.agency.managers().length },
+      { label: 'Agents', value: this.agency.agents().length },
+      { label: 'Customers', value: this.agency.customers().length },
+    ];
+  });
 
-    forkJoin({
-      stats: this.directorService.getStats(guid),
-      managers: this.directorService.getManagers(guid),
-      agents: this.directorService.getAgents(guid),
-    }).subscribe({
-      next: ({ stats, managers, agents }) => {
-        this.stats.set(stats);
-        this.managers.set(managers);
-        this.agents.set(agents);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loadError.set('Could not load director data — is the backend running?');
-        this.loading.set(false);
-      },
-    });
-  }
+  protected readonly managers = computed(() => {
+    const trips = this.agency.trips();
+    const agents = this.agency.agents();
+    const paradoxes = this.feed.paradoxes();
+    return this.agency.managers().map(m => ({
+      guid: m.guid,
+      name: fullName(m),
+      email: m.email,
+      trips: trips.filter(t => t.managerGuid === m.guid).length,
+      agents: agents.filter(a => a.managerId === m.id).length,
+      open: paradoxes.filter(p => p.managerGuid === m.guid && isOpenParadox(p)).length,
+    }));
+  });
 
-  onManagerCreated(): void {
-    this.showCreateManager.set(false);
-    this.ngOnInit();
-  }
+  protected readonly agents = computed(() => {
+    const managers = new Map(this.agency.managers().map(m => [m.id, fullName(m)]));
+    const trips = this.agency.trips();
+    return this.agency.agents().map(a => ({
+      guid: a.guid,
+      name: fullName(a),
+      type: agentTypeLabel(a.agentType),
+      licensed: a.agentType === 'LicensedAgent',
+      epoch: a.specialisationEpochId?.name ?? '—',
+      manager: a.managerId !== null ? managers.get(a.managerId) ?? '—' : '—',
+      trips: trips.filter(t => t.licensedAgentId === a.id || t.agentId === a.id).length,
+    }));
+  });
 
-  reassign(managerGuid: string): void {
-    const directorGuid = this.state.currentDirector()?.guid;
-    if (!directorGuid) return;
-    this.reassignPending.set(managerGuid);
-    this.directorService.reassignManager(directorGuid, managerGuid).subscribe({
-      next: () => {
-        this.reassignPending.set(null);
-        this.reassignSuccess.set(managerGuid);
-        setTimeout(() => this.reassignSuccess.set(null), 2000);
-      },
-      error: () => this.reassignPending.set(null),
-    });
+  protected onManagerCreated(): void {
+    this.createOpen.set(false);
+    this.notifications.success('Manager appointed', 'The new manager is now under your command.');
+    this.agency.refresh();
   }
 }

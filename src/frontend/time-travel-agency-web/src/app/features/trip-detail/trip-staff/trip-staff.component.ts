@@ -1,69 +1,52 @@
-import { Component, Input } from '@angular/core';
-import { formatDateTime } from '../../../shared/utils/date.utils';
-import { CustomerDto } from '../../../core/models/trip.model';
-import { initials } from '../../../shared/utils/status.utils';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { TripDto } from '../../../core/models/trip.model';
+import { AgencyStore } from '../../../state/agency.store';
+import { fullName, initials } from '../../../shared/utils/status.utils';
 
 @Component({
   selector: 'app-trip-staff',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <!-- Staff panel -->
-    <div style="background:#1E2A3A;border-radius:4px;padding:24px;margin-bottom:24px;">
-      <div style="font-size:11px;color:#6B7488;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">
-        Staff
-      </div>
-      <div style="display:flex;flex-direction:column;gap:12px;font-size:13.5px;">
-        <div style="display:flex;justify-content:space-between;">
-          <span style="color:#8A93A6;">Licensed Agent</span>
-          <span>{{ licensedAgentName }}</span>
-        </div>
-        @if (supportAgentName) {
-          <div style="display:flex;justify-content:space-between;">
-            <span style="color:#8A93A6;">Support Agent</span>
-            <span>{{ supportAgentName }}</span>
-          </div>
-        }
-        <div style="display:flex;justify-content:space-between;">
-          <span style="color:#8A93A6;">Departs</span>
-          <span>{{ formatDate(dateInRealLife) }}</span>
-        </div>
+    <div class="card">
+      <div class="panel-label">Crew</div>
+      <div class="stack">
+        <div class="kv"><span>Licensed agent</span><span>{{ agency.agentName(trip().licensedAgentId) }}</span></div>
+        <div class="kv"><span>Support agent</span><span>{{ agency.agentName(trip().agentId) ?? '—' }}</span></div>
+        <div class="kv"><span>Manager</span><span>{{ managerName() }}</span></div>
       </div>
     </div>
 
-    <!-- Customers panel -->
-    <div style="background:#1E2A3A;border-radius:4px;padding:24px;margin-bottom:24px;">
-      <div style="font-size:11px;color:#6B7488;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">
-        Booked Customers · {{ customers.length }}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        @for (c of customers; track c.guid) {
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:32px;height:32px;border-radius:50%;background:#2A3A50;color:#C9A84C;
-                        display:flex;align-items:center;justify-content:center;
-                        font-size:12px;font-weight:600;flex-shrink:0;">
-              {{ customerInitials(c) }}
-            </div>
-            <span style="font-size:13.5px;">{{ c.firstname }} {{ c.lastname }}</span>
-          </div>
-        }
-        @if (customers.length === 0) {
-          <div style="color:#6B7488;font-size:13px;font-style:italic;">No travelers booked yet.</div>
-        }
-      </div>
+    <div class="card">
+      <div class="panel-label">Travellers · {{ trip().customers.length }}</div>
+      @if (showTravellerNames()) {
+        <ul class="travellers">
+          @for (c of trip().customers; track c.guid) {
+            <li><span class="avatar">{{ initials(c) }}</span>{{ c.firstname }} {{ c.lastname }}</li>
+          } @empty {
+            <li class="empty-hint">No travellers booked yet.</li>
+          }
+        </ul>
+      } @else {
+        <p class="muted count">Traveller identities are confidential.</p>
+      }
     </div>
+  `,
+  styles: `
+    :host { display: grid; gap: 24px; }
+    .travellers { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+    .travellers li { display: flex; align-items: center; gap: 12px; font-size: 13.5px; }
+    .count { margin: 0; font-size: 13px; }
   `,
 })
 export class TripStaffComponent {
-  @Input() licensedAgentName = '';
-  @Input() supportAgentName: string | null = null;
-  @Input() dateInRealLife = '';
-  @Input() customers: CustomerDto[] = [];
+  readonly trip = input.required<TripDto>();
+  readonly showTravellerNames = input(true);
 
-  formatDate(iso: string): string {
-    return iso ? formatDateTime(iso) : '';
-  }
+  protected readonly agency = inject(AgencyStore);
+  protected readonly initials = initials;
 
-  customerInitials(c: CustomerDto): string {
-    return initials(c.firstname, c.lastname);
-  }
+  protected readonly managerName = computed(() => {
+    const manager = this.agency.managers().find(m => m.guid === this.trip().managerGuid);
+    return manager ? fullName(manager) : '—';
+  });
 }
