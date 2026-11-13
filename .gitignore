@@ -26,3 +26,6 @@ Thumbs.db
 # ── Logs / temp ────────────────────────────────────────────────────────────────
 *.log
 npm-debug.log*
+
+# ── Local screenshots (portfolio material, not versioned) ──────────────────────
+docs/screenshots/
