@@ -32,9 +32,11 @@ import { fullName, initials } from '../../../shared/utils/status.utils';
     </div>
   `,
   styles: `
-    :host { display: grid; gap: 24px; }
-    .travellers { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-    .travellers li { display: flex; align-items: center; gap: 12px; font-size: 13.5px; }
+    :host { display: grid; gap: 20px; }
+    .stack { gap: 8px; }
+    .kv > :last-child { font-weight: 500; text-align: right; }
+    .travellers { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .travellers li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
     .count { margin: 0; font-size: 13px; }
   `,
 })

@@ -22,9 +22,9 @@ import { starString } from '../../../shared/utils/status.utils';
     </section>
   `,
   styles: `
-    .review { padding: 18px 22px; margin-bottom: 12px; }
-    .review p { margin: 8px 0 0; font-size: 13.5px; color: var(--text-2); line-height: 1.6; }
-    .stars { color: var(--gold); letter-spacing: 1px; }
+    .review { padding: 14px 16px; margin-bottom: 8px; }
+    .review p { margin: 6px 0 0; font-size: 13.5px; color: var(--text-2); line-height: 1.6; max-width: 70ch; }
+    .stars { color: var(--amber); letter-spacing: 1px; font-size: 13px; }
   `,
 })
 export class TripReviewsComponent {

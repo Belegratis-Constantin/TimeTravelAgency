@@ -16,7 +16,7 @@ import { initials } from '../../shared/utils/status.utils';
         <div class="identity">
           <span class="avatar avatar--lg">{{ initials(c) }}</span>
           <div>
-            <h1 class="display name">{{ c.firstname }} {{ c.lastname }}</h1>
+            <h1 class="name">{{ c.firstname }} {{ c.lastname }}</h1>
             <div class="muted">{{ c.email }} · {{ c.phoneNumber }}</div>
           </div>
         </div>
@@ -58,15 +58,15 @@ import { initials } from '../../shared/utils/status.utils';
         <app-empty-state title="You are browsing as a guest" message="Sign in or register to book trips and see your journeys.">
           <div class="row row--center">
             <button type="button" class="btn btn--primary" (click)="state.requestRole('customer')">Sign in</button>
-            <button type="button" class="btn btn--outline-gold" (click)="state.joinModalOpen.set(true)">Join as traveller</button>
+            <button type="button" class="btn btn--accent" (click)="state.joinModalOpen.set(true)">Join as traveller</button>
           </div>
         </app-empty-state>
       }
     </div>
   `,
   styles: `
-    .identity { display: flex; align-items: center; gap: 22px; margin-bottom: 44px; }
-    .name { font-size: 30px; }
+    .identity { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+    .name { font-size: 24px; letter-spacing: -0.025em; }
     .span-all { grid-column: 1 / -1; }
   `,
 })

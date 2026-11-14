@@ -30,7 +30,10 @@
     </section>
 
     @if (solvedByMe().length > 0) {
-      <p class="streak">✦ You have stabilised {{ solvedByMe().length }} paradox{{ solvedByMe().length === 1 ? '' : 'es' }} in the field.</p>
+      <div class="commendation">
+        <span class="medal"><app-icon name="shield" /></span>
+        <p>You have stabilised <strong>{{ solvedByMe().length }}</strong> paradox{{ solvedByMe().length === 1 ? '' : 'es' }} in the field.</p>
+      </div>
     }
 
     @if (missions().length > 0) {
@@ -43,7 +46,7 @@
                 <strong>{{ r.header }}</strong>
                 <span class="mono faint">{{ r.date | date: 'medium' }}</span>
               </div>
-              <div class="text-gold trip">{{ r.tripName }}</div>
+              <div class="text-brand trip">{{ r.tripName }}</div>
               <p class="muted">{{ r.content ?? 'No content provided.' }}</p>
             </article>
           } @empty {

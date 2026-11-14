@@ -7,17 +7,18 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { StatTile, StatTilesComponent } from '../../shared/components/stat-tile/stat-tile.component';
 import { agentTypeLabel, fullName, isOpenParadox } from '../../shared/utils/status.utils';
 import { CreateManagerModalComponent } from '../modals/create-manager-modal/create-manager-modal.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 /** System-wide oversight for the director. All numbers update live with the stores. */
 @Component({
   selector: 'app-director-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PageHeaderComponent, StatTilesComponent, CreateManagerModalComponent],
+  imports: [PageHeaderComponent, StatTilesComponent, CreateManagerModalComponent, IconComponent],
   template: `
     <div class="page">
       <app-page-header eyebrow="Director · Command Centre" [title]="state.displayName()"
                        subtitle="System-wide oversight — all operations, all eras.">
-        <button type="button" class="btn btn--primary" (click)="createOpen.set(true)">+ Appoint manager</button>
+        <button type="button" class="btn btn--primary" (click)="createOpen.set(true)"><app-icon name="plus" /> Appoint manager</button>
       </app-page-header>
 
       @if (agency.initialLoading()) {
@@ -29,7 +30,7 @@ import { CreateManagerModalComponent } from '../modals/create-manager-modal/crea
           <h2 class="section-title">Managers under command</h2>
           <div class="grid-cards">
             @for (m of managers(); track m.guid) {
-              <div class="card card--outlined">
+              <div class="card manager">
                 <strong>{{ m.name }}</strong>
                 <div class="muted email">{{ m.email }}</div>
                 <div class="row figures">
@@ -51,7 +52,7 @@ import { CreateManagerModalComponent } from '../modals/create-manager-modal/crea
                 @for (a of agents(); track a.guid) {
                   <tr>
                     <td>{{ a.name }}</td>
-                    <td><span class="badge" [class]="a.licensed ? 'badge--gold' : 'badge--blue'">{{ a.type }}</span></td>
+                    <td><span class="badge badge--plain" [class]="a.licensed ? 'badge--brand' : 'badge--neutral'">{{ a.type }}</span></td>
                     <td class="muted">{{ a.epoch }}</td>
                     <td class="muted">{{ a.manager }}</td>
                     <td class="num">{{ a.trips }}</td>
@@ -69,9 +70,10 @@ import { CreateManagerModalComponent } from '../modals/create-manager-modal/crea
     }
   `,
   styles: `
-    .email { font-size: 12px; margin: 2px 0 14px; }
-    .figures { gap: 16px; font-size: 12.5px; color: var(--text-muted); }
-    .figures b { color: var(--text); }
+    .manager { padding: 14px 16px; }
+    .email { font-size: 12.5px; margin: 1px 0 12px; }
+    .figures { gap: 14px; padding-top: 10px; border-top: 1px solid var(--border-subtle); font-size: 12.5px; color: var(--text-muted); }
+    .figures b { color: var(--text); font-variant-numeric: tabular-nums; }
     .alert, .alert b { color: var(--red); }
   `,
 })

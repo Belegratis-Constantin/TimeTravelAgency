@@ -9,14 +9,13 @@ import { agentTypeLabel, epochLabel, fullName, tripDisplayName } from '../../../
   template: `
     <div class="grid-cards">
       @for (agent of views(); track agent.guid) {
-        <div class="card">
+        <div class="card agent">
           <div class="row row--between">
             <strong>{{ agent.name }}</strong>
-            <span class="badge" [class]="agent.licensed ? 'badge--gold' : 'badge--blue'">{{ agent.type }}</span>
+            <span class="badge badge--plain" [class]="agent.licensed ? 'badge--brand' : 'badge--neutral'">{{ agent.type }}</span>
           </div>
           @if (agent.epoch) { <div class="epoch">{{ agent.epoch }}</div> }
-          <div class="panel-label trips-label">Assigned trips</div>
-          <div class="trips">{{ agent.trips }}</div>
+          <div class="trips"><span class="trips-label">Assigned trips</span>{{ agent.trips }}</div>
         </div>
       } @empty {
         <p class="empty-hint">No agents in your team yet — recruit one.</p>
@@ -24,9 +23,10 @@ import { agentTypeLabel, epochLabel, fullName, tripDisplayName } from '../../../
     </div>
   `,
   styles: `
-    .epoch { font-size: 12px; color: var(--text-faint); margin-top: 6px; }
-    .trips-label { margin: 14px 0 4px; }
-    .trips { font-size: 13px; color: var(--text-2); }
+    .agent { padding: 14px 16px; }
+    .epoch { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+    .trips { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle); font-size: 13px; color: var(--text-2); }
+    .trips-label { display: block; font-size: 12px; color: var(--text-faint); margin-bottom: 1px; }
   `,
 })
 export class AgentsPanelComponent {

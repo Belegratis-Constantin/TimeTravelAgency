@@ -1,19 +1,10 @@
 <div class="card" role="dialog" aria-label="Boarding pass">
-  <header class="band" [style.background]="pin().zone.bg">
-    <div class="shimmer"><div></div></div>
-    <div class="reticle" aria-hidden="true"><span class="ring"></span><span class="ring inner"></span><span class="h"></span><span class="v"></span></div>
-    <div class="edge"><div></div></div>
-
-    <div class="band-body">
-      <div class="kicker">Time Travel Agency · Boarding Pass</div>
-      <div class="title-row">
-        <h2 class="title">{{ name() }}</h2>
-      </div>
-      <div class="route">
-        <span>NOW</span><span class="dash"></span><span class="star">✦</span><span class="dash"></span>
-        <strong>{{ formatYear(pin().year) }}</strong>
-      </div>
-      <div class="zone">{{ pin().zone.label.toUpperCase() }}</div>
+  <header class="band" [style.--accent]="pin().zone.accent">
+    <h2 class="title">{{ name() }}</h2>
+    <div class="zone">Boarding pass · {{ pin().zone.label }}</div>
+    <div class="route">
+      <span>Now</span><span class="dash"></span>
+      <strong>{{ formatYear(pin().year) }}</strong>
     </div>
   </header>
 
@@ -22,14 +13,14 @@
       @for (cell of facts(); track cell.label) {
         <div class="fact">
           <div class="fact-label">{{ cell.label }}</div>
-          <div class="fact-value" [style.color]="cell.color ?? null">{{ cell.value }}</div>
+          <div class="fact-value" [class.toned]="cell.color" [style.--tone]="cell.color ?? null">{{ cell.value }}</div>
         </div>
       }
     </div>
 
     @if (rating(); as stars) {
       <div class="rating row-between">
-        <span class="micro">Traveller Rating</span>
+        <span class="micro">Traveller rating</span>
         <span><span class="stars">{{ stars }}</span> <span class="dim">({{ trip().reviews.length }})</span></span>
       </div>
     }
@@ -37,26 +28,26 @@
     @if (state.isCustomer()) {
       <div class="cta">
         @if (bookingStatus() === 'booked' || justBooked()) {
-          <button type="button" class="cta-btn confirmed" disabled><span>✓</span> Seat Confirmed</button>
+          <button type="button" class="cta-btn confirmed" disabled><app-icon name="check" /> Seat confirmed</button>
         } @else if (bookingStatus() === 'unavailable') {
-          <button type="button" class="cta-btn unavailable" disabled>Cancelled — Unavailable</button>
+          <button type="button" class="cta-btn unavailable" disabled>Cancelled — unavailable</button>
         } @else if (bookingStatus() === 'conflict') {
           <button type="button" class="cta-btn closed" disabled>Already travelling on “{{ conflictName() }}”</button>
         } @else if (bookingStatus() !== 'bookable') {
           <button type="button" class="cta-btn closed" disabled>
-            {{ bookingStatus() === 'underway' ? 'Under way · Departed' : 'Returned · Archived' }}
+            {{ bookingStatus() === 'underway' ? 'Under way · departed' : 'Returned · archived' }}
           </button>
         } @else {
           <button type="button" class="cta-btn book" [disabled]="booking()" (click)="book()">
-            {{ booking() ? 'Reserving Coordinates…' : state.currentCustomer() ? 'Book this Journey →' : 'Sign in to book →' }}
+            {{ booking() ? 'Reserving…' : state.currentCustomer() ? 'Book this journey' : 'Sign in to book' }}
           </button>
         }
         @if (error()) { <div class="error">{{ error() }}</div> }
       </div>
     }
 
-    <a class="itinerary" [routerLink]="['/trip', trip().guid]">Full itinerary & mission details →</a>
+    <a class="itinerary" [routerLink]="['/trip', trip().guid]">Full itinerary and mission details <app-icon name="arrow-right" /></a>
   </div>
 
-  <button type="button" class="close" (click)="closed.emit()" aria-label="Close">×</button>
+  <button type="button" class="icon-btn icon-btn--ghost close" (click)="closed.emit()" aria-label="Close"><app-icon name="x" /></button>
 </div>

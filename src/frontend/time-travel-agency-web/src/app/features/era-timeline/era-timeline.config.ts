@@ -108,7 +108,7 @@ export function tripPhase(trip: Pick<TripDto, 'tripStatus'>): Phase {
   }
 }
 
-export const PHASE_COLORS = { open: '#3FAE79', underway: '#C9A84C', closed: '#6B7488' } as const;
+export const PHASE_COLORS = { open: 'var(--green)', underway: 'var(--amber)', closed: 'var(--text-faint)' } as const;
 export const PHASE_LABELS = { open: 'Boarding open', underway: 'Under way', closed: 'Archived' } as const;
 
 export interface TripPin {

@@ -2,7 +2,7 @@ import { ParadoxStatus, ParadoxType } from '../../core/models/paradox.model';
 import { TripStatus, TripType } from '../../core/models/trip.model';
 import { AgentType, EpochDto } from '../../core/models/agent.model';
 
-export type Tone = 'neutral' | 'blue' | 'amber' | 'green' | 'red' | 'rust' | 'gold' | 'violet';
+export type Tone = 'neutral' | 'blue' | 'amber' | 'green' | 'red' | 'rust' | 'brand' | 'live' | 'violet';
 
 export interface StatusMeta {
   label: string;
@@ -11,7 +11,7 @@ export interface StatusMeta {
 
 const TRIP_STATUS: Record<TripStatus, StatusMeta> = {
   Scheduled: { label: 'Scheduled', tone: 'blue' },
-  Active: { label: 'Under way', tone: 'gold' },
+  Active: { label: 'Under way', tone: 'live' },
   Completed: { label: 'Completed', tone: 'neutral' },
   Cancelled: { label: 'Cancelled', tone: 'rust' },
 };
@@ -24,10 +24,10 @@ const PARADOX_STATUS: Record<ParadoxStatus, StatusMeta> = {
 };
 
 const PARADOX_TYPE: Record<ParadoxType, { label: string; color: string }> = {
-  GrandFatherParadox: { label: 'Grandfather Paradox', color: '#E05A4E' },
-  BootstrapParadox: { label: 'Bootstrap Paradox', color: '#C9A84C' },
-  PredestinationParadox: { label: 'Predestination Paradox', color: '#7B5EA7' },
-  InformationParadox: { label: 'Information Paradox', color: '#3B9EBF' },
+  GrandFatherParadox: { label: 'Grandfather Paradox', color: '#E5534B' },
+  BootstrapParadox: { label: 'Bootstrap Paradox', color: '#D99A2B' },
+  PredestinationParadox: { label: 'Predestination Paradox', color: '#8E6AD8' },
+  InformationParadox: { label: 'Information Paradox', color: '#2FA3C7' },
 };
 
 export const PARADOX_TYPES = Object.keys(PARADOX_TYPE) as ParadoxType[];
@@ -45,7 +45,7 @@ export function paradoxTypeLabel(type: string): string {
 }
 
 export function paradoxTypeColor(type: string): string {
-  return PARADOX_TYPE[type as ParadoxType]?.color ?? '#6B7488';
+  return PARADOX_TYPE[type as ParadoxType]?.color ?? '#7C7C93';
 }
 
 /** Solved paradoxes are closed; every other status still threatens the timeline. */

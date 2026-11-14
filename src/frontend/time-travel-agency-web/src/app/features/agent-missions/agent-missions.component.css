@@ -1,7 +1,15 @@
 .span-all { grid-column: 1 / -1; }
-.report { margin-bottom: 12px; }
-.report .trip { font-size: 12.5px; margin-top: 4px; }
-.report p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; }
-.form-card { position: sticky; top: 96px; }
-.hint { margin: -6px 0 14px; font-size: 13px; color: var(--text-muted); }
-.streak { margin: 0 0 28px; font-size: 13px; color: var(--green); font-family: var(--font-mono); letter-spacing: 0.04em; }
+.report { margin-bottom: 8px; padding: 14px 16px; }
+.report .trip { font-size: 12.5px; font-weight: 500; margin-top: 2px; }
+.report p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.6; }
+.form-card { position: sticky; top: calc(var(--shell-height) + 20px); }
+.hint { margin: -4px 0 12px; font-size: 13px; color: var(--text-muted); max-width: 76ch; }
+/* Field commendation: the agent's running record */
+.commendation {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 36px; padding: 10px 14px; font-size: 13.5px;
+  border: 1px solid color-mix(in srgb, var(--green) 30%, var(--border)); border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--green) 6%, var(--surface));
+}
+.commendation p { margin: 0; color: var(--text-2); }
+.commendation strong { color: var(--green); font-variant-numeric: tabular-nums; }
+.medal { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-size: 15px; flex-shrink: 0; color: var(--surface); background: var(--green); }

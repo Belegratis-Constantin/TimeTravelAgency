@@ -110,6 +110,7 @@ src/app/
 **Rules of thumb:**
 - Pages read data from `AgencyStore` / `ParadoxFeedStore` instead of fetching themselves; after a mutation call `agency.refresh()` (or `feed.refresh()`).
 - Paradox data in the UI always comes from the feed (`feed.forTrip(guid)`), not from `TripDto.paradoxes`, so it updates live.
+- Design system: see `src/frontend/time-travel-agency-web/DESIGN.md`. Light + dark theme (`ThemeService`, `data-theme` on `<html>`; `.theme-dark` keeps the tutorial overlay dark). Icons only via `app-icon`; a trip's closeness to critical is drawn with `app-integrity-gauge`.
 - Styling: design tokens + utility classes + shared keyframes in `src/styles.css` (`.page`, `.card`, `.btn`, `.badge--*`, `.table`, …), component CSS for the rest — no inline `style=""` attributes. Data-driven colours are passed as CSS custom properties (e.g. `[style.--accent]="zone.accent"`) and tinted with `color-mix()`. The Continuum is split into `era-timeline.config.ts`, `timeline-pin`, `timeline-scrubber` and `boarding-card`.
 
 **Role system:**

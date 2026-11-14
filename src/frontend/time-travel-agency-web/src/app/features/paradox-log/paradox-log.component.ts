@@ -5,6 +5,7 @@ import { ParadoxFeedStore } from '../../state/paradox-feed.store';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ParadoxListComponent } from '../../shared/components/paradox-list/paradox-list.component';
 import { isOpenParadox, paradoxMeta, paradoxTypeLabel, PARADOX_TYPES } from '../../shared/utils/status.utils';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 type StatusFilter = 'open' | 'all' | ParadoxStatus;
 
@@ -12,12 +13,12 @@ type StatusFilter = 'open' | 'all' | ParadoxStatus;
 @Component({
   selector: 'app-paradox-log',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PageHeaderComponent, ParadoxListComponent],
+  imports: [PageHeaderComponent, ParadoxListComponent, IconComponent],
   template: `
     <div class="page page--narrow">
       <app-page-header title="Paradox Log" [eyebrow]="state.isManager() ? 'Your trips' : 'All trips'"
                        subtitle="Records are append-only: a paradox can be resolved, but never deleted. New incidents appear live.">
-        <span class="badge badge--neutral">🔒 Immutable records</span>
+        <span class="tag"><app-icon name="lock" /> Immutable records</span>
       </app-page-header>
 
       <div class="row filters" role="group" aria-label="Filter by status">
@@ -41,11 +42,15 @@ type StatusFilter = 'open' | 'all' | ParadoxStatus;
     </div>
   `,
   styles: `
-    .filters { margin-bottom: 24px; }
-    .chip { display: inline-flex; gap: 6px; align-items: center; padding: 6px 12px; border-radius: var(--radius-pill);
-            border: 1px solid var(--border); background: transparent; color: var(--text-2); font-size: 12.5px; cursor: pointer; }
-    .chip.active { border-color: var(--gold); color: var(--gold); }
-    .count { color: var(--text-faint); }
+    .filters { margin-bottom: 16px; gap: 6px; }
+    .chip { display: inline-flex; gap: 6px; align-items: center; min-height: 30px; padding: 3px 10px; border-radius: var(--radius);
+            border: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-size: 12.5px; font-weight: 500;
+            cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+    .chip:hover { background: var(--surface-sunken); }
+    .chip.active { border-color: var(--brand); color: var(--brand); background: color-mix(in srgb, var(--brand) 8%, var(--surface)); }
+    .count { color: var(--text-faint); font-variant-numeric: tabular-nums; font-weight: 400; }
+    .chip.active .count { color: inherit; opacity: 0.75; }
+    .filters .select { margin-left: auto; }
   `,
 })
 export class ParadoxLogComponent {

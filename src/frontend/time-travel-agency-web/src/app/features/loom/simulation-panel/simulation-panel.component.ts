@@ -7,6 +7,7 @@ import { TripDto } from '../../../core/models/trip.model';
 import { toErrorMessage } from '../../../core/http/error-message';
 import { ParadoxFeedStore } from '../../../state/paradox-feed.store';
 import { tripDisplayName } from '../../../shared/utils/status.utils';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 const INTERVAL_PRESETS = [10, 30, 45, 60, 120, 300];
 
@@ -17,6 +18,7 @@ const INTERVAL_PRESETS = [10, 30, 45, 60, 120, 300];
 @Component({
   selector: 'app-simulation-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [IconComponent],
   templateUrl: './simulation-panel.component.html',
   styleUrl: './simulation-panel.component.css',
 })

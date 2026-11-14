@@ -6,10 +6,12 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="text">
-      @if (eyebrow()) {
-        <div class="eyebrow">{{ eyebrow() }}</div>
-      }
-      <h1 class="display title">{{ title() }}</h1>
+      <div class="title-row">
+        <h1 class="title">{{ title() }}</h1>
+        @if (eyebrow()) {
+          <span class="tag">{{ eyebrow() }}</span>
+        }
+      </div>
       @if (subtitle()) {
         <p class="subtitle">{{ subtitle() }}</p>
       }
@@ -17,10 +19,11 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     <div class="actions"><ng-content /></div>
   `,
   styles: `
-    :host { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
-    .title { font-size: 30px; margin-top: 4px; }
-    .subtitle { margin: 8px 0 0; color: var(--text-faint); font-size: 14px; max-width: 640px; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    :host { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+    .title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
+    .title { font-size: 24px; letter-spacing: -0.025em; line-height: 1.2; }
+    .subtitle { margin: 6px 0 0; color: var(--text-muted); font-size: 13.5px; max-width: 64ch; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .actions:empty { display: none; }
   `,
 })

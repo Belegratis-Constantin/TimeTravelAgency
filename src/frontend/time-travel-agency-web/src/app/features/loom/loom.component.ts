@@ -95,9 +95,9 @@ export class LoomComponent implements AfterViewInit, OnDestroy {
 
   readonly integrityColor = computed(() => {
     const v = this.integrity();
-    if (v > 70) return '#4EB87A';
-    if (v > 40) return '#C9A84C';
-    return '#E05A4E';
+    if (v > 70) return 'var(--green)';
+    if (v > 40) return 'var(--amber)';
+    return 'var(--red)';
   });
 
   private readonly selectedGuid = signal<string | null>(null);
@@ -282,7 +282,7 @@ export class LoomComponent implements AfterViewInit, OnDestroy {
         s.a = Math.max(0.05, Math.min(1, s.a + s.da));
         if (s.a <= 0.06 || s.a >= 0.99) s.da *= -1;
         ctx.globalAlpha = s.a * (0.4 + s.layer * 0.2);
-        ctx.fillStyle = '#F0EDE6';
+        ctx.fillStyle = '#EDEDF5';
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fill();
@@ -299,7 +299,7 @@ export class LoomComponent implements AfterViewInit, OnDestroy {
         ctx.globalAlpha = c.life * 0.6;
         const grad = ctx.createLinearGradient(c.x - c.vx * 8, c.y - c.vy * 8, c.x, c.y);
         grad.addColorStop(0, 'transparent');
-        grad.addColorStop(1, '#F0EDE6');
+        grad.addColorStop(1, '#EDEDF5');
         ctx.strokeStyle = grad;
         ctx.lineWidth = 1.5;
         ctx.beginPath();

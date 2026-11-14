@@ -1,8 +1,12 @@
-<a class="card-link" [routerLink]="['/trip', trip().guid]" [class.critical]="critical()">
+<a class="card-link" [routerLink]="['/trip', trip().guid]" [class.critical]="critical()" [class.ticket]="customerView()"
+   [class.live]="trip().tripStatus === 'Active'">
   <div class="head">
     <div>
-      <div class="eyebrow">{{ customerView() ? 'Excursion' : typeLabel() + ' trip' }}</div>
-      <h3 class="display name">{{ name() }}</h3>
+      <h3 class="name">{{ name() }}</h3>
+      <div class="kind">
+        @if (critical()) { <app-icon name="alert" /> }
+        {{ customerView() ? 'Excursion' : typeLabel() + ' trip' }}
+      </div>
     </div>
     <app-status-badge [status]="trip().tripStatus" />
   </div>
@@ -18,8 +22,10 @@
 
   <div class="foot">
     <span class="until" [class]="'until--' + until().urgency">{{ until().label }}</span>
-    @if (!customerView() && openParadoxes() > 0) {
-      <span class="paradoxes">⚠ {{ openParadoxes() }} open paradox{{ openParadoxes() === 1 ? '' : 'es' }}</span>
+    @if (!customerView() && trip().tripStatus === 'Active') {
+      <app-integrity-gauge [open]="openParadoxes()" />
+    } @else if (!customerView() && openParadoxes() > 0) {
+      <span class="paradoxes">{{ openParadoxes() }} open paradox{{ openParadoxes() === 1 ? '' : 'es' }}</span>
     }
   </div>
   @if (note()) {

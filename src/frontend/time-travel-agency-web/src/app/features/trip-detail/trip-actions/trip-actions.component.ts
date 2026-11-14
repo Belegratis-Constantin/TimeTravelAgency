@@ -14,6 +14,7 @@ import { isOpenParadox, paradoxTypeLabel, tripDisplayName } from '../../../share
 import { inQueueOrder, queueLabel } from '../../../shared/utils/paradox-queue.utils';
 import { ParadoxStabilizerComponent } from '../../paradox-stabilizer/paradox-stabilizer.component';
 import { BLOCK_TEXT, stabiliseBlock } from '../../../shared/utils/dual-lock.utils';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 const CONFIRMATION_MS = 1800;
 
@@ -21,7 +22,7 @@ const CONFIRMATION_MS = 1800;
 @Component({
   selector: 'app-trip-actions',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ParadoxStabilizerComponent],
+  imports: [RouterLink, ParadoxStabilizerComponent, IconComponent],
   templateUrl: './trip-actions.component.html',
   styleUrl: './trip-actions.component.css',
 })

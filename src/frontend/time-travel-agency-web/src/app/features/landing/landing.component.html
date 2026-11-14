@@ -1,19 +1,34 @@
 <section class="hero">
-  <div class="mono kicker">EST. 2150 · BY INVITATION ONLY</div>
-  <h1 class="display headline">Every era,<br />held open for you.</h1>
-  <p class="lede">A private passage across history, escorted by our licensed agents. Reserve your century.</p>
-  <div class="row hero-actions">
-    <button type="button" class="btn btn--primary" (click)="departures.scrollIntoView({ behavior: 'smooth' })">Browse departures</button>
-    <a class="btn btn--outline-gold" routerLink="/timeline">⟳ Explore The Continuum</a>
-    @if (!state.currentCustomer()) {
-      <button type="button" class="btn btn--outline-gold" (click)="state.joinModalOpen.set(true)">Join as traveller</button>
-    }
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <h1 class="headline">Every era, held open for you.</h1>
+      <p class="lede">A private passage across history, escorted by our licensed agents. Reserve your century.</p>
+      <div class="row hero-actions">
+        <button type="button" class="btn btn--primary" (click)="departures.scrollIntoView({ behavior: 'smooth' })">Browse departures</button>
+        <a class="btn" routerLink="/timeline"><app-icon name="compass" /> Explore The Continuum</a>
+        @if (!state.currentCustomer()) {
+          <button type="button" class="btn" (click)="state.joinModalOpen.set(true)">Join as traveller</button>
+        }
+      </div>
+      <p class="fineprint">Est. 2150 · By invitation only</p>
+    </div>
+
+    <!-- The agency's route map: seven eras, one line. Leads into The Continuum. -->
+    <a class="eras" routerLink="/timeline" aria-label="Explore the seven eras in The Continuum">
+      @for (zone of eras; track zone.name) {
+        <span class="era" [style.--era]="zone.accent">
+          <span class="era-node"></span>
+          <span class="era-name">{{ zone.shortLabel }}</span>
+          <span class="era-range">{{ formatYear(zone.startYear) }}</span>
+        </span>
+      }
+    </a>
   </div>
 </section>
 
 <div class="page" #departures>
   <div class="row row--between toolbar">
-    <h2 class="display section-heading">Upcoming departures</h2>
+    <h2 class="section-heading">Upcoming departures</h2>
 
     <div class="row filters">
       <label class="sr-only" for="f-destination">Destination</label>
@@ -55,7 +70,7 @@
     <div class="grid-cards">
       @for (trip of trips(); track trip.guid) {
         <app-trip-card [trip]="trip" [agentName]="agency.agentName(trip.licensedAgentId)" [customerView]="true"
-                       [note]="isBooked(trip) ? '✓ You are booked on this trip' : null" />
+                       [note]="isBooked(trip) ? 'You are booked on this trip' : null" />
       } @empty {
         <app-empty-state class="span-all" title="No trips match these filters">
           <button type="button" class="btn" (click)="resetFilters()">Reset filters</button>
