@@ -4,7 +4,8 @@
   <ul class="list">
     @for (p of paradoxes(); track p.guid) {
       <li class="item" [class.fresh]="fresh().has(p.guid)" [class.solved]="p.paradoxStatus === 'Solved'"
-          [style.border-left-color]="typeColor(p.paradoxType)">
+          [class.escalated]="p.paradoxStatus === 'Escalated'" [class.head-of-queue]="p.queuePosition === 0"
+          [style.--type]="typeColor(p.paradoxType)">
         <div class="top">
           <div>
             <div class="type">
@@ -12,8 +13,9 @@
                 <span class="queue" [class.now]="p.queuePosition === 0"
                       [attr.title]="p.queuePosition === 0 ? 'Being worked on now' : 'Waiting in the trip\'s queue'">{{ q }}</span>
               }
+              <span class="type-dot" aria-hidden="true"></span>
               {{ typeLabel(p.paradoxType) }}
-              @if (fresh().has(p.guid)) { <span class="badge badge--red new">New</span> }
+              @if (fresh().has(p.guid)) { <span class="badge badge--red">New</span> }
             </div>
             <div class="meta">
               @if (showTrip()) {
@@ -27,13 +29,13 @@
             @if (p.queuePosition != null) {
               <div class="reorder" role="group" [attr.aria-label]="'Queue order of ' + typeLabel(p.paradoxType)">
                 @if (p.queuePosition > 0) {
-                  <button type="button" class="btn btn--outline-gold btn--sm" [disabled]="pending() === p.guid"
+                  <button type="button" class="btn btn--accent btn--sm" [disabled]="pending() === p.guid"
                           (click)="move.emit({ paradox: p, position: 0 })">Work on now</button>
                 }
                 <button type="button" class="icon-btn" aria-label="Move up in queue" [disabled]="pending() === p.guid || p.queuePosition === 0"
-                        (click)="moveBy(p, -1)">▲</button>
+                        (click)="moveBy(p, -1)"><app-icon name="chevron-up" /></button>
                 <button type="button" class="icon-btn" aria-label="Move down in queue" [disabled]="pending() === p.guid || isLastInQueue(p)"
-                        (click)="moveBy(p, 1)">▼</button>
+                        (click)="moveBy(p, 1)"><app-icon name="chevron-down" /></button>
               </div>
             }
             <label class="sr-only" [attr.for]="'status-' + p.guid">Status</label>
@@ -60,17 +62,17 @@
         <p class="description">{{ p.description }}</p>
         @if (p.dualLockRequired && p.paradoxStatus !== 'Solved') {
           <div class="dual" aria-label="Dual lock progress">
-            <span class="mono dual-label">DUAL LOCK</span>
+            <span class="dual-label"><app-icon name="lock" /> Dual lock</span>
             @if (p.tripHasSupportAgent) {
-              <span class="lock-chip" [class.on]="p.licensedLocked">{{ p.licensedLocked ? '✓' : '○' }} Licensed</span>
-              <span class="lock-chip" [class.on]="p.supportLocked">{{ p.supportLocked ? '✓' : '○' }} Support</span>
+              <span class="lock-chip" [class.on]="p.licensedLocked">Licensed</span>
+              <span class="lock-chip" [class.on]="p.supportLocked">Support</span>
             } @else {
               <span class="lock-chip warn">Support agent required — the manager must assign one</span>
             }
           </div>
         }
         @if (p.paradoxStatus === 'Solved' && p.resolvedByAgentId !== null && agentName(); as name) {
-          <p class="solved-by">Stabilised in the field by {{ name(p.resolvedByAgentId) }}</p>
+          <p class="solved-by"><app-icon name="shield" /> Stabilised in the field by {{ name(p.resolvedByAgentId) }}</p>
         }
       </li>
     }

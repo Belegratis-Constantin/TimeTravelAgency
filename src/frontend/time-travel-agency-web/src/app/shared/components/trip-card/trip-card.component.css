@@ -1,19 +1,32 @@
+:host { display: block; }
 .card-link {
-  display: block; height: 100%; background: var(--surface); border-radius: var(--radius); padding: 22px;
-  color: inherit; box-shadow: var(--shadow-card); border: 1px solid transparent;
-  transition: transform 0.15s, border-color 0.15s;
+  display: flex; flex-direction: column; height: 100%; padding: 16px 18px 14px; color: inherit;
+  background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  transition: transform 0.25s var(--ease-out), border-color 0.15s, box-shadow 0.25s var(--ease-out);
 }
-.card-link:hover { color: inherit; transform: translateY(-3px); border-color: var(--border); }
-.card-link.critical { border-left: 3px solid var(--red); }
+.card-link:hover { color: inherit; transform: translateY(-2px); border-color: var(--border); box-shadow: var(--shadow-raised); }
+/* Only a critical trip that is still under way raises the alarm; afterwards the label is enough. */
+.card-link.critical.live { border-color: color-mix(in srgb, var(--red) 45%, var(--border)); background: color-mix(in srgb, var(--red) 4%, var(--surface)); }
 .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.name { font-size: 23px; margin-top: 4px; }
-.facts { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid rgba(240, 237, 230, 0.08); display: grid; gap: 9px; }
-.facts dt { color: var(--text-faint); }
-.facts dd { margin: 0; color: var(--text-2); text-align: right; }
-.foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 16px; font-size: 12px; }
+.name { font-size: 16px; line-height: 1.3; }
+.kind { display: flex; align-items: center; gap: 5px; margin-top: 2px; font-size: 12px; color: var(--text-faint); }
+.critical .kind { color: var(--red); font-weight: 500; }
+.facts { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--border-subtle); display: grid; gap: 6px; }
+.facts dt { color: var(--text-muted); }
+.facts dd { margin: 0; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+/* Customer cards read as tickets: the stub is torn off along a perforation. */
+.ticket .facts { border-top: 1px dashed var(--border); }
+.foot {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: auto; padding-top: 14px; font-size: 12px; font-weight: 500;
+}
 .until--soon { color: var(--amber); }
 .until--later { color: var(--text-muted); }
 .until--past { color: var(--text-faint); }
-.until--live { color: var(--gold); }
-.paradoxes { color: var(--red); font-weight: 600; }
-.note { margin-top: 12px; font-size: 12px; color: var(--gold); }
+.until--live { color: var(--amber); }
+.paradoxes { color: var(--red); }
+.note {
+  margin: 12px -18px -14px; padding: 8px 18px; font-size: 12px; font-weight: 500; color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 7%, var(--surface)); border-top: 1px solid color-mix(in srgb, var(--brand) 16%, transparent);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}

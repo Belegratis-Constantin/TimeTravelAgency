@@ -1,27 +1,30 @@
 <div class="page">
-  <a class="back" [routerLink]="state.homeRoute()">← Back</a>
+  <a class="back" [routerLink]="state.homeRoute()"><app-icon name="arrow-left" /> Back</a>
 
   @if (agency.initialLoading()) {
     <p class="state-msg">Loading trip…</p>
   } @else if (trip(); as t) {
     <header class="head">
-      <div>
-        <div class="eyebrow">
-          @if (!state.isCustomer()) { {{ typeLabel() }} trip · }
-          departs {{ t.dateInRealLife | date: 'medium' }} · returns {{ t.returnInRealLife | date: 'medium' }}
-        </div>
-        <h1 class="display title">{{ name() }}</h1>
-        <p class="summary">
-          @if (destinationEra()) { Destination era: <span class="text-gold">{{ destinationEra() }}</span> · }
-          {{ t.customers.length }} traveller{{ t.customers.length === 1 ? '' : 's' }} booked
-        </p>
-      </div>
-      <div class="row">
+      <div class="title-row">
+        <h1 class="title">{{ name() }}</h1>
         <app-status-badge [status]="t.tripStatus" />
         @if (!state.isCustomer()) {
           <app-status-badge [status]="t.tripType" kind="tripType" />
         }
       </div>
+
+      <!-- Itinerary strip: the trip's fixed facts, read like a boarding document -->
+      <dl class="itinerary">
+        <div><dt>Departs</dt><dd>{{ t.dateInRealLife | date: 'medium' }}</dd></div>
+        <div><dt>Returns</dt><dd>{{ t.returnInRealLife | date: 'medium' }}</dd></div>
+        @if (destinationEra()) {
+          <div><dt>Destination era</dt><dd>{{ destinationEra() }}</dd></div>
+        }
+        <div><dt>Travellers</dt><dd>{{ t.customers.length }} booked</dd></div>
+        @if (showParadoxes() && t.tripStatus === 'Active') {
+          <div><dt>Timeline stability</dt><dd><app-integrity-gauge [open]="openParadoxes()" /></dd></div>
+        }
+      </dl>
     </header>
 
     <div class="split">

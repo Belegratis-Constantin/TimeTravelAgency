@@ -1,34 +1,28 @@
-/* Scrubber */
+/* Overview bar: the whole timeline in one strip, the window shows what is on screen. */
 :host {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 46px; z-index: 20; display: flex; align-items: center; gap: 12px;
-  padding: 0 18px; background: rgba(5, 7, 14, 0.94); border-top: 1px solid rgba(255, 255, 255, 0.06); backdrop-filter: blur(6px);
+  position: absolute; bottom: 0; left: 0; right: 0; height: 52px; z-index: 20; display: flex; align-items: center; gap: 16px;
+  padding: 0 var(--page-gutter); background: var(--surface); border-top: 1px solid var(--border-subtle);
 }
-.scrubber-label { font-family: var(--font-mono); font-size: 8px; color: var(--border-subtle); letter-spacing: 0.16em; white-space: nowrap; }
+.scrubber-label { font-size: 12.5px; font-weight: 500; color: var(--text-muted); white-space: nowrap; }
 .scrubber-track {
-  position: relative; flex: 1; height: 10px; border-radius: 2px; cursor: pointer;
-  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative; flex: 1; height: 30px; border-radius: var(--radius-sm); cursor: pointer; overflow: hidden;
+  background: var(--surface-sunken); border: 1px solid var(--border-subtle);
 }
-.segment { position: absolute; top: 0; height: 100%; background: color-mix(in srgb, var(--accent) 20%, transparent); }
-.segment.divided { border-left: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.segment { position: absolute; top: 0; height: 100%; background: color-mix(in srgb, var(--accent) 16%, transparent); box-shadow: inset 0 -3px 0 var(--accent); }
+.segment.divided { border-left: 1px solid var(--surface); }
 .segment span {
-  position: absolute; bottom: 0; left: 0; right: 0; padding-bottom: 1px; text-align: center; line-height: 1; pointer-events: none;
-  font-family: var(--font-mono); font-size: 6px; letter-spacing: 0.08em; opacity: 0.55; color: var(--accent);
+  position: absolute; inset: 2px 4px auto; display: flex; justify-content: center; pointer-events: none; line-height: 1.4;
+  font-size: 10.5px; font-weight: 500; color: var(--text-2); white-space: nowrap; overflow: hidden;
 }
-.marker { position: absolute; top: 1px; bottom: 1px; width: 2px; border-radius: 1px; background: var(--risk); box-shadow: 0 0 4px var(--risk); pointer-events: none; }
-.marker.blink { animation: led-blink 1.4s ease-in-out infinite; }
+.marker { position: absolute; bottom: 5px; height: 7px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--risk); box-shadow: 0 0 0 1px var(--surface); pointer-events: none; }
+.marker.blink { animation: softPulse 1.4s ease-in-out infinite; }
 .viewport {
-  position: absolute; top: 0; bottom: 0; pointer-events: none;
-  background: color-mix(in srgb, var(--accent) 5%, transparent); box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 27%, transparent);
+  position: absolute; top: 0; bottom: 0; pointer-events: none; border-radius: var(--radius-sm);
+  border: 2px solid var(--text); background: color-mix(in srgb, var(--text) 6%, transparent);
 }
-.corner { position: absolute; width: 5px; height: 5px; border: 0 solid var(--accent); }
-.corner.tl { top: 0; left: 0; border-top-width: 1.5px; border-left-width: 1.5px; }
-.corner.tr { top: 0; right: 0; border-top-width: 1.5px; border-right-width: 1.5px; }
-.corner.bl { bottom: 0; left: 0; border-bottom-width: 1.5px; border-left-width: 1.5px; }
-.corner.br { bottom: 0; right: 0; border-bottom-width: 1.5px; border-right-width: 1.5px; }
-.coords { min-width: 100px; text-align: right; line-height: 1.4; font-family: var(--font-mono); }
-.coords-year { font-size: 9px; font-weight: 600; color: var(--accent); }
-.led { display: inline-block; border-radius: 50%; }
-.coords-year .led { width: 5px; height: 5px; margin-right: 4px; vertical-align: middle; background: var(--accent); animation: led-blink 2s ease-in-out infinite; }
-.coords-sector { font-size: 7.5px; color: #3E5068; letter-spacing: 0.08em; }
-
-
+.coords { min-width: 96px; text-align: right; line-height: 1.3; }
+.coords-year { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.coords-sector { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+@media (max-width: 720px) {
+  .scrubber-label, .segment span { display: none; }
+}

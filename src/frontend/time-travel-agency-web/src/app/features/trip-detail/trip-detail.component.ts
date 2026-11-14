@@ -13,6 +13,8 @@ import { inQueueOrder } from '../../shared/utils/paradox-queue.utils';
 import { TripReviewsComponent } from './trip-reviews/trip-reviews.component';
 import { TripStaffComponent } from './trip-staff/trip-staff.component';
 import { TripActionsComponent } from './trip-actions/trip-actions.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { IntegrityGaugeComponent } from '../../shared/components/integrity-gauge/integrity-gauge.component';
 
 @Component({
   selector: 'app-trip-detail',
@@ -27,6 +29,8 @@ import { TripActionsComponent } from './trip-actions/trip-actions.component';
     TripReviewsComponent,
     TripStaffComponent,
     TripActionsComponent,
+    IconComponent,
+    IntegrityGaugeComponent,
   ],
   templateUrl: './trip-detail.component.html',
   styleUrl: './trip-detail.component.css',

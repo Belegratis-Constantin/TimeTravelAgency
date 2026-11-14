@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, signa
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AppStateService, Role, ROLES } from '../../../state/app-state.service';
 import { ParadoxFeedStore } from '../../../state/paradox-feed.store';
+import { ThemeService } from '../../../state/theme.service';
+import { IconComponent } from '../icon/icon.component';
 
 interface NavItem {
   path: string;
@@ -31,6 +33,9 @@ const NAV: Record<Role, NavItem[]> = {
   time: [{ path: '/loom', label: 'The Loom' }],
 };
 
+/** Rank pips shown beside the role — the agency's chain of command (design only). */
+const RANK: Record<Role, number> = { customer: 0, agent: 1, manager: 2, director: 3, time: 0 };
+
 /** Where the open-paradox counter leads for each role. */
 const PARADOX_TARGET: Record<Role, string> = {
   customer: '/profile',
@@ -43,7 +48,7 @@ const PARADOX_TARGET: Record<Role, string> = {
 @Component({
   selector: 'app-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, IconComponent],
   host: { '(document:click)': 'onDocumentClick($event)', '(document:keydown.escape)': 'menuOpen.set(false)' },
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
@@ -54,7 +59,11 @@ export class HeaderComponent {
   private readonly router = inject(Router);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
+  protected readonly theme = inject(ThemeService);
+
   protected readonly roles = ROLES;
+  protected readonly rank = RANK;
+  protected readonly pips = [1, 2, 3];
   protected readonly menuOpen = signal(false);
 
   protected readonly navItems = computed(() =>

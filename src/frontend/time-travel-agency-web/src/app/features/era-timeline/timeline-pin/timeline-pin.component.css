@@ -1,86 +1,42 @@
+/* A trip on the line: marker, stem, anchor. Colour = its era. */
 :host {
-  --a33: color-mix(in srgb, var(--accent) 33%, transparent);
-  --a60: color-mix(in srgb, var(--accent) 60%, transparent);
-  --hex: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   position: absolute; z-index: 5; display: flex; flex-direction: column; align-items: center;
   cursor: pointer; transition: opacity 0.25s;
 }
-:host(.dimmed) { opacity: 0.28; }
+:host(.dimmed) { opacity: 0.35; }
+:host(:hover) { z-index: 16; }
 
-/* Hover readout */
+/* Hover card */
 .readout {
-  position: absolute; bottom: calc(100% + 18px); left: 50%; width: 230px; padding: 14px 16px; z-index: 15;
-  background: rgba(10, 16, 30, 0.82); backdrop-filter: blur(14px); border: 1px solid var(--a33); border-radius: 3px;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 13%, transparent), 0 14px 50px rgba(0, 0, 0, 0.7),
-              inset 0 0 20px color-mix(in srgb, var(--accent) 7%, transparent);
-  pointer-events: none; animation: holo-materialize 0.22s ease forwards;
+  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: 220px; padding: 10px 12px; z-index: 15;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-overlay);
+  pointer-events: none; animation: readout-in 0.18s var(--ease-out);
 }
-.bracket { position: absolute; width: 9px; height: 9px; border: 0 solid var(--accent); }
-.bracket.tl { top: 5px; left: 5px; border-top-width: 1.5px; border-left-width: 1.5px; }
-.bracket.tr { top: 5px; right: 5px; border-top-width: 1.5px; border-right-width: 1.5px; }
-.bracket.bl { bottom: 5px; left: 5px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
-.bracket.br { bottom: 5px; right: 5px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
-.readout-scan { position: absolute; inset: 0; overflow: hidden; }
-.readout-scan div { position: absolute; left: 0; right: 0; height: 1.5px; background: color-mix(in srgb, var(--accent) 53%, transparent); animation: holo-scan 0.7s ease-out 1; }
-.readout-body { position: relative; z-index: 1; padding-left: 4px; }
-.readout-coords { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; margin-bottom: 6px; opacity: 0.6; color: var(--accent); }
-.readout-name { font-family: var(--font-display); font-size: 14px; font-weight: 500; margin-bottom: 5px; line-height: 1.3; }
-.readout-date { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
-.readout-foot { display: flex; justify-content: space-between; align-items: center; }
-.risk { font-size: 10px; font-weight: 600; }
-.aboard { font-family: var(--font-mono); font-size: 9px; color: #3E5068; }
+.readout-name { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.readout-coords { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+.readout-date { font-size: 12.5px; color: var(--text-2); margin-top: 6px; }
+.readout-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-subtle); }
+.risk { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--tone); }
+.risk::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.aboard { font-size: 12px; color: var(--text-faint); }
 
-/* Critical trips */
-
-/* Beacon */
 .beacon {
-  position: relative; z-index: 2; flex-shrink: 0; width: 16px; height: 16px; clip-path: var(--hex); background: var(--accent);
-  box-shadow: 0 0 12px 3px var(--a60), inset 0 0 6px var(--accent);
-  transition: transform 0.15s cubic-bezier(.34, 1.56, .64, 1), filter 0.15s;
+  position: relative; z-index: 2; flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--surface); border: 4px solid var(--accent); box-shadow: 0 0 0 2px var(--bg), var(--shadow-card);
+  transition: transform 0.2s var(--ease-out), background 0.15s;
 }
-:host(.selected) .beacon { width: 22px; height: 22px; background: var(--text); box-shadow: 0 0 28px 10px var(--accent), inset 0 0 8px rgba(255, 255, 255, 0.4); }
-.beacon:hover { transform: scale(1.2); filter: brightness(1.3); }
+:host(:hover) .beacon, :host(:focus-visible) .beacon { transform: scale(1.25); }
+:host(.selected) .beacon { background: var(--accent); transform: scale(1.35); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
 
-.orbit {
-  position: absolute; top: -6px; left: -6px; width: 28px; height: 28px; border-radius: 50%; pointer-events: none;
-  border: 1px solid var(--a33); animation: spin-slow 7s linear infinite;
-}
-:host(.selected) .orbit { top: -8px; left: -8px; width: 38px; height: 38px; }
-.satellite {
-  position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 6px 2px var(--accent);
-}
-
-.signal { position: absolute; bottom: -2px; right: -18px; display: flex; gap: 2px; align-items: flex-end; pointer-events: none; }
-.bar { width: 3px; border-radius: 1px; background: color-mix(in srgb, var(--accent) 13%, transparent); transition: background 0.3s; }
-.bar.on { background: var(--accent); box-shadow: 0 0 4px var(--accent); }
-
+/* Under way: the marker pings */
 .sonar {
-  position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border-radius: 50%; pointer-events: none;
-  border: 1.5px solid var(--accent); animation: pulse-ring 2.2s ease-out infinite;
+  position: absolute; top: 0; left: 50%; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; pointer-events: none;
+  border: 2px solid var(--accent); animation: pulse-ring 2s ease-out infinite;
 }
 
-.stem {
-  flex-shrink: 0; width: 1.5px; box-shadow: 0 0 4px color-mix(in srgb, var(--accent) 40%, transparent);
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--accent) 80%, transparent), color-mix(in srgb, var(--accent) 7%, transparent));
-}
-.anchor { position: relative; flex-shrink: 0; }
-.anchor-glow {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 22px; height: 7px; border-radius: 50%;
-  pointer-events: none; filter: blur(3px); background: radial-gradient(color-mix(in srgb, var(--accent) 53%, transparent), transparent);
-}
-.anchor-node {
-  position: relative; z-index: 1; width: 8px; height: 8px; clip-path: var(--hex); background: var(--accent);
-  box-shadow: 0 0 10px 3px color-mix(in srgb, var(--accent) 53%, transparent);
-}
+.stem { --stem: color-mix(in srgb, var(--accent) 45%, var(--border)); flex-shrink: 0; width: 2px; background: var(--stem); box-shadow: 0 2px 0 var(--stem); }
+/* 16 marker + stem + 2 gap + 4 = the anchor's centre sits on the line (host offset is stem + 22) */
+.anchor { flex-shrink: 0; width: 8px; height: 8px; margin-top: 2px; border-radius: 50%; background: var(--accent); }
 
-@keyframes pulse-ring {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-  100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
-}
-@keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
-@keyframes holo-materialize {
-  0% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.92); filter: brightness(2.2); }
-  60% { opacity: 1; filter: brightness(1.4); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); filter: brightness(1); }
-}
+@keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.6); opacity: 0; } }
+@keyframes readout-in { from { opacity: 0; transform: translateX(-50%) translateY(6px); } to { opacity: 1; transform: translateX(-50%); } }

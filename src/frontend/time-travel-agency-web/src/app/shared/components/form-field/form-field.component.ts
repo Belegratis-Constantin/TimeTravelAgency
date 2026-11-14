@@ -21,9 +21,10 @@ import { startWith, switchMap } from 'rxjs';
   `,
   styles: `
     :host { display: block; }
-    .label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; letter-spacing: 0.07em; text-transform: uppercase; }
-    .error { color: var(--red); font-size: 11.5px; margin-top: 4px; }
-    .hint { color: var(--text-faint); font-size: 11.5px; margin-top: 4px; }
+    .label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text-2); margin-bottom: 5px; }
+    .label span { color: var(--red); }
+    .error { color: var(--red); font-size: 12px; margin-top: 4px; }
+    .hint { color: var(--text-faint); font-size: 12px; margin-top: 4px; }
   `,
 })
 export class FormFieldComponent {

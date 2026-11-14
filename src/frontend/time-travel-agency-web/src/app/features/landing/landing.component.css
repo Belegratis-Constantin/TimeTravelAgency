@@ -1,13 +1,31 @@
-.hero {
-  padding: 80px var(--page-gutter) 60px; text-align: center; border-bottom: 1px solid var(--surface);
-  background: radial-gradient(ellipse at 50% -10%, rgba(201, 168, 76, 0.1), transparent 60%);
+.hero { background: var(--surface); border-bottom: 1px solid var(--border-subtle); }
+.hero-inner { max-width: 1280px; margin: 0 auto; padding: 56px var(--page-gutter) 0; }
+.hero-copy { max-width: 620px; }
+.headline { font-size: clamp(34px, 5vw, 52px); font-weight: 600; line-height: 1.05; letter-spacing: -0.04em; margin-bottom: 14px; }
+.lede { margin: 0 0 24px; color: var(--text-muted); font-size: 16px; max-width: 46ch; }
+.hero-actions { gap: 8px; }
+.fineprint { margin: 18px 0 0; font-size: 12px; color: var(--text-faint); }
+
+/* Route map: the seven eras as stops on one line */
+.eras {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-top: 44px; color: inherit;
+  border-top: 1px solid var(--border-subtle);
 }
-.kicker { color: var(--gold); font-size: 11px; letter-spacing: 0.3em; margin-bottom: 22px; }
-.headline { font-weight: 400; font-style: italic; font-size: clamp(38px, 6vw, 58px); line-height: 1.12; margin-bottom: 20px; }
-.lede { color: var(--text-muted); font-size: 16px; max-width: 460px; margin: 0 auto 32px; }
-.hero-actions { justify-content: center; gap: 14px; }
-.toolbar { margin-bottom: 28px; gap: 16px; }
-.section-heading { font-size: 22px; }
-.filters { gap: 12px; }
-.check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); cursor: pointer; }
+.eras:hover { color: inherit; }
+.era { position: relative; display: grid; gap: 1px; padding: 18px 8px 16px 0; transition: background 0.2s; }
+/* the line */
+.era::before { content: ''; position: absolute; left: 0; right: 0; top: -1px; height: 2px; background: var(--era); opacity: 0.55; transition: opacity 0.2s, height 0.2s; }
+.era-node { position: absolute; left: 0; top: -5px; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid var(--era); transition: transform 0.25s var(--ease-out), background 0.2s; }
+.era-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.era-range { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.era:hover::before { opacity: 1; height: 3px; }
+.era:hover .era-node { transform: scale(1.35); background: var(--era); }
+@media (max-width: 720px) {
+  .eras { grid-template-columns: repeat(7, 84px); overflow-x: auto; scrollbar-width: none; }
+}
+
+.toolbar { margin-bottom: 16px; gap: 12px; }
+.section-heading { font-size: 18px; }
+.filters { gap: 8px; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); cursor: pointer; margin-left: 4px; }
 .span-all { grid-column: 1 / -1; }

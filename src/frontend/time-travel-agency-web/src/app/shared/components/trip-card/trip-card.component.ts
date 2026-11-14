@@ -4,12 +4,14 @@ import { TripDto } from '../../../core/models/trip.model';
 import { formatDateTime, formatDuration, tripTiming } from '../../utils/date.utils';
 import { tripDisplayName, tripTypeLabel } from '../../utils/status.utils';
 import { StatusBadgeComponent } from '../status-badge/status-badge.component';
+import { IntegrityGaugeComponent } from '../integrity-gauge/integrity-gauge.component';
+import { IconComponent } from '../icon/icon.component';
 
 /** Trip summary card, linking to the trip detail page. Used by every trip grid in the app. */
 @Component({
   selector: 'app-trip-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, StatusBadgeComponent],
+  imports: [RouterLink, StatusBadgeComponent, IntegrityGaugeComponent, IconComponent],
   templateUrl: './trip-card.component.html',
   styleUrl: './trip-card.component.css',
 })

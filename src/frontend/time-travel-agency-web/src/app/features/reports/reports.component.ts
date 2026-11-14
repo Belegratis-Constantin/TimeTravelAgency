@@ -31,7 +31,7 @@ import { tripDisplayName } from '../../shared/utils/status.utils';
           @for (r of reports(); track r.guid) {
             <article class="card report">
               <div class="row row--between">
-                <h2 class="display header">{{ r.header }}</h2>
+                <h2 class="header">{{ r.header }}</h2>
                 <span class="mono faint">{{ r.date | date: 'medium' }}</span>
               </div>
               <a class="trip" [routerLink]="['/trip', r.tripGuid]">{{ r.tripName }}</a>
@@ -45,10 +45,11 @@ import { tripDisplayName } from '../../shared/utils/status.utils';
     </div>
   `,
   styles: `
-    .report { padding: 26px 30px; }
-    .header { font-size: 19px; }
-    .trip { display: inline-block; font-size: 12.5px; margin-top: 4px; }
-    .report p { margin: 12px 0 0; color: var(--text-2); line-height: 1.7; }
+    .stack { gap: 8px; }
+    .report { padding: 16px 20px; }
+    .header { font-size: 15px; }
+    .trip { display: inline-block; font-size: 12.5px; font-weight: 500; margin-top: 2px; }
+    .report p { margin: 8px 0 0; color: var(--text-2); line-height: 1.65; max-width: 72ch; }
   `,
 })
 export class ReportsComponent {

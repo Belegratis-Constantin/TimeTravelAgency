@@ -18,6 +18,7 @@ import { TripDto } from '../../core/models/trip.model';
 import { ParadoxFeedDto } from '../../core/models/paradox.model';
 import { ParadoxStabilizerComponent } from '../paradox-stabilizer/paradox-stabilizer.component';
 import { BLOCK_TEXT, canStabilise, stabiliseBlock } from '../../shared/utils/dual-lock.utils';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-agent-missions',
@@ -32,6 +33,7 @@ import { BLOCK_TEXT, canStabilise, stabiliseBlock } from '../../shared/utils/dua
     EmptyStateComponent,
     FormFieldComponent,
     ParadoxStabilizerComponent,
+    IconComponent,
   ],
   templateUrl: './agent-missions.component.html',
   styleUrl: './agent-missions.component.css',
@@ -87,7 +89,7 @@ export class AgentMissionsComponent {
     const missions = this.missions();
     return [
       { label: 'Missions', value: missions.length },
-      { label: 'Under way', value: missions.filter(t => t.tripStatus === 'Active').length, tone: 'gold' },
+      { label: 'Under way', value: missions.filter(t => t.tripStatus === 'Active').length, tone: 'live' },
       { label: 'As licensed agent', value: missions.filter(t => t.licensedAgentId === id).length },
       { label: 'As support agent', value: missions.filter(t => t.agentId === id).length, tone: 'blue' },
       { label: 'Open paradoxes', value: this.openParadoxes().length, tone: this.openParadoxes().length ? 'red' : 'green' },

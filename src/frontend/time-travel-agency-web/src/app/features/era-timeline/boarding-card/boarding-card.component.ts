@@ -7,6 +7,7 @@ import { AgencyStore } from '../../../state/agency.store';
 import { bookingInfo } from '../../../shared/utils/booking.utils';
 import { formatDateTime, formatDuration } from '../../../shared/utils/date.utils';
 import { tripDisplayName, tripStatusMeta } from '../../../shared/utils/status.utils';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { formatYear, PHASE_COLORS, tripPhase, TripPin } from '../era-timeline.config';
 
 interface FactCell {
@@ -19,7 +20,7 @@ interface FactCell {
 @Component({
   selector: 'app-boarding-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, IconComponent],
   templateUrl: './boarding-card.component.html',
   styleUrl: './boarding-card.component.css',
   host: { '[style.--accent]': 'pin().zone.accent' },

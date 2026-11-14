@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { IconComponent } from '../icon/icon.component';
 
 let nextId = 0;
 
@@ -9,18 +10,21 @@ let nextId = 0;
 @Component({
   selector: 'app-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [IconComponent],
   host: { '(document:keydown.escape)': 'closed.emit()' },
   template: `
     <div class="backdrop" (click)="onBackdrop($event)">
       <section class="dialog" [style.width.px]="width()" role="dialog" aria-modal="true" [attr.aria-labelledby]="titleId">
         <header class="head">
-          <h2 class="display title" [id]="titleId">{{ title() }}</h2>
+          <h2 class="title" [id]="titleId">{{ title() }}</h2>
           @if (subtitle()) {
             <p class="subtitle">{{ subtitle() }}</p>
           }
-          <button type="button" class="close" (click)="closed.emit()" aria-label="Close">×</button>
+          <button type="button" class="icon-btn icon-btn--ghost close" (click)="closed.emit()" aria-label="Close">
+            <app-icon name="x" />
+          </button>
         </header>
-        <ng-content />
+        <div class="content"><ng-content /></div>
         <footer class="actions">
           <ng-content select="[modal-actions]" />
         </footer>
@@ -29,16 +33,18 @@ let nextId = 0;
   `,
   styles: `
     .backdrop { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
-                padding: 16px; background: rgba(5, 7, 12, 0.8); }
+                padding: 16px; background: var(--scrim); animation: fadeIn 0.15s ease-out; }
     .dialog { position: relative; max-width: 100%; max-height: 92vh; overflow-y: auto; background: var(--surface);
-              border-radius: 6px; padding: 32px 36px; box-shadow: var(--shadow-overlay); animation: fadeSlideIn 0.2s ease; }
-    .head { margin-bottom: 22px; padding-right: 28px; }
-    .title { font-size: 22px; }
-    .subtitle { margin: 6px 0 0; font-size: 13px; color: var(--text-muted); }
-    .close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border: none; border-radius: 50%;
-             background: transparent; color: var(--text-faint); font-size: 20px; cursor: pointer; }
-    .close:hover { background: var(--border-subtle); color: var(--text); }
-    .actions:not(:empty) { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+              border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-overlay);
+              animation: popIn 0.22s var(--ease-out); }
+    .head { padding: 18px 56px 14px 24px; border-bottom: 1px solid var(--border-subtle); }
+    .title { font-size: 16px; }
+    .subtitle { margin: 2px 0 0; font-size: 13px; color: var(--text-muted); }
+    .close { position: absolute; top: 14px; right: 14px; }
+    .content { padding: 20px 24px; }
+    .actions:not(:empty) { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 24px;
+                           border-top: 1px solid var(--border-subtle); background: var(--bg-raised);
+                           position: sticky; bottom: 0; border-radius: 0 0 12px 12px; }
   `,
 })
 export class ModalComponent {

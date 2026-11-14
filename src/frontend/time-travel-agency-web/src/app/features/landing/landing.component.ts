@@ -7,6 +7,8 @@ import { TripCardComponent } from '../../shared/components/trip-card/trip-card.c
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { bookingState } from '../../shared/utils/booking.utils';
 import { tripDisplayName } from '../../shared/utils/status.utils';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { ERA_ZONES, formatYear } from '../era-timeline/era-timeline.config';
 
 type SortOrder = 'soonest' | 'latest';
 type Timeframe = 'upcoming' | 'underway' | 'past' | 'all';
@@ -20,13 +22,16 @@ const TIMEFRAME_STATUS: Record<Exclude<Timeframe, 'all'>, string[]> = {
 @Component({
   selector: 'app-landing',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TripCardComponent, EmptyStateComponent],
+  imports: [RouterLink, TripCardComponent, EmptyStateComponent, IconComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.css',
 })
 export class LandingComponent {
   protected readonly state = inject(AppStateService);
   protected readonly agency = inject(AgencyStore);
+
+  protected readonly eras = ERA_ZONES;
+  protected readonly formatYear = formatYear;
 
   protected readonly destination = signal('all');
   protected readonly timeframe = signal<Timeframe>('upcoming');

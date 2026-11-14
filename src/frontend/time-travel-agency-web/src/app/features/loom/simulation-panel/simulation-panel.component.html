@@ -1,11 +1,11 @@
 <div class="block">
-  <div class="label">AUTO-GENERATION</div>
+  <div class="label">Auto-generation</div>
   @if (simulation(); as sim) {
     <div class="status-row">
-      <span class="state" [class.on]="sim.enabled">{{ sim.enabled ? '● RUNNING' : '○ PAUSED' }}</span>
-      <button type="button" class="toggle" (click)="toggle()">{{ sim.enabled ? 'Pause' : 'Resume' }}</button>
+      <span class="badge" [class]="sim.enabled ? 'badge--live' : 'badge--neutral'">{{ sim.enabled ? 'Running' : 'Paused' }}</span>
+      <button type="button" class="btn btn--sm" (click)="toggle()">{{ sim.enabled ? 'Pause' : 'Resume' }}</button>
     </div>
-    <div class="label sub">INTERVAL</div>
+    <div class="label sub">Interval</div>
     <div class="presets" role="group" aria-label="Spawn interval">
       @for (p of presets; track p) {
         <button type="button" class="preset" [class.active]="sim.intervalSeconds === p" (click)="setSpawnInterval(p)">
@@ -25,16 +25,16 @@
 </div>
 
 <div class="block">
-  <div class="label">MANUAL TRIGGER</div>
-  <label class="label sub" for="sim-target">TARGET NODE</label>
-  <select id="sim-target" class="target" [value]="target()" (change)="target.set($any($event.target).value)">
-    <option value="">— Random trip under way —</option>
+  <div class="label">Manual trigger</div>
+  <label class="label sub" for="sim-target">Target trip</label>
+  <select id="sim-target" class="select target" [value]="target()" (change)="target.set($any($event.target).value)">
+    <option value="">Random trip under way</option>
     @for (t of activeTrips(); track t.guid) {
       <option [value]="t.guid">{{ tripName(t) }}</option>
     }
   </select>
-  <button type="button" class="fire" [disabled]="busy()" (click)="spawn()">
-    {{ busy() ? 'FRACTURING…' : '⚡ INTRODUCE PARADOX' }}
+  <button type="button" class="btn btn--danger btn--block" [disabled]="busy()" (click)="spawn()">
+    <app-icon name="zap" /> {{ busy() ? 'Fracturing…' : 'Introduce paradox' }}
   </button>
   @if (error()) { <div class="error">{{ error() }}</div> }
 </div>

@@ -5,6 +5,7 @@ import { paradoxMeta, paradoxTypeColor, paradoxTypeLabel, tripDisplayName } from
 import { relativeTime } from '../../utils/date.utils';
 import { queueLabel } from '../../utils/paradox-queue.utils';
 import { StatusBadgeComponent } from '../status-badge/status-badge.component';
+import { IconComponent } from '../icon/icon.component';
 
 export interface ParadoxStatusChange {
   paradox: ParadoxFeedDto;
@@ -25,7 +26,7 @@ export interface ParadoxQueueMove {
 @Component({
   selector: 'app-paradox-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, StatusBadgeComponent],
+  imports: [RouterLink, StatusBadgeComponent, IconComponent],
   templateUrl: './paradox-list.component.html',
   styleUrl: './paradox-list.component.css',
 })

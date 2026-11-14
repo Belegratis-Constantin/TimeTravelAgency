@@ -1,39 +1,83 @@
+/* The shell: an ink bar that keeps its colour in both themes. */
 .bar {
-  position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
-  padding: 18px var(--page-gutter); background: var(--bg); border-bottom: 1px solid var(--surface);
+  position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 8px 24px; flex-wrap: wrap;
+  min-height: var(--shell-height); padding: 8px var(--page-gutter);
+  background: var(--shell); color: var(--shell-text); border-bottom: 1px solid var(--shell-border);
 }
-.brand { font-size: 19px; font-weight: 500; letter-spacing: 0.02em; color: var(--text); }
-.brand em { color: var(--gold); }
-.brand:hover { color: var(--text); }
-.nav { display: flex; gap: 28px; flex-wrap: wrap; flex: 1; }
-.nav-link { font-size: 13.5px; color: var(--text-2); padding-bottom: 4px; border-bottom: 2px solid transparent; }
-.nav-link:hover { color: var(--text); }
-.nav-link.active { color: var(--gold); border-bottom-color: var(--gold); }
-.tools { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.brand { display: inline-flex; align-items: center; gap: 9px; color: var(--shell-text); }
+.brand:hover { color: var(--shell-text); }
+.mark { width: 22px; height: 22px; fill: none; stroke: var(--shell-accent); stroke-width: 1.5; stroke-linecap: round; }
+.mark-hand { stroke: var(--shell-text); stroke-width: 1.75; }
+.wordmark { font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; }
+.wordmark span { color: var(--shell-muted); font-weight: 500; }
 
-.paradox-counter { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.paradox-counter .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-.paradox-counter.alert { color: var(--red); }
-.paradox-counter.alert .dot { background: var(--red); animation: pulseGlow 2s infinite; }
+.nav { display: flex; gap: 2px; flex-wrap: wrap; flex: 1; }
+.nav-link {
+  font-size: 13px; font-weight: 500; color: var(--shell-muted); padding: 5px 10px; border-radius: var(--radius);
+  transition: background 0.15s, color 0.15s;
+}
+.nav-link:hover { color: var(--shell-text); background: var(--shell-raised); }
+.nav-link.active { color: var(--shell-text); background: var(--shell-raised); box-shadow: inset 0 0 0 1px var(--shell-border); }
+.tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 
+/* Live paradox counter */
+.status {
+  display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--shell-muted); white-space: nowrap;
+  padding: 4px 10px; border-radius: var(--radius-pill); border: 1px solid var(--shell-border);
+}
+a.status:hover { color: var(--shell-text); background: var(--shell-raised); }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: #3CCDB0; color: #3CCDB0; }
+.status .count { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--shell-text); }
+.status.alert { border-color: color-mix(in srgb, #F2665C 45%, var(--shell-border)); background: color-mix(in srgb, #F2665C 12%, transparent); color: #FFC9C4; }
+.status.alert .dot { background: #F2665C; color: #F2665C; animation: livePulse 1.6s ease-out infinite; }
+.status.offline .dot { background: #D58870; }
+
+.shell-btn, .shell-icon {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 32px; cursor: pointer;
+  border: 1px solid var(--shell-border); border-radius: var(--radius); background: transparent; color: var(--shell-text);
+  font-size: 13px; font-weight: 500; transition: background 0.15s;
+}
+.shell-btn { padding: 4px 12px; }
+.shell-icon { width: 32px; padding: 0; color: var(--shell-muted); }
+.shell-btn:hover, .shell-icon:hover { background: var(--shell-raised); color: var(--shell-text); }
+.bar :focus-visible { outline-color: var(--shell-accent); }
+
+/* Role switcher */
 .role { position: relative; }
 .role-trigger {
-  display: flex; align-items: center; gap: 8px; font-size: 13px; background: var(--surface);
-  border: 1px solid var(--border); padding: 8px 14px; border-radius: 3px; cursor: pointer;
+  display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 3px 8px 3px 12px; cursor: pointer; text-align: left;
+  background: var(--shell-raised); color: var(--shell-text); border: 1px solid var(--shell-border); border-radius: var(--radius);
+  transition: border-color 0.15s;
 }
-.role-trigger.time { border-color: rgba(176, 110, 232, 0.5); }
-.role-label { color: var(--text-faint); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
-.caret { color: var(--gold); font-size: 10px; }
+.role-trigger:hover { border-color: var(--shell-muted); }
+.role-trigger.time { border-color: color-mix(in srgb, #DA80EA 55%, var(--shell-border)); }
+.role-id { display: grid; line-height: 1.25; }
+.role-name { font-size: 13px; font-weight: 500; }
+.role-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--shell-muted); }
+.caret { color: var(--shell-muted); font-size: 13px; }
+
+/* Rank pips: agent · manager · director */
+.pips { display: inline-flex; gap: 2px; }
+.pips i { width: 5px; height: 5px; border-radius: 1px; transform: rotate(45deg); background: currentColor; opacity: 0.28; }
+.pips i.on { opacity: 1; background: var(--pip, var(--shell-accent)); }
+
 .role-menu {
-  position: absolute; right: 0; top: calc(100% + 6px); width: 200px; margin: 0; padding: 0; list-style: none;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 3px; box-shadow: var(--shadow-overlay);
-  overflow: hidden; z-index: 40;
+  position: absolute; right: 0; top: calc(100% + 6px); width: 220px; margin: 0; padding: 4px; list-style: none; z-index: 40;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay); animation: popIn 0.18s var(--ease-out); transform-origin: top right;
 }
+.role-menu .pips { --pip: var(--brand); color: var(--text-faint); }
 .role-item {
-  display: flex; justify-content: space-between; width: 100%; padding: 12px 16px; font-size: 13px; text-align: left;
-  background: none; border: none; border-bottom: 1px solid var(--border-subtle); cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 7px 10px; font-size: 13px;
+  text-align: left; background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; color: var(--text);
 }
-.role-item:hover { background: var(--border-subtle); }
-.role-item.time { color: var(--violet); border-bottom: none; }
-.role-item.current { color: var(--gold); }
-.check { color: var(--gold); }
+.role-item-label { display: inline-flex; align-items: center; gap: 8px; }
+.role-item:hover { background: var(--surface-sunken); }
+.role-item.time { color: var(--violet); }
+.role-item.current { font-weight: 600; }
+.check { color: var(--brand); }
+
+@media (max-width: 720px) {
+  .wordmark span, .status-text { display: none; }
+  .nav { order: 3; flex-basis: 100%; }
+}

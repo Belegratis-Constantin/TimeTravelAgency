@@ -3,15 +3,15 @@
     <div class="card panel">
       @if (justBooked()) {
         <div class="confirm" aria-live="polite">
-          <div class="confirm-ring"><span class="confirm-check">✓</span></div>
-          <div class="display confirm-title">Journey Booked</div>
-          <div class="mono confirm-sub">TEMPORAL SEAT CONFIRMED</div>
+          <div class="confirm-ring"><app-icon name="check" /></div>
+          <div class="confirm-title">Journey booked</div>
+          <div class="confirm-sub">Temporal seat confirmed</div>
         </div>
       }
 
       @switch (booking().kind) {
         @case ('booked') {
-          <button type="button" class="btn btn--block" disabled><span class="ok">✓</span> You are booked</button>
+          <button type="button" class="btn btn--block" disabled><app-icon class="ok" name="check" /> You are booked</button>
           @if (booking().canCancel) {
             <button type="button" class="btn btn--block cancel" [disabled]="busy()" (click)="cancelBooking()">
               {{ busy() ? 'Cancelling…' : 'Cancel booking' }}
@@ -59,12 +59,12 @@
         @if (openParadoxes().length > 0) {
           <ul class="threats">
             @for (p of openParadoxes(); track p.guid) {
-              <li>
+              <li [class.now]="p.queuePosition === 0">
                 <span>
                   @if (queueLabel(p); as q) { <span class="queue-tag" [class.now]="p.queuePosition === 0">{{ q }}</span> }
                   {{ typeLabel(p.paradoxType) }}
                   @if (p.dualLockRequired) {
-                    <span class="dual-tag">dual lock · {{ p.licensedLocked ? '✓' : '○' }} licensed · {{ p.supportLocked ? '✓' : '○' }} support</span>
+                    <span class="dual-tag">dual lock · licensed {{ p.licensedLocked ? 'locked' : 'open' }} · support {{ p.supportLocked ? 'locked' : 'open' }}</span>
                   }
                 </span>
                 @if (blockText(p); as text) {
@@ -76,9 +76,9 @@
             }
           </ul>
         } @else if (isUnderWay()) {
-          <p class="note left ok">Timeline stable — no open paradoxes.</p>
+          <p class="note left ok"><app-icon name="shield" /> Timeline stable — no open paradoxes.</p>
         }
-        <a class="btn btn--outline-gold btn--block" routerLink="/missions" [queryParams]="{ trip: trip().guid }">File a field report</a>
+        <a class="btn btn--accent btn--block" routerLink="/missions" [queryParams]="{ trip: trip().guid }">File a field report</a>
       } @else {
         <p class="note left">You are not assigned to this trip.</p>
       }
@@ -96,7 +96,7 @@
             <p class="note left warn-text">An escalated paradox needs a dual lock by the licensed and a support agent.
               Assign a support agent so your team can stabilise it.</p>
           }
-          <button type="button" class="btn btn--outline-gold btn--block" (click)="assignAgent.emit()">Assign support agent</button>
+          <button type="button" class="btn btn--accent btn--block" (click)="assignAgent.emit()">Assign support agent</button>
         }
       </div>
     }
@@ -107,10 +107,10 @@
       <div class="panel-label">Simulation</div>
       @if (isUnderWay()) {
         <button type="button" class="btn btn--danger btn--block" [disabled]="busy()" (click)="introduceParadox()">
-          {{ busy() ? 'Fracturing…' : '⚡ Introduce paradox here' }}
+          <app-icon name="zap" /> {{ busy() ? 'Fracturing…' : 'Introduce paradox here' }}
         </button>
       } @else {
-        <button type="button" class="btn btn--block" disabled>⚡ Trip not under way</button>
+        <button type="button" class="btn btn--block" disabled>Trip not under way</button>
         <p class="note">Paradoxes only emerge while a trip is travelling.</p>
       }
       <p class="note">Interval and auto-generation are controlled in <a routerLink="/loom">The Loom</a>.</p>

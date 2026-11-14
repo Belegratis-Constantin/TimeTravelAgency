@@ -1,5 +1,12 @@
 <header class="bar">
-  <a routerLink="/" class="brand display">Time·Travel <em>Agency</em></a>
+  <a routerLink="/" class="brand" aria-label="Time·Travel Agency — home">
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9.25" />
+      <path d="M12 2.75c-4.2 3.1-4.2 15.4 0 18.5M12 2.75c4.2 3.1 4.2 15.4 0 18.5" />
+      <path class="mark-hand" d="M12 12V6.5M12 12l3.6 2.2" />
+    </svg>
+    <span class="wordmark">Time·Travel <span>Agency</span></span>
+  </a>
 
   <nav class="nav" aria-label="Main">
     @for (item of navItems(); track item.path) {
@@ -10,24 +17,40 @@
 
   <div class="tools">
     @if (!feed.online()) {
-      <span class="badge badge--rust" title="The paradox feed cannot reach the backend">Offline</span>
+      <span class="status offline" title="The paradox feed cannot reach the backend"><span class="dot"></span>Offline</span>
     } @else if (showParadoxCounter()) {
-      <a class="paradox-counter" [routerLink]="paradoxTarget()" [class.alert]="feed.scopedOpenCount() > 0"
+      <a class="status" [routerLink]="paradoxTarget()" [class.alert]="feed.scopedOpenCount() > 0"
          [attr.aria-label]="feed.scopedOpenCount() + ' open paradoxes'">
-        <span class="dot"></span>{{ feed.scopedOpenCount() }} open paradox{{ feed.scopedOpenCount() === 1 ? '' : 'es' }}
+        <span class="dot"></span><span class="count">{{ feed.scopedOpenCount() }}</span>
+        <span class="status-text">open paradox{{ feed.scopedOpenCount() === 1 ? '' : 'es' }}</span>
       </a>
     }
 
     @if (state.isCustomer() && !state.currentCustomer()) {
-      <button type="button" class="btn btn--sm btn--outline-gold" (click)="state.requestRole('customer')">Sign in</button>
+      <button type="button" class="shell-btn" (click)="state.requestRole('customer')">Sign in</button>
     }
+
+    <button type="button" class="shell-icon" (click)="theme.toggle()"
+            [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+            [attr.title]="theme.theme() === 'dark' ? 'Light theme' : 'Dark theme'">
+      <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" />
+    </button>
 
     <div class="role">
       <button type="button" class="role-trigger" [class.time]="state.isTime()" (click)="menuOpen.set(!menuOpen())"
               aria-haspopup="menu" [attr.aria-expanded]="menuOpen()">
-        <span class="role-label">{{ state.roleDefinition().label }}</span>
-        <span class="role-name">{{ state.displayName() }}</span>
-        <span class="caret" aria-hidden="true">▾</span>
+        <span class="role-id">
+          <span class="role-name">{{ state.displayName() }}</span>
+          <span class="role-label" [class.sr-only]="state.displayName() === state.roleDefinition().label">
+            {{ state.roleDefinition().label }}
+            @if (rank[state.role()] > 0) {
+              <span class="pips" aria-hidden="true">
+                @for (pip of pips; track pip) { <i [class.on]="rank[state.role()] >= pip"></i> }
+              </span>
+            }
+          </span>
+        </span>
+        <app-icon class="caret" name="chevron-down" />
       </button>
 
       @if (menuOpen()) {
@@ -36,8 +59,16 @@
             <li role="none">
               <button type="button" role="menuitem" class="role-item" [class.time]="r.role === 'time'"
                       [class.current]="r.role === state.role()" (click)="selectRole(r.role)">
-                {{ r.role === 'time' ? '⧗ ' : '' }}{{ r.label }}
-                @if (r.role === state.role()) { <span class="check">✓</span> }
+                <span class="role-item-label">
+                  @if (r.role === 'time') { <app-icon name="hourglass" /> }
+                  {{ r.label }}
+                  @if (rank[r.role] > 0) {
+                    <span class="pips" aria-hidden="true">
+                      @for (pip of pips; track pip) { <i [class.on]="rank[r.role] >= pip"></i> }
+                    </span>
+                  }
+                </span>
+                @if (r.role === state.role()) { <app-icon class="check" name="check" /> }
               </button>
             </li>
           }

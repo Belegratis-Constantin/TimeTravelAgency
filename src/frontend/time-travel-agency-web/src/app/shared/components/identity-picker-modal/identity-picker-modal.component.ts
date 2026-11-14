@@ -33,7 +33,7 @@ interface IdentityOption {
               <button type="button" class="option" [class.current]="o.guid === currentGuid()" (click)="o.select()">
                 <span class="row row--between">
                   <strong>{{ o.title }}</strong>
-                  @if (o.badge) { <span class="badge badge--gold">{{ o.badge }}</span> }
+                  @if (o.badge) { <span class="badge badge--brand">{{ o.badge }}</span> }
                 </span>
                 <span class="sub">{{ o.subtitle }}</span>
               </button>
@@ -46,17 +46,19 @@ interface IdentityOption {
 
       <div modal-actions>
         @if (role() === 'customer') {
-          <button type="button" class="btn btn--outline-gold" (click)="register()">Register new traveller</button>
+          <button type="button" class="btn btn--accent" (click)="register()">Register new traveller</button>
         }
         <button type="button" class="btn" (click)="cancel()">Cancel</button>
       </div>
     </app-modal>
   `,
   styles: `
-    .options { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-height: 340px; overflow-y: auto; }
-    .option { display: grid; gap: 3px; width: 100%; text-align: left; padding: 13px 16px; background: var(--bg);
-              border: 1px solid var(--border); border-radius: 3px; cursor: pointer; font-size: 13.5px; }
-    .option:hover, .option.current { border-color: var(--gold); }
+    .options { list-style: none; margin: 0; padding: 2px; display: grid; gap: 6px; max-height: 340px; overflow-y: auto; }
+    .option { display: grid; gap: 1px; width: 100%; text-align: left; padding: 9px 12px; background: var(--surface);
+              border: 1px solid var(--border-subtle); border-radius: var(--radius); cursor: pointer; font-size: 13.5px;
+              transition: border-color 0.15s, background 0.15s; }
+    .option:hover { border-color: var(--border); background: var(--bg-raised); }
+    .option.current { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 6%, var(--surface)); }
     .sub { font-size: 12px; color: var(--text-muted); }
   `,
 })

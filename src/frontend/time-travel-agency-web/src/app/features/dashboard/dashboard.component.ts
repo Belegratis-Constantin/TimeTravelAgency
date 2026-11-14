@@ -13,6 +13,7 @@ import { CreateTripModalComponent } from '../modals/create-trip-modal/create-tri
 import { AssignAgentModalComponent } from '../modals/assign-agent-modal/assign-agent-modal.component';
 import { CreateAgentModalComponent } from '../modals/create-agent-modal/create-agent-modal.component';
 import { PromoteAgentModalComponent } from '../modals/promote-agent-modal/promote-agent-modal.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 type DashboardModal = 'createTrip' | 'createAgent' | 'promoteAgent' | null;
 
@@ -28,14 +29,15 @@ type DashboardModal = 'createTrip' | 'createAgent' | 'promoteAgent' | null;
     AssignAgentModalComponent,
     CreateAgentModalComponent,
     PromoteAgentModalComponent,
+    IconComponent,
   ],
   template: `
     <div class="page">
       <app-page-header eyebrow="Manager dashboard" [title]="state.displayName()"
                        subtitle="Your trips, your team and the paradoxes threatening them.">
-        <button type="button" class="btn" (click)="modal.set('createAgent')">+ Recruit agent</button>
-        <button type="button" class="btn" (click)="modal.set('promoteAgent')">↑ Grant licence</button>
-        <button type="button" class="btn btn--primary" (click)="modal.set('createTrip')">+ Create trip</button>
+        <button type="button" class="btn" (click)="modal.set('createAgent')"><app-icon name="plus" /> Recruit agent</button>
+        <button type="button" class="btn" (click)="modal.set('promoteAgent')"><app-icon name="award" /> Grant licence</button>
+        <button type="button" class="btn btn--primary" (click)="modal.set('createTrip')"><app-icon name="plus" /> Create trip</button>
       </app-page-header>
 
       @if (agency.initialLoading()) {
@@ -91,7 +93,7 @@ export class DashboardComponent {
     return [
       { label: 'Trips', value: trips.length },
       { label: 'Scheduled', value: trips.filter(t => t.tripStatus === 'Scheduled').length, tone: 'blue' },
-      { label: 'Under way', value: trips.filter(t => t.tripStatus === 'Active').length, tone: 'gold' },
+      { label: 'Under way', value: trips.filter(t => t.tripStatus === 'Active').length, tone: 'live' },
       { label: 'Critical', value: trips.filter(t => t.tripType === 'CriticalTrip').length, tone: 'red' },
       { label: 'Travellers', value: trips.reduce((sum, t) => sum + t.customers.length, 0) },
       { label: 'Open paradoxes', value: open, tone: open ? 'amber' : 'green' },
