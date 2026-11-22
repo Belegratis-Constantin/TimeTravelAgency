@@ -2,6 +2,11 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
 
+## Design system
+
+Tokens, themes (light and dark) and component rules are documented in [`DESIGN.md`](DESIGN.md). Product context is in
+[`PRODUCT.md`](PRODUCT.md); the (German) learning guide is [`FRONTEND-GUIDE.md`](FRONTEND-GUIDE.md).
+
 ## Development server
 
 To start a local development server, run:

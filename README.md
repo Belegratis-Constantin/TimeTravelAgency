@@ -7,6 +7,7 @@ The domain models trips, agents, licensed support roles, customers, paradoxes, h
 ## Table of Contents
 
 - [Key Features](#key-features)
+- [Screenshots](#screenshots)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Repository Structure](#repository-structure)
@@ -31,15 +32,31 @@ The domain models trips, agents, licensed support roles, customers, paradoxes, h
 - Customer registration, booking operations, and review handling.
 - Paradox tracking as part of trip execution outcomes.
 - Rich seeded historical data (epochs and events) for temporal context.
+- Role-based Angular UI (customer, agent, manager, director, and "Time Itself") with a light and dark workspace design system.
 - Swagger/OpenAPI UI for API exploration.
 - Unit tests with xUnit.
+
+## Screenshots
+
+Light theme, role by role (a dark theme is available from the header switch).
+
+| Customer: The Continuum | Manager: dashboard |
+| --- | --- |
+| ![The Continuum with a boarding pass](docs/screenshots/11-continuum-boarding-card.png) | ![Manager dashboard](docs/screenshots/06-manager-dashboard.png) |
+
+| Agent: Phase Lock | Time Itself: The Loom (dark) |
+| --- | --- |
+| ![Phase Lock mini-game](docs/screenshots/13-phase-lock-game.png) | ![The Loom in the dark theme](docs/screenshots/16-loom-dark.png) |
+
+More captures are in [`docs/screenshots`](docs/screenshots). The design rules and tokens are documented in
+[`DESIGN.md`](src/frontend/time-travel-agency-web/DESIGN.md).
 
 ## Architecture
 
 This repository currently contains:
 
 - **Backend:** ASP.NET Core Web API (`net10.0`) with Entity Framework Core and SQLite.
-- **Frontend:** Angular (`@angular/core` 21.x) app scaffold in a dedicated subfolder.
+- **Frontend:** Angular (`@angular/core` 21.x) single-page app in a dedicated subfolder (see its [`FRONTEND-GUIDE.md`](src/frontend/time-travel-agency-web/FRONTEND-GUIDE.md) and [`DESIGN.md`](src/frontend/time-travel-agency-web/DESIGN.md)).
 - **Tests:** xUnit project referencing the backend application project.
 
 The backend starts as an executable app and configures controllers, Swagger, and a SQLite database context. On startup, it ensures database creation and seeds sample data.

@@ -26,3 +26,7 @@ Thumbs.db
 # ── Logs / temp ────────────────────────────────────────────────────────────────
 *.log
 npm-debug.log*
+
+# ── Screenshots ────────────────────────────────────────────────────────────────
+# The committed README captures live here; add them deliberately with `git add -f`.
+docs/screenshots/
