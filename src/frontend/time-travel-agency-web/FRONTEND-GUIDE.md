@@ -1576,7 +1576,7 @@ Warum so gut:
   ```ts
   const TRIP_STATUS: Record<TripStatus, StatusMeta> = {
     Scheduled: { label: 'Scheduled', tone: 'blue' },
-    Active:    { label: 'Under way', tone: 'gold' },
+    Active:    { label: 'Under way', tone: 'live' },
     ...
   };
   export function tripStatusMeta(status: string): StatusMeta {
@@ -1708,6 +1708,10 @@ SVG-Attribute bindet man mit `[attr.xxx]`. Der Pfad (`M0,100 L4.3,95.2 …`) wir
 - **Parallax**: Sterne in 3 Ebenen bewegen sich mit unterschiedlichem Faktor (`DEPTHS = [0.12, 0.32, 0.62]`) zum Scrollen.
 - **Aufräumen**: `cancelAnimationFrame` und `removeEventListener('resize', …)` in `ngOnDestroy`.
 
+> **Stand nach dem Redesign:** Continuum und Loom sind jetzt ruhige Arbeits-Boards im Stil der übrigen App.
+> Die Canvas-Ebene wird per CSS ausgeblendet (`.stars { display: none; }`), der Zeichencode steht aber noch in den
+> Komponenten und eignet sich weiterhin als Beispiel für diese Technik.
+
 ### 16.5 Bezier-Kurven & Daten → Geometrie (Loom)
 
 `loom.component.ts` berechnet die Position jedes Trips auf einer kubischen Bézier-Kurve (`cubicBezier(...)`) und
@@ -1717,7 +1721,7 @@ altem und neuem Zustand, um Übergänge zu animieren.**
 
 ### 16.6 CSS-Animationen
 
-Globale `@keyframes` in `styles.css` (`fadeSlideIn`, `pulseGlow`, `led-blink`, `holo-scan` …) werden in vielen
+Globale `@keyframes` in `styles.css` (`riseIn`, `popIn`, `livePulse`, `softPulse`, `led-blink` …) werden in vielen
 Komponenten wiederverwendet. Und:
 
 ```css
@@ -1736,22 +1740,32 @@ Animationen. **Barrierefreiheit für Bewegung.**
 ### 17.1 Design Tokens (`src/styles.css`)
 
 ```css
-:root {
-  --bg: #0B1120;
-  --surface: #1E2A3A;
-  --gold: #C9A84C;
-  --text: #F0EDE6;
-  --text-muted: #8A93A6;
-  --red: #E05A4E;
-  --font-display: 'Fraunces', Georgia, serif;
-  --radius: 4px;
-  --page-gutter: clamp(16px, 4vw, 56px);
+:root {                                   /* Light ist der Standard */
+  --bg: #F5F6F3;
+  --surface: #FFFFFF;
+  --text: #141815;
+  --text-muted: #5B635D;
+  --brand: #1F5A3D;                       /* Links, Auswahl, Fokus */
+  --brand-solid: #161A17;                 /* primärer Button (Tinte) */
+  --red: #C42E27;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --radius: 6px;
+  --page-gutter: clamp(16px, 4vw, 48px);
+}
+
+:root[data-theme='dark'] {                /* Dark überschreibt nur die Werte */
+  --bg: #0C0F0D;
+  --surface: #161A17;
+  --text: #ECEFEA;
+  --brand: #A5D6B7;
+  --brand-solid: #ECEFEA;
+  --red: #F2665C;
 }
 ```
 
 **Alle** Farben, Schriften, Radien als **CSS Custom Properties** an einer Stelle. Komponenten schreiben
-`color: var(--text-muted)` statt `#8A93A6`. Vorteile: konsistentes Design, Theme-Wechsel an einer Stelle,
-lesbare Namen statt Hex-Codes.
+`color: var(--text-muted)` statt eines Hex-Codes. Vorteile: konsistentes Design, Theme-Wechsel an einer Stelle
+(siehe 17.6), lesbare Namen statt Hex-Codes.
 
 `clamp(16px, 4vw, 56px)` = "4 % der Viewport-Breite, aber mindestens 16 px und höchstens 56 px" – **fluides,
 responsives Spacing ohne Media Queries**.
@@ -1759,12 +1773,12 @@ responsives Spacing ohne Media Queries**.
 ### 17.2 Utility-Klassen
 
 ```css
-.page  { max-width: 1360px; margin: 0 auto; padding: 40px var(--page-gutter) 96px; }
+.page  { max-width: 1280px; margin: 0 auto; padding: 32px var(--page-gutter) 96px; }
 .stack { display: flex; flex-direction: column; gap: 16px; }
-.row   { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.card  { background: var(--surface); border-radius: var(--radius); padding: 24px; }
-.btn, .btn--primary, .btn--sm, .btn--block ...
-.badge, .badge--red, .badge--gold ...
+.row   { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card  { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; }
+.btn, .btn--primary, .btn--accent, .btn--sm, .btn--block ...
+.badge, .badge--red, .badge--brand, .badge--live ...
 ```
 
 Ein kleines, selbstgebautes Design-System im **BEM-ähnlichen** Stil (`block--modifier`). Komponenten-CSS enthält nur
@@ -1798,22 +1812,35 @@ Das ist eine sehr moderne, saubere Technik: **JS liefert Daten, CSS entscheidet 
 ### 17.4 Layout-Techniken
 
 ```css
-.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 24px; }
-.split { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 48px; }
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 32px; }
 @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
 ```
 
 - `repeat(auto-fill, minmax(300px, 1fr))` – **responsives Karten-Grid ohne Media Query**: so viele Spalten wie
   passen, jede mindestens 300 px. `min(100%, 300px)` verhindert Überlauf auf sehr schmalen Bildschirmen.
-- `minmax(0, 1.6fr)` statt `1.6fr` – verhindert, dass langer Inhalt die Spalte sprengt (häufiger Grid-Bug).
+- `minmax(0, 1.7fr)` statt `1.7fr` – verhindert, dass langer Inhalt die Spalte sprengt (häufiger Grid-Bug).
 - `:host` in Komponenten-CSS stylt das Komponenten-Element selbst; `:host { display: block; }` ist wichtig, weil
   Custom Elements standardmäßig `inline` sind.
 
 ### 17.5 Schriften & Fokus
 
-- Google Fonts per `@import` (Fraunces für Überschriften, IBM Plex Sans/Mono für Text/Zahlen).
-- `:focus-visible { outline: 2px solid var(--gold); }` – sichtbarer Fokusring **nur bei Tastaturnavigation**,
+- Google Fonts per `<link>` in `index.html` (Geist für alles, Geist Mono für Zahlen, Zeitstempel und Messwerte).
+- `:focus-visible { outline: 2px solid var(--brand); }` – sichtbarer Fokusring **nur bei Tastaturnavigation**,
   nicht bei Mausklicks.
+
+### 17.6 Themes, Icons und die Stabilitätsanzeige
+
+- **`ThemeService`** (`state/theme.service.ts`): ein Signal `theme` und `toggle()`. Es setzt `data-theme` auf `<html>`,
+  speichert die Wahl in `localStorage` (`tta_theme`) und fällt ohne Wahl auf `prefers-color-scheme` zurück. Ein
+  kleines Skript in `index.html` setzt das Theme schon vor dem ersten Rendern, damit nichts aufblitzt.
+- **Dark Theme = nur Token-Überschreibung** in `:root[data-theme='dark']`. Die Komponenten bleiben unverändert, weil
+  sie ausschließlich `var(--…)` benutzen. Die Klasse `.theme-dark` erzwingt dunkel für einen Teilbaum (nur das
+  Tutorial-Overlay nutzt das).
+- **`app-icon`** (`IconComponent`, Input `name`): ein SVG-Icon-Set mit einheitlicher Strichstärke statt Emoji.
+- **`app-integrity-gauge`**: reine Darstellung. Bekommt nur die Zahl offener Paradoxe (`input.required`) und zeichnet
+  per `computed` drei Zellen (`CRITICAL_PARADOX_THRESHOLD`). Gutes Beispiel für eine kleine, zustandslose Komponente.
+- Alle Regeln und Tokens stehen zusätzlich in `DESIGN.md` neben dieser Datei.
 
 ---
 
@@ -2323,7 +2350,7 @@ Guter Code ist nicht perfekt – zu lernen, wo man ihn verbessern könnte, ist g
 
 **Übungen mit steigender Schwierigkeit:**
 
-1. ⭐ Ändere die Farbe `--gold` in `styles.css` und beobachte, wie sich die ganze App ändert.
+1. ⭐ Ändere die Farbe `--brand` in `styles.css` und beobachte, wie sich Links, Auswahl und Fokus der ganzen App ändern.
 2. ⭐ Füge einen neuen Toast-Typ `'warning'` hinzu (Typ, Service-Methode, CSS in `ToastStackComponent`).
 3. ⭐⭐ Füge auf der Landing-Page einen Filter "nur Trips mit freien Plätzen < 5 Travellers" hinzu
    (neues Signal + Erweiterung des `trips`-`computed`).
